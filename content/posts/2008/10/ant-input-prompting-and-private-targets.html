@@ -1,6 +1,27 @@
-
-<html><head>
-<title>Ant Input Prompting and Private Targets</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2008-10-21T20:02:00.000-05:00" />
-</head><body>I have found the <a href="http://ant.apache.org/">Ant</a> <tt>input</tt> tag useful lately for setting up runtime parameters of an Ant build. <br /><a name='more'></a>We have a few different server configuration settings that vary based on which server the artifact is being built for and the <tt>input</tt> tag makes this really easy:  <br /><br /><pre class="brush:xml">&lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;</pre><br />The downside of this is that it will prompt you to enter this every time you run the build, which can become annoying and really prohibits automated building. This is where the <tt>unless</tt> attribute of the <tt>target</tt> tag comes into play.  First create a private target (one whose name starts with "-") that will prompt for the config name:  <br /><br /><pre class="brush:xml">&lt;target name="-prompt-for-config"&gt;<br />    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;<br />&lt;/target&gt;<br /></pre><br />Then add the <tt>unless</tt> attribute to check for the presence of the <tt>config.name</tt> property:  <br /><br /><pre class="brush:xml">&lt;target name="-prompt-for-config" unless="config.name"&gt;<br />    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;<br />&lt;/target&gt;<br /></pre><br />which will cause this task to be run only if the specified property is not set. The you can have other tasks depend on this private task, which will only run if you have not specified the <tt>config.name</tt> property on the ant command line.  <br /><br /><pre class="brush:xml">&lt;target name="compile" depends="-prompt-for-config" description="Compiles the java sources."&gt;<br />    &lt;!-- do stuff --&gt;<br />&lt;/target&gt;<br /></pre><br />Calling ant with the following will not prompt the user for the <tt>config.name</tt>:  <br /><br /><pre class="brush:text">ant compile -Dconfig.name=foo</pre><br />I have used this in a few places now to make the build a bit more flexible, such as for doing server deployments, artifact installations, etc. It is a handy ant trick to keep in mind.</body></html>
+<html>
+<head>
+    <title>Ant Input Prompting and Private Targets</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2008-10-21T20:02:00.000-05:00"/>
+</head>
+<body>I have found the <a href="http://ant.apache.org/">Ant</a> <tt>input</tt> tag useful lately for setting up runtime
+parameters of an Ant build. <br/><a name='more'></a>We have a few different server configuration settings that vary
+based on which server the artifact is being built for and the <tt>input</tt> tag makes this really easy: <br/><br/>
+<pre class="brush:xml">&lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;</pre>
+<br/>The downside of this is that it will prompt you to enter this every time you run the build, which can become
+annoying and really prohibits automated building. This is where the <tt>unless</tt> attribute of the <tt>target</tt> tag
+comes into play. First create a private target (one whose name starts with "-") that will prompt for the config name:
+<br/><br/>
+<pre class="brush:xml">&lt;target name="-prompt-for-config"&gt;<br/>    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;<br/>&lt;/target&gt;<br/></pre>
+<br/>Then add the <tt>unless</tt> attribute to check for the presence of the <tt>config.name</tt> property: <br/><br/>
+<pre class="brush:xml">&lt;target name="-prompt-for-config" unless="config.name"&gt;<br/>    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;<br/>&lt;/target&gt;<br/></pre>
+<br/>which will cause this task to be run only if the specified property is not set. The you can have other tasks depend
+on this private task, which will only run if you have not specified the <tt>config.name</tt> property on the ant command
+line. <br/><br/>
+<pre class="brush:xml">&lt;target name="compile" depends="-prompt-for-config" description="Compiles the java sources."&gt;<br/>    &lt;!-- do stuff --&gt;<br/>&lt;/target&gt;<br/></pre>
+<br/>Calling ant with the following will not prompt the user for the <tt>config.name</tt>: <br/><br/>
+<pre class="brush:text">ant compile -Dconfig.name=foo</pre>
+<br/>I have used this in a few places now to make the build a bit more flexible, such as for doing server deployments,
+artifact installations, etc. It is a handy ant trick to keep in mind.
+</body>
+</html>

@@ -1,6 +1,26 @@
-
-<html><head>
-<title>Finding Your Center</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2010-08-28T16:50:00.000-05:00" />
-</head><body>Way back when I was in high school my typing teacher (yes, on a mechanical typewriter) taught us how to center blocks of text on a page. This has been a useful skill as I got into web development and programming as not everything has a built-in "center" alignment property. <br /><a name='more'></a> I have never been asked how to do this, so it may be common knowledge, but I thought I would share anyway since I have not been blogging much. Basically, think about your viewing area as a page and what you are centering as a rectangle drawn on that page. Now fold that page in half and you will see that half of your rectangle is contained on half the page... makes sense. You are finding the horizontal position (x coordinate) of the left edge of your rectangle by subtracting half of its width from half the width of the page:  <br /><br /><pre class="brush:text">x = [page_width]/2 - [item_width]/2</pre><br />or after a little simplification  <br /><br /><pre class="brush:text">x = ( [page_width] - [item_width] )/2</pre><br />This is exactly the same way you would center vertically. The equation from above expressed with more meaningful terms:  <br /><br /><pre class="brush:text">y = ( [page_height] - [item_height] )/2</pre><br />Now to bring this into the Java world you can center a JFrame in the center of your monitor screen:  <br /><br /><pre class="brush:java">Dimension frameSize = new Dimension(800,600);<br />Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();<br />int x = (screenSize.width-frameSize.width)/2;<br />int y = (screenSize.height-frameSize.height)/2;<br />frame.setBounds( x, y, frameSize.width, frameSize.height );<br /></pre><br />Not too bad at all, but it has always surprised me that Swing does not provide helper methods to center components inside of other components.</body></html>
+<html>
+<head>
+    <title>Finding Your Center</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2010-08-28T16:50:00.000-05:00"/>
+</head>
+<body>Way back when I was in high school my typing teacher (yes, on a mechanical typewriter) taught us how to center
+blocks of text on a page. This has been a useful skill as I got into web development and programming as not everything
+has a built-in "center" alignment property. <br/><a name='more'></a> I have never been asked how to do this, so it may
+be common knowledge, but I thought I would share anyway since I have not been blogging much. Basically, think about your
+viewing area as a page and what you are centering as a rectangle drawn on that page. Now fold that page in half and you
+will see that half of your rectangle is contained on half the page... makes sense. You are finding the horizontal
+position (x coordinate) of the left edge of your rectangle by subtracting half of its width from half the width of the
+page: <br/><br/>
+<pre class="brush:text">x = [page_width]/2 - [item_width]/2</pre>
+<br/>or after a little simplification <br/><br/>
+<pre class="brush:text">x = ( [page_width] - [item_width] )/2</pre>
+<br/>This is exactly the same way you would center vertically. The equation from above expressed with more meaningful
+terms: <br/><br/>
+<pre class="brush:text">y = ( [page_height] - [item_height] )/2</pre>
+<br/>Now to bring this into the Java world you can center a JFrame in the center of your monitor screen: <br/><br/>
+<pre class="brush:java">Dimension frameSize = new Dimension(800,600);<br/>Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();<br/>int x = (screenSize.width-frameSize.width)/2;<br/>int y = (screenSize.height-frameSize.height)/2;<br/>frame.setBounds( x, y, frameSize.width, frameSize.height );<br/></pre>
+<br/>Not too bad at all, but it has always surprised me that Swing does not provide helper methods to center components
+inside of other components.
+</body>
+</html>

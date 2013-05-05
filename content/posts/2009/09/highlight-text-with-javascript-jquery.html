@@ -1,6 +1,20 @@
-
-<html><head>
-<title>Highlight Text With JavaScript: JQuery</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-09-24T11:00:00.000-05:00" />
-</head><body>In my recent post about <a href="http://www.coffeaelectronica.com/2009/09/highlight-text-with-javascript.html">Highlighting Text With JavaScript</a> I suggested that I should try doing the same functionality with <a href="http://jquery.com/">JQuery</a>. <br /><a name='more'></a> So I did, and I am really starting to like JQuery. Below are the modifications to the HTML shown in the previous posting; basically you just swap out the two script elements in the <a href="http://prototypejs.org/">Prototype</a> version with those shown below:  <br /><br /><pre class="brush:html">&lt;script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"&gt;&lt;/script&gt;<br />&lt;script type="text/javascript"&gt;<br />    jQuery(function(){<br />        $('#content').bind('click',highlight);<br />    });<br />    <br />    function highlight(){<br />        var htm = $('#content').html();<br />        var str = '';<br />        <br />        jQuery.each( htm.split(' '), function(){<br />           if(jQuery.trim(this) != ''){<br />            str += this.replace('pick','&lt;span&gt;pick&lt;/span&gt;');<br />           }<br />           str += ' ';<br />        });<br />        <br />        $('#content').html(str);<br />    }<br />&lt;/script&gt;<br /></pre><br />JQuery does on-load event handling and event-handling in general, from what I have seen, in a very similar way to how Prototype does it. The <tt>highlight()</tt> function is a bit more complex in this version as JQuery does not seem to have the same level of String manipulation support out of the box; however, maybe I missed it in the documentation or perhaps there is a good plugin that adds better string handling.  This post is not really meant to compare the two libraries overall; it was more to satisfy my curiousity and get some practice with JQuery when solving a problem I have already solved with Prototype.</body></html>
+<html>
+<head>
+    <title>Highlight Text With JavaScript: JQuery</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-09-24T11:00:00.000-05:00"/>
+</head>
+<body>In my recent post about <a href="http://www.coffeaelectronica.com/2009/09/highlight-text-with-javascript.html">Highlighting
+    Text With JavaScript</a> I suggested that I should try doing the same functionality with <a
+        href="http://jquery.com/">JQuery</a>. <br/><a name='more'></a> So I did, and I am really starting to like
+JQuery. Below are the modifications to the HTML shown in the previous posting; basically you just swap out the two
+script elements in the <a href="http://prototypejs.org/">Prototype</a> version with those shown below: <br/><br/>
+<pre class="brush:html">&lt;script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"&gt;&lt;/script&gt;<br/>&lt;script type="text/javascript"&gt;<br/>    jQuery(function(){<br/>        $('#content').bind('click',highlight);<br/>    });<br/>    <br/>    function highlight(){<br/>        var htm = $('#content').html();<br/>        var str = '';<br/>        <br/>        jQuery.each( htm.split(' '), function(){<br/>           if(jQuery.trim(this) != ''){<br/>            str += this.replace('pick','&lt;span&gt;pick&lt;/span&gt;');<br/>           }<br/>           str += ' ';<br/>        });<br/>        <br/>        $('#content').html(str);<br/>    }<br/>&lt;/script&gt;<br/></pre>
+<br/>JQuery does on-load event handling and event-handling in general, from what I have seen, in a very similar way to
+how Prototype does it. The <tt>highlight()</tt> function is a bit more complex in this version as JQuery does not seem
+to have the same level of String manipulation support out of the box; however, maybe I missed it in the documentation or
+perhaps there is a good plugin that adds better string handling. This post is not really meant to compare the two
+libraries overall; it was more to satisfy my curiousity and get some practice with JQuery when solving a problem I have
+already solved with Prototype.
+</body>
+</html>

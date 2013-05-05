@@ -1,6 +1,18 @@
-
-<html><head>
-<title>Circular Arrays</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2008-01-25T08:14:00.000-06:00" />
-</head><body>Another one of those, "well, duh" moments... a very easy way to do wrap-around or circular array indexing.<br /><a name='more'></a> <br /><pre class="brush:java">i = (i + 1) % N</pre><br />Where i is your current index and N is the length of the array.  Say you have an array of five elements. When you are currently on element of index 2, your next index will be:  <br /><br /><pre class="brush:java">i = (2 + 1) % 5 = 3</pre><br />However, once you get to the last element, index 4:  <br /><br /><pre class="brush:java">i = (4 + 1) % 5 = 0</pre><br />Viola, you are back at 0 again. I don't know why but I really neglect the mod operator (%). It has some interesting uses.</body></html>
+<html>
+<head>
+    <title>Circular Arrays</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2008-01-25T08:14:00.000-06:00"/>
+</head>
+<body>Another one of those, "well, duh" moments... a very easy way to do wrap-around or circular array indexing.<br/><a
+        name='more'></a> <br/>
+<pre class="brush:java">i = (i + 1) % N</pre>
+<br/>Where i is your current index and N is the length of the array. Say you have an array of five elements. When you
+are currently on element of index 2, your next index will be: <br/><br/>
+<pre class="brush:java">i = (2 + 1) % 5 = 3</pre>
+<br/>However, once you get to the last element, index 4: <br/><br/>
+<pre class="brush:java">i = (4 + 1) % 5 = 0</pre>
+<br/>Viola, you are back at 0 again. I don't know why but I really neglect the mod operator (%). It has some interesting
+uses.
+</body>
+</html>

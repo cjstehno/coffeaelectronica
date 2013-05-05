@@ -1,6 +1,23 @@
-
-<html><head>
-<title>Converting Numbers to Ranges: Python</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-11-21T20:09:00.000-06:00" />
-</head><body>I have decided to start doing little programming puzzle problems in various languages, since my duplicate int finding problem is getting old and repetitive. My first puzzle comes from a site called <a href="http://codegolf.com/">Code Golf</a> and it is titled <a href="http://codegolf.com/home-on-the-range">Home on the Range</a>. I decided to start with <a href="http://python.org/">Python</a> since it is something I have been playing with. <br /><a name='more'></a>Basically the puzzle boils down to taking a series of numbers (in sequence) as input and producing a result where the numbers that are reduced to ranges where applicable, as below:  <br /><br /><pre class="brush:text">[1 2 3 6 9 10 11 15] becomes "1-3, 6, 9-11, 15."</pre><br />After a couple iterations and a handful of language/api reference searches I came up with:  <br /><br /><pre class="brush:python">import sys<br />    <br />def convert_to_ranges(nums):<br />    ranges, holder = '',''<br />    num_count = len(nums)<br />    cap = endcap(num_count)<br /><br />    for i in range(num_count):<br />        if i+1 &lt; num_count and int(nums[i])+1 == int(nums[i+1]):<br />            if not holder: holder = nums[i]<br />        else:<br />            if holder:<br />                ranges += holder + '-' + nums[i] + cap(i)<br />                holder = ''<br />            else:<br />                ranges += nums[i] + cap(i)<br />    <br />    return ranges<br /><br />def endcap(ln):<br />    return lambda idx: '.' if idx == ln-1 else ', '<br />    <br />print(convert_to_ranges(sys.argv[1:]))<br /></pre><br />I had originally had the <tt>holder</tt> variable as a list to hold each grouped number, but I realized that you really only need to store the first one so that you can use it to create the start of the grouping once you find the end of it. The lambda function (<tt>endcap()</tt>) was originally just a normal function, but I wanted to play with some interesting built-in features, and it actually worked out nicely. The python ternary operator is also interesting ( VAL if CONDITION else OTHERVAL ); it reads better than other ternary operators.  The <tt>int()</tt> calls I make in the function are simply there because the input comes from the standard in, where they are strings.</body></html>
+<html>
+<head>
+    <title>Converting Numbers to Ranges: Python</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-11-21T20:09:00.000-06:00"/>
+</head>
+<body>I have decided to start doing little programming puzzle problems in various languages, since my duplicate int
+finding problem is getting old and repetitive. My first puzzle comes from a site called <a href="http://codegolf.com/">Code
+    Golf</a> and it is titled <a href="http://codegolf.com/home-on-the-range">Home on the Range</a>. I decided to start
+with <a href="http://python.org/">Python</a> since it is something I have been playing with. <br/><a name='more'></a>Basically
+the puzzle boils down to taking a series of numbers (in sequence) as input and producing a result where the numbers that
+are reduced to ranges where applicable, as below: <br/><br/>
+<pre class="brush:text">[1 2 3 6 9 10 11 15] becomes "1-3, 6, 9-11, 15."</pre>
+<br/>After a couple iterations and a handful of language/api reference searches I came up with: <br/><br/>
+<pre class="brush:python">import sys<br/>    <br/>def convert_to_ranges(nums):<br/>    ranges, holder = '',''<br/>    num_count = len(nums)<br/>    cap = endcap(num_count)<br/><br/>    for i in range(num_count):<br/>        if i+1 &lt; num_count and int(nums[i])+1 == int(nums[i+1]):<br/>            if not holder: holder = nums[i]<br/>        else:<br/>            if holder:<br/>                ranges += holder + '-' + nums[i] + cap(i)<br/>                holder = ''<br/>            else:<br/>                ranges += nums[i] + cap(i)<br/>    <br/>    return ranges<br/><br/>def endcap(ln):<br/>    return lambda idx: '.' if idx == ln-1 else ', '<br/>    <br/>print(convert_to_ranges(sys.argv[1:]))<br/></pre>
+<br/>I had originally had the <tt>holder</tt> variable as a list to hold each grouped number, but I realized that you
+really only need to store the first one so that you can use it to create the start of the grouping once you find the end
+of it. The lambda function (<tt>endcap()</tt>) was originally just a normal function, but I wanted to play with some
+interesting built-in features, and it actually worked out nicely. The python ternary operator is also interesting ( VAL
+if CONDITION else OTHERVAL ); it reads better than other ternary operators. The <tt>int()</tt> calls I make in the
+function are simply there because the input comes from the standard in, where they are strings.
+</body>
+</html>

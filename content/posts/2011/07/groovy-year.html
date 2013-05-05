@@ -1,6 +1,85 @@
-
-<html><head>
-<title>A Groovy Year</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2011-07-09T09:05:00.001-05:00" />
-</head><body><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-gx3R4WhcAQw/ThhUU0KtsjI/AAAAAAAABaA/Uc6Rjl7wWcE/s1600/groovy-grails-logo.png" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" src="http://3.bp.blogspot.com/-gx3R4WhcAQw/ThhUU0KtsjI/AAAAAAAABaA/Uc6Rjl7wWcE/s1600/groovy-grails-logo.png" /></a></div>It's been just over a year now that I have been working full time with <a href="http://groovy.codehaus.org/">Groovy</a> and <a href="http://grails.com/">Grails</a>&nbsp;so I figured it was a good time for a retrospective. I will go over general thoughts and lessons learned here and then I plan on covering some of the topics in greater detail in separate postings.<br /><br />In the company I work for we do all of our web application development work using Grails, which is all done using Groovy. We also have quite a few external projects that feed into our Grails applications; these are written mostly in Groovy and Java. Ask three different developers in the company how they feel about our technology choices and you will get three different answers. Personally, these technologies are perfectly suited for what we are doing, but there are always pros and cons with any environment and that's what I want to address here.<br /><a name='more'></a><br /><br /><b>Groovy</b><br /><br />Groovy is a great language. Its flexible, expressive and concise. It really does wipe away all the development fluff and leave you to do actual coding work.<br /><br />The problem with Groovy is that it is deceptively simple and at times too "magic" for under-skilled developers.&nbsp;It has no real compile time checking, limited analysis tools and IDE support can be spotty depending on which one you are working with. In the hands of a less-seasoned&nbsp;developer Groovy can lead to a free-for-all of odd constructs and bad coding practices that can be difficult to refactor away.&nbsp;Refactoring in Groovy can be a painful undertaking due to its dynamic nature and limited IDE support.<br /><br />Some suggestions I have for a team starting out with Groovy:<br /><br /><ul><li>Unit testing is a requirement as are higher coverage targets, and I mean like 90-100% coverage. Since you don't have any compile-time checking and its very easy to have hidden runtime issues with Groovy, you need to enforce a high level of unit testing and unit test coverage.</li><li>Coding standards should be determined and enforced. Just because Groovy will let you do something doesn't mean you should do it.</li><li>Code reviews. With Groovy, especially starting out, you should do code reviews on pretty much everything you check in. Code reviews are always a good practice, but even more so when starting out with a dynamic language. The more eyes looking at the code, the better. This also helps to enforce coding standards.</li><li>Embrace Groovy, but don't get crazy about it. Groovy has some great time-saving and keystroke-saving features... use them, but remember what Uncle Ben said, "with great power comes great&nbsp;responsibility".</li><li>Use a code analysis tool like <a href="http://codenarc.sourceforge.net/">CodeNarc</a> on your code to point out standards violations and possible bugs.</li></ul><br /><b>Grails</b><br /><br />Grails is one of those life-changing frameworks that come along and change the way you do everything. I have done web application development with Servlet/JSP, Struts, Spring MVC (xml and annotations) and I can say that once you give Grails a try, it's hard to turn to anything else. It does so much of the boilerplate work for you that you are left to write the actual working code rather than all the bindings and plumbing. It has a strong plugin system and an active plugin community so it's easy to find what you need or to build it yourself.<br /><br />The biggest downside I have seen with Grails, is that it seems overly difficult to pull your domain objects out into separate projects rather than having them in the Grails project itself.<br /><br />My Grails recommendations:<br /><br /><ul><li>Break your application up into projects appropriately. Just because you are using Grails doesn't mean everything has to be in your Grails project. GORM does seem to have issues outside of Grails but there are other things you can externalize and then provide as maven dependencies or as Grails plugins.</li><li>Follow Grails recommendations. If you do things the "Grails way" you will have a more simple experience and get the most out of grails.</li><li>Keep your Grails version as current as possible. I am not saying you have to live on the cutting edge of each release, but as the Grails versions progress, so should the version that you use. If you get too far behind, it will only be more painful than doing it incrementally.</li></ul><br /><b>IDE Support</b><br /><br />IDE support has been slow coming and generally spotty. During this past year I have tried all of the "big three", <a href="http://eclipse.org/">Eclipse</a>, <a href="http://netbeans.org/">NetBeans</a> and <a href="http://jetbrains.com/idea">IntelliJ</a>&nbsp;with varried results.<br /><br />I started with the IDE I had been using for years, Eclipse, which I quickly found out had terrible Groovy support and no Grails support. I switched to SpringSource Tool Suite (Eclipse + Spring), which had better Groovy support and some Grails support. I did run into a problem with our projects since most of our Grails projects at work are Grails 1.1.1, which is not well supported by the tool and as of the most current version of STS has no support.<br /><br />I decided to give NetBeans a try. It has good Groovy and Grails support, even with our outdated version of Grails. I used NetBeans for a while but was not very happy with its other features. It's SVN support seemed lacking and some of its other editors were not up to the tasks I was working on. Things like running our Grails projects, unit tests and debugging stuff in the IDE did not really work.<br /><br />I decided to break down and give IntelliJ a try. It has great Groovy and Grails support. I am able to debug internally and externally and run unit tests in the IDE. It has smart useful code suggestions and good Groovy DSL support. I have made IntelliJ my IDE of choice, though it does have a price tag associated with it.<br /><br />My IDE recommendation would be IntelliJ if you or your company is willing to pay for it, or NetBeans if you are on your own, or have no IDE budget.<br /><br /><b>Conclusion</b><br /><br />Groovy and Grails are a great combination. You just have to realize that as a developer you still have to pay attention to what you are doing and how you are doing it. As far as coding goes, this past year with these tools has been the most enjoyable that I have had in a long time.</body></html>
+<html>
+<head>
+    <title>A Groovy Year</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2011-07-09T09:05:00.001-05:00"/>
+</head>
+<body>
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://3.bp.blogspot.com/-gx3R4WhcAQw/ThhUU0KtsjI/AAAAAAAABaA/Uc6Rjl7wWcE/s1600/groovy-grails-logo.png"
+        imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0"
+                                                                                                       src="http://3.bp.blogspot.com/-gx3R4WhcAQw/ThhUU0KtsjI/AAAAAAAABaA/Uc6Rjl7wWcE/s1600/groovy-grails-logo.png"/></a>
+</div>
+It's been just over a year now that I have been working full time with <a href="http://groovy.codehaus.org/">Groovy</a>
+and <a href="http://grails.com/">Grails</a>&nbsp;so I figured it was a good time for a retrospective. I will go over
+general thoughts and lessons learned here and then I plan on covering some of the topics in greater detail in separate
+postings.<br/><br/>In the company I work for we do all of our web application development work using Grails, which is
+all done using Groovy. We also have quite a few external projects that feed into our Grails applications; these are
+written mostly in Groovy and Java. Ask three different developers in the company how they feel about our technology
+choices and you will get three different answers. Personally, these technologies are perfectly suited for what we are
+doing, but there are always pros and cons with any environment and that's what I want to address here.<br/><a
+        name='more'></a><br/><br/><b>Groovy</b><br/><br/>Groovy is a great language. Its flexible, expressive and
+concise. It really does wipe away all the development fluff and leave you to do actual coding work.<br/><br/>The problem
+with Groovy is that it is deceptively simple and at times too "magic" for under-skilled developers.&nbsp;It has no real
+compile time checking, limited analysis tools and IDE support can be spotty depending on which one you are working with.
+In the hands of a less-seasoned&nbsp;developer Groovy can lead to a free-for-all of odd constructs and bad coding
+practices that can be difficult to refactor away.&nbsp;Refactoring in Groovy can be a painful undertaking due to its
+dynamic nature and limited IDE support.<br/><br/>Some suggestions I have for a team starting out with Groovy:<br/><br/>
+<ul>
+    <li>Unit testing is a requirement as are higher coverage targets, and I mean like 90-100% coverage. Since you don't
+        have any compile-time checking and its very easy to have hidden runtime issues with Groovy, you need to enforce
+        a high level of unit testing and unit test coverage.
+    </li>
+    <li>Coding standards should be determined and enforced. Just because Groovy will let you do something doesn't mean
+        you should do it.
+    </li>
+    <li>Code reviews. With Groovy, especially starting out, you should do code reviews on pretty much everything you
+        check in. Code reviews are always a good practice, but even more so when starting out with a dynamic language.
+        The more eyes looking at the code, the better. This also helps to enforce coding standards.
+    </li>
+    <li>Embrace Groovy, but don't get crazy about it. Groovy has some great time-saving and keystroke-saving features...
+        use them, but remember what Uncle Ben said, "with great power comes great&nbsp;responsibility".
+    </li>
+    <li>Use a code analysis tool like <a href="http://codenarc.sourceforge.net/">CodeNarc</a> on your code to point out
+        standards violations and possible bugs.
+    </li>
+</ul>
+<br/><b>Grails</b><br/><br/>Grails is one of those life-changing frameworks that come along and change the way you do
+everything. I have done web application development with Servlet/JSP, Struts, Spring MVC (xml and annotations) and I can
+say that once you give Grails a try, it's hard to turn to anything else. It does so much of the boilerplate work for you
+that you are left to write the actual working code rather than all the bindings and plumbing. It has a strong plugin
+system and an active plugin community so it's easy to find what you need or to build it yourself.<br/><br/>The biggest
+downside I have seen with Grails, is that it seems overly difficult to pull your domain objects out into separate
+projects rather than having them in the Grails project itself.<br/><br/>My Grails recommendations:<br/><br/>
+<ul>
+    <li>Break your application up into projects appropriately. Just because you are using Grails doesn't mean everything
+        has to be in your Grails project. GORM does seem to have issues outside of Grails but there are other things you
+        can externalize and then provide as maven dependencies or as Grails plugins.
+    </li>
+    <li>Follow Grails recommendations. If you do things the "Grails way" you will have a more simple experience and get
+        the most out of grails.
+    </li>
+    <li>Keep your Grails version as current as possible. I am not saying you have to live on the cutting edge of each
+        release, but as the Grails versions progress, so should the version that you use. If you get too far behind, it
+        will only be more painful than doing it incrementally.
+    </li>
+</ul>
+<br/><b>IDE Support</b><br/><br/>IDE support has been slow coming and generally spotty. During this past year I have
+tried all of the "big three", <a href="http://eclipse.org/">Eclipse</a>, <a href="http://netbeans.org/">NetBeans</a> and
+<a href="http://jetbrains.com/idea">IntelliJ</a>&nbsp;with varried results.<br/><br/>I started with the IDE I had been
+using for years, Eclipse, which I quickly found out had terrible Groovy support and no Grails support. I switched to
+SpringSource Tool Suite (Eclipse + Spring), which had better Groovy support and some Grails support. I did run into a
+problem with our projects since most of our Grails projects at work are Grails 1.1.1, which is not well supported by the
+tool and as of the most current version of STS has no support.<br/><br/>I decided to give NetBeans a try. It has good
+Groovy and Grails support, even with our outdated version of Grails. I used NetBeans for a while but was not very happy
+with its other features. It's SVN support seemed lacking and some of its other editors were not up to the tasks I was
+working on. Things like running our Grails projects, unit tests and debugging stuff in the IDE did not really work.<br/><br/>I
+decided to break down and give IntelliJ a try. It has great Groovy and Grails support. I am able to debug internally and
+externally and run unit tests in the IDE. It has smart useful code suggestions and good Groovy DSL support. I have made
+IntelliJ my IDE of choice, though it does have a price tag associated with it.<br/><br/>My IDE recommendation would be
+IntelliJ if you or your company is willing to pay for it, or NetBeans if you are on your own, or have no IDE
+budget.<br/><br/><b>Conclusion</b><br/><br/>Groovy and Grails are a great combination. You just have to realize that as
+a developer you still have to pay attention to what you are doing and how you are doing it. As far as coding goes, this
+past year with these tools has been the most enjoyable that I have had in a long time.
+</body>
+</html>

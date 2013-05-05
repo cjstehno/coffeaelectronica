@@ -1,6 +1,22 @@
-
-<html><head>
-<title>Playlist Randomization</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2007-12-20T17:41:00.000-06:00" />
-</head><body>I love <a href="http://winamp.com/">WinAmp</a>; however, I have always felt that it's playlist randomization was a little on the weak side. Not really wanting to dive into writing a C++ winamp plugin, I took the alternate approach of writing a <a href="http://groovy.codehaus.org/">Groovy</a> script to randomize playlist files.<br /><a name='more'></a><br /><pre class="brush:groovy">// PlaylistRandomizer.groovy<br />import java.io.File<br />import java.util.ArrayList<br />import java.util.Collections<br />import java.security.SecureRandom<br /><br />def songs = new ArrayList()<br />new File(args[0]).eachLine {<br />    if(!it.startsWith('#')){<br />        songs &lt;&lt; it<br />    }<br />}<br />    <br />Collections.shuffle(songs,new SecureRandom())<br />    <br />def writer = new File("random_${args[0]}").newWriter()<br />songs.each {<br />    writer.writeLine(it)<br />}<br />writer.close()<br />    <br />println 'Done.'<br /></pre><br />You execute it with the file name of the playlist you want to shuffle.  <br /><br /><pre class="brush:text">groovy PlaylistRandomizer rock_n_roll.m3u</pre><br />and it will generate a new, shuffled file, <tt>random_rock_n_roll.m3u</tt>.  It's pretty simple and straight-forward. I am sure that I could spend a bit more time with it and pare it down a bit, but isn't quick simplistic functionality one of the benefits of scripting languages?  <br /><blockquote><b>Note:</b> I used <tt>SecureRandom</tt> instead of just the standard <tt>Random</tt> because it provides better shuffling, though the difference is not all that significant.</blockquote>For some fun and practice, I should implement the same script in <a href="http://ruby-lang.org/">Ruby</a>.</body></html>
+<html>
+<head>
+    <title>Playlist Randomization</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2007-12-20T17:41:00.000-06:00"/>
+</head>
+<body>I love <a href="http://winamp.com/">WinAmp</a>; however, I have always felt that it's playlist randomization was a
+little on the weak side. Not really wanting to dive into writing a C++ winamp plugin, I took the alternate approach of
+writing a <a href="http://groovy.codehaus.org/">Groovy</a> script to randomize playlist files.<br/><a
+        name='more'></a><br/>
+<pre class="brush:groovy">// PlaylistRandomizer.groovy<br/>import java.io.File<br/>import java.util.ArrayList<br/>import java.util.Collections<br/>import java.security.SecureRandom<br/><br/>def songs = new ArrayList()<br/>new File(args[0]).eachLine {<br/>    if(!it.startsWith('#')){<br/>        songs &lt;&lt; it<br/>    }<br/>}<br/>    <br/>Collections.shuffle(songs,new SecureRandom())<br/>    <br/>def writer = new File("random_${args[0]}").newWriter()<br/>songs.each {<br/>    writer.writeLine(it)<br/>}<br/>writer.close()<br/>    <br/>println 'Done.'<br/></pre>
+<br/>You execute it with the file name of the playlist you want to shuffle. <br/><br/>
+<pre class="brush:text">groovy PlaylistRandomizer rock_n_roll.m3u</pre>
+<br/>and it will generate a new, shuffled file, <tt>random_rock_n_roll.m3u</tt>. It's pretty simple and
+straight-forward. I am sure that I could spend a bit more time with it and pare it down a bit, but isn't quick
+simplistic functionality one of the benefits of scripting languages? <br/>
+<blockquote><b>Note:</b> I used <tt>SecureRandom</tt> instead of just the standard <tt>Random</tt> because it provides
+    better shuffling, though the difference is not all that significant.
+</blockquote>
+For some fun and practice, I should implement the same script in <a href="http://ruby-lang.org/">Ruby</a>.
+</body>
+</html>

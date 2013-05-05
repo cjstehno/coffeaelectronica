@@ -1,6 +1,18 @@
-
-<html><head>
-<title>Trimming a StringBuffer</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-07-29T18:47:00.000-05:00" />
-</head><body>I was working with a StringBuffer recently refactoring some code that was doing a lot of string concatenation and I realized that there is no <tt>trim()</tt> method in StringBuffer. I found this to be an odd omission, so I wrote a little utility method to do it.<br /><a name='more'></a><br /><pre class="brush:java">public static final StringBuffer trim(final StringBuffer sb){<br /> if(sb == null) return null; <br /> while( sb.length() &gt; 0 &amp;&amp; Character.isWhitespace( sb.charAt(sb.length()-1) ) ){<br />  sb.deleteCharAt(sb.length()-1);<br /> }<br /> while( sb.length() &gt; 0 &amp;&amp; Character.isWhitespace( sb.charAt(0) ) ){<br />  sb.deleteCharAt(0);<br /> }<br /> return sb;<br />}<br /></pre><br />It's nothing pretty but it works. If you have a better algorithm for doing this more efficiently, I would love to hear about it.  You could do the same with <tt>StringBuilder</tt>; however, since they do not share a common interface with the required methods, it would have to be a copy of the above method with <tt>StringBuilder</tt> replacing <tt>StringBuffer</tt>.  As a bonus, here is a little test of the method:  <br /><br /><pre class="brush:java">@Test<br />public void trim(){<br /> final StringBuffer buf = new StringBuffer("  alpha bravo charlie   ");<br /><br /> final StringBuffer sbuf = StringBufferUtils.trim(buf);<br /><br /> assertEquals(sbuf,buf);<br /> assertSame(sbuf,buf);<br /> assertEquals("alpha bravo charlie",buf.toString());<br />}</pre><br />I will eventually put this into one of my shared libraries once they come available, but for now, enjoy!</body></html>
+<html>
+<head>
+    <title>Trimming a StringBuffer</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-07-29T18:47:00.000-05:00"/>
+</head>
+<body>I was working with a StringBuffer recently refactoring some code that was doing a lot of string concatenation and
+I realized that there is no <tt>trim()</tt> method in StringBuffer. I found this to be an odd omission, so I wrote a
+little utility method to do it.<br/><a name='more'></a><br/>
+<pre class="brush:java">public static final StringBuffer trim(final StringBuffer sb){<br/> if(sb == null) return null; <br/> while( sb.length() &gt; 0 &amp;&amp; Character.isWhitespace( sb.charAt(sb.length()-1) ) ){<br/>  sb.deleteCharAt(sb.length()-1);<br/> }<br/> while( sb.length() &gt; 0 &amp;&amp; Character.isWhitespace( sb.charAt(0) ) ){<br/>  sb.deleteCharAt(0);<br/> }<br/> return sb;<br/>}<br/></pre>
+<br/>It's nothing pretty but it works. If you have a better algorithm for doing this more efficiently, I would love to
+hear about it. You could do the same with <tt>StringBuilder</tt>; however, since they do not share a common interface
+with the required methods, it would have to be a copy of the above method with <tt>StringBuilder</tt> replacing <tt>StringBuffer</tt>.
+As a bonus, here is a little test of the method: <br/><br/>
+<pre class="brush:java">@Test<br/>public void trim(){<br/> final StringBuffer buf = new StringBuffer("  alpha bravo charlie   ");<br/><br/> final StringBuffer sbuf = StringBufferUtils.trim(buf);<br/><br/> assertEquals(sbuf,buf);<br/> assertSame(sbuf,buf);<br/> assertEquals("alpha bravo charlie",buf.toString());<br/>}</pre>
+<br/>I will eventually put this into one of my shared libraries once they come available, but for now, enjoy!
+</body>
+</html>

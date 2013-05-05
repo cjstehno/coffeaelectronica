@@ -1,6 +1,108 @@
+<html>
+<head>
+    <title>From Junk Box to Jukebox in a Couple Hours</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2010-10-17T08:41:00.000-05:00"/>
+</head>
+<body>
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://2.bp.blogspot.com/-UFmj6CxSqSc/TnyNTB1bIvI/AAAAAAAAB7w/dknz_DldUKk/s1600/jukebox.jpg"
+        imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0"
+                                                                                                       src="http://2.bp.blogspot.com/-UFmj6CxSqSc/TnyNTB1bIvI/AAAAAAAAB7w/dknz_DldUKk/s1600/jukebox.jpg"/></a>
+</div>
+I finally got tired of griping about not having enough space on my phone to store all of my music, and not wanting to
+pay for one of the music cloud storage services... so I decided to bite the bullet and setup my own using <a
+        href="http://ubuntu.com/">Ubuntu Server</a>, <a href="http://subsonic.org/">SubSonic Music Streamer</a> and its
+Android app. It only took a couple hours, most of which was baby-sitting installations, and now I am able to listen to
+any/all of my music whenever and wherever I want; it's quite nice. <br/><a name='more'></a><br/>The steps are pretty
+straight forward, but going into this process I must make it clear that I am not an expert network/server administrator,
+I am a developer, therefore if this process causes you or your equipment any harm in any way, sorry, but it's not my
+fault. Continue at your own risk.<br/><br/>First, you need a computer to work with. I had an old Dell desktop that is
+about four or five years old and it is working nicely. Hook up a keyboard, mouse and monitor to the box... if it's an
+old desktop box you should have all the connections you need. You will also need to connect the box to your
+network.<br/><br/>It almost goes without saying that you will need internet access of at least DSL, but really I would
+not do this with anything less than a high-speed cable internet connection. <br/><br/>
 
-<html><head>
-<title>From Junk Box to Jukebox in a Couple Hours</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2010-10-17T08:41:00.000-05:00" />
-</head><body><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-UFmj6CxSqSc/TnyNTB1bIvI/AAAAAAAAB7w/dknz_DldUKk/s1600/jukebox.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" src="http://2.bp.blogspot.com/-UFmj6CxSqSc/TnyNTB1bIvI/AAAAAAAAB7w/dknz_DldUKk/s1600/jukebox.jpg" /></a></div>I finally got tired of griping about not having enough space on my phone to store all of my music, and not wanting to pay for one of the music cloud storage services... so I decided to bite the bullet and setup my own using <a href="http://ubuntu.com/">Ubuntu Server</a>, <a href="http://subsonic.org/">SubSonic Music Streamer</a> and its Android app. It only took a couple hours, most of which was baby-sitting installations, and now I am able to listen to any/all of my music whenever and wherever I want; it's quite nice. <br /><a name='more'></a><br />The steps are pretty straight forward, but going into this process I must make it clear that I am not an expert network/server administrator, I am a developer, therefore if this process causes you or your equipment any harm in any way, sorry, but it's not my fault. Continue at your own risk.<br /><br />First, you need a computer to work with. I had an old Dell desktop that is about four or five years old and it is working nicely. Hook up a keyboard, mouse and monitor to the box... if it's an old desktop box you should have all the connections you need. You will also need to connect the box to your network.<br /><br />It almost goes without saying that you will need internet access of at least DSL, but really I would not do this with anything less than a high-speed cable internet connection.  <br /><br /><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-h5QLDp_huks/TnyNz3Jo4lI/AAAAAAAAB70/4J5WNvvQgtM/s1600/Ubuntu-logo.png" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" height="200" src="http://1.bp.blogspot.com/-h5QLDp_huks/TnyNz3Jo4lI/AAAAAAAAB70/4J5WNvvQgtM/s200/Ubuntu-logo.png" width="200" /></a></div>Download <a href="http://www.ubuntu.com/server">Ubuntu 10.10 Server</a> (or whatever the most current version is when you read this). Make sure that you are downloading the server version, <b>not</b> the desktop. Also make sure that you download the appropriate version for your system, 32- or 64-bit. I had to use 32-bit since it was an old desktop box.<br /><br />Burn the .iso file you downloaded to a CD (I recommend <a href="http://www.imgburn.com/">ImgBurn</a> if you don't have a favorite image buring application).<br /><br />Once you have the CD created, pop it into the box you are building and boot from it. You may have to fiddle with your boot order in your bios, but the CD is bootable.  Once the Ubuntu installation menu comes up, just follow the instructions.<br /><br />A couple items to be aware of: You will want to enable the automatic security updates so that you don't have to bother with it yourself. Also, you will come to a server installation screen (after the restart I think)... at this point I selected LAMP server, Tomcat server and OpenSSH server. The SSH server is required for this, though the others are not; I plan on adding more to this box so I wanted to have the servers ready to go.<br /><br />Once the installation is done, disconnect the keyboard, mouse and monitor, but leave the box running. You now have a nice clean Linux web server to play with.  I recommend giving the new server box a dedicated IP address on your network so that you don't need to keep track of it. This is gererally very specific to your router, so I can't really go into it here.<br /><br />From your desktop box, laptop, whatever, connect to the new server using your favorite SSH client (for windows you can use&nbsp;<a href="http://cygwin.com/">Cygwin</a> or <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">Putty</a>).<br /><br />All of my music is on a NAS on my local network, so I had to create a mount of the music directory on the server box. There is a nice wiki article about how to do this, <a href="https://wiki.ubuntu.com/MountWindowsSharesPermanently">Mount Windows Shares Permanently</a> so that's easy enough.  <br /><br /><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-l1J-rqH1650/TnyPHcmkawI/AAAAAAAAB74/SPtkmjcaTCQ/s1600/subsonic.png" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" src="http://2.bp.blogspot.com/-l1J-rqH1650/TnyPHcmkawI/AAAAAAAAB74/SPtkmjcaTCQ/s1600/subsonic.png" /></a></div>Now download the deb installer file from <a href="http://www.subsonic.org/">SubSonic</a> and follow the installation instructions. There are also some additional packages they recommend installing. I did.  I eventually want to have SubSonic use the default servers on the box, but this installation method seemed to be the fastest one to get a server up and running.&nbsp; <br /><br />Once you have SubSonic installed you will need to create a directory for your playlists, "/var/playlists" by default.  Now that the server is running, go ahead and login and change the admin password and set the music and playlist locations. I created a second user to user for myself that did not have admin permissions. Make sure that you can see a list of your music artists down the left hand side and you are ready to go... at least for access on your own network.  <br /><br /><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-1ZljIp3T29s/TnyPVLDJ44I/AAAAAAAAB78/RaGjVjzLpJw/s1600/lifehacker_icon.jpg" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" height="200" src="http://1.bp.blogspot.com/-1ZljIp3T29s/TnyPVLDJ44I/AAAAAAAAB78/RaGjVjzLpJw/s200/lifehacker_icon.jpg" width="200" /></a></div>In order to have access to SubSonic from the outside world, you need to setup port forwarding on your router to map one of the external ports to the server and port that your SubSonic instance is running on. Again, this is router-specific, but <a href="http://lifehacker.com/">Lifehacker</a> has a good overview in the article "<a href="http://lifehacker.com/127276/geek-to-live--how-to-access-a-home-server-behind-a-routerfirewall">How to Access a Home Server Behind a Router Firewall</a>".<br /><br />Once you have access from the outside world, you can install the Android or iPhone apps for SubSonic and play your music while you are away from home. The Android app is quite good. I created two profiles, one for home when I can use my local wireless network, and another for access when I am away from my network... helps to keep the bandwidth down. Using the phone is also a nice way to test out the external interface. Turn off your wifi antenna and connect via 3G.<br /><br />One concern I have about running my own server is power consumption. The box I am using was a desktop box and not really made to conserve energy. I am looking into ways of setting up smart power usage, sleeping, etc, but that will come in another posting. For now I am going to test out the actual power consuption using one of those <a href="http://www.thinkgeek.com/gadgets/travelpower/7657/">Killawatt</a> plug-in wattage meters so that I can see what I am doing to my monthly power bill.  One thought I had is that if the power consumption is too high, I might look into building a really low-power box with an atom processor and solid-state drive or something else really bare bones and cheap.  I have a few other projects in mind for this now that I have a server running, though I don't think I will be moving my blog hosting there any time soon, but you never know.<br /><br />If any of this is too vague, please let me know and I can add more detail. This is intended for users with minimal Linux, networking, and hardware experience, but sometimes I take more for granted than I realize.&nbsp; <br /><br />Good luck and have fun!<br /><b><br /></b><br /><b>Follow-up</b><br /><br />After about six days for power monitoring, the server used 6.38 kilowatt-hours of power. With a little groovy calculating:  <br /><pre class="brush:groovy">def kwh = 6.38, kwhcost = 0.12<br />def duration /* days */ = (((time('10/22/2010 06:54') - time('10/16/2010 10:10')) / 1000) / 3600) / 24<br />def costPerDay = (kwh * kwhcost)/duration<br />def costPerMonth = costPerDay * 30<br />def time( d ){ new java.text.SimpleDateFormat('MM/dd/yyyy HH:mm').parse( d ).getTime()}<br />def money( m ){ new java.text.DecimalFormat('$0.00').format( m )}<br />println "${money(costPerDay)}/day ==&gt; ${money(costPerMonth)}/month"<br /></pre>I found that the server uses roughly $0.13/day or $3.93/month on average based on the time duration I tested in which the server was under normal usage. Obviously, this number is very dependent on the system you build your server with. Given some of the new Atom-based boxes that are available, you could probably really cut that cost down even more.  If you consider that most hosting with any useful functionality is at least $3-5 per month, and a lot of the cloud-based services that are coming out are in the range of $5-10 per month... $3-5 per month for your own server with unlimited possibilities is not bad at all.&nbsp;Also there is one cost-cutting measure you can do with your own server that you cannot do with hosting... turn it off.<br /><br />Finally, I also found a useful tool for working with the server. If you have an Android phone you can install <a href="http://code.google.com/p/connectbot/">ConnectBot</a> which gives you SSH shell access to your server. I don't have my SSH port forwarded from the router so this only works inside my home network via wireless, but ConnectBot makes it very easy to check on the status of the box, do a shutdown or restart the web server without having to fire up your desktop box. </body></html>
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://1.bp.blogspot.com/-h5QLDp_huks/TnyNz3Jo4lI/AAAAAAAAB70/4J5WNvvQgtM/s1600/Ubuntu-logo.png"
+        imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0"
+                                                                                                      height="200"
+                                                                                                      src="http://1.bp.blogspot.com/-h5QLDp_huks/TnyNz3Jo4lI/AAAAAAAAB70/4J5WNvvQgtM/s200/Ubuntu-logo.png"
+                                                                                                      width="200"/></a>
+</div>
+Download <a href="http://www.ubuntu.com/server">Ubuntu 10.10 Server</a> (or whatever the most current version is when
+you read this). Make sure that you are downloading the server version, <b>not</b> the desktop. Also make sure that you
+download the appropriate version for your system, 32- or 64-bit. I had to use 32-bit since it was an old desktop
+box.<br/><br/>Burn the .iso file you downloaded to a CD (I recommend <a href="http://www.imgburn.com/">ImgBurn</a> if
+you don't have a favorite image buring application).<br/><br/>Once you have the CD created, pop it into the box you are
+building and boot from it. You may have to fiddle with your boot order in your bios, but the CD is bootable. Once the
+Ubuntu installation menu comes up, just follow the instructions.<br/><br/>A couple items to be aware of: You will want
+to enable the automatic security updates so that you don't have to bother with it yourself. Also, you will come to a
+server installation screen (after the restart I think)... at this point I selected LAMP server, Tomcat server and
+OpenSSH server. The SSH server is required for this, though the others are not; I plan on adding more to this box so I
+wanted to have the servers ready to go.<br/><br/>Once the installation is done, disconnect the keyboard, mouse and
+monitor, but leave the box running. You now have a nice clean Linux web server to play with. I recommend giving the new
+server box a dedicated IP address on your network so that you don't need to keep track of it. This is gererally very
+specific to your router, so I can't really go into it here.<br/><br/>From your desktop box, laptop, whatever, connect to
+the new server using your favorite SSH client (for windows you can use&nbsp;<a href="http://cygwin.com/">Cygwin</a> or
+<a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/">Putty</a>).<br/><br/>All of my music is on a NAS on my
+local network, so I had to create a mount of the music directory on the server box. There is a nice wiki article about
+how to do this, <a href="https://wiki.ubuntu.com/MountWindowsSharesPermanently">Mount Windows Shares Permanently</a> so
+that's easy enough. <br/><br/>
+
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://2.bp.blogspot.com/-l1J-rqH1650/TnyPHcmkawI/AAAAAAAAB74/SPtkmjcaTCQ/s1600/subsonic.png"
+        imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0"
+                                                                                                       src="http://2.bp.blogspot.com/-l1J-rqH1650/TnyPHcmkawI/AAAAAAAAB74/SPtkmjcaTCQ/s1600/subsonic.png"/></a>
+</div>
+Now download the deb installer file from <a href="http://www.subsonic.org/">SubSonic</a> and follow the installation
+instructions. There are also some additional packages they recommend installing. I did. I eventually want to have
+SubSonic use the default servers on the box, but this installation method seemed to be the fastest one to get a server
+up and running.&nbsp; <br/><br/>Once you have SubSonic installed you will need to create a directory for your playlists,
+"/var/playlists" by default. Now that the server is running, go ahead and login and change the admin password and set
+the music and playlist locations. I created a second user to user for myself that did not have admin permissions. Make
+sure that you can see a list of your music artists down the left hand side and you are ready to go... at least for
+access on your own network. <br/><br/>
+
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://1.bp.blogspot.com/-1ZljIp3T29s/TnyPVLDJ44I/AAAAAAAAB78/RaGjVjzLpJw/s1600/lifehacker_icon.jpg"
+        imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0"
+                                                                                                      height="200"
+                                                                                                      src="http://1.bp.blogspot.com/-1ZljIp3T29s/TnyPVLDJ44I/AAAAAAAAB78/RaGjVjzLpJw/s200/lifehacker_icon.jpg"
+                                                                                                      width="200"/></a>
+</div>
+In order to have access to SubSonic from the outside world, you need to setup port forwarding on your router to map one
+of the external ports to the server and port that your SubSonic instance is running on. Again, this is router-specific,
+but <a href="http://lifehacker.com/">Lifehacker</a> has a good overview in the article "<a
+        href="http://lifehacker.com/127276/geek-to-live--how-to-access-a-home-server-behind-a-routerfirewall">How to
+    Access a Home Server Behind a Router Firewall</a>".<br/><br/>Once you have access from the outside world, you can
+install the Android or iPhone apps for SubSonic and play your music while you are away from home. The Android app is
+quite good. I created two profiles, one for home when I can use my local wireless network, and another for access when I
+am away from my network... helps to keep the bandwidth down. Using the phone is also a nice way to test out the external
+interface. Turn off your wifi antenna and connect via 3G.<br/><br/>One concern I have about running my own server is
+power consumption. The box I am using was a desktop box and not really made to conserve energy. I am looking into ways
+of setting up smart power usage, sleeping, etc, but that will come in another posting. For now I am going to test out
+the actual power consuption using one of those <a
+        href="http://www.thinkgeek.com/gadgets/travelpower/7657/">Killawatt</a> plug-in wattage meters so that I can see
+what I am doing to my monthly power bill. One thought I had is that if the power consumption is too high, I might look
+into building a really low-power box with an atom processor and solid-state drive or something else really bare bones
+and cheap. I have a few other projects in mind for this now that I have a server running, though I don't think I will be
+moving my blog hosting there any time soon, but you never know.<br/><br/>If any of this is too vague, please let me know
+and I can add more detail. This is intended for users with minimal Linux, networking, and hardware experience, but
+sometimes I take more for granted than I realize.&nbsp; <br/><br/>Good luck and have fun!<br/><b><br/></b><br/><b>Follow-up</b><br/><br/>After
+about six days for power monitoring, the server used 6.38 kilowatt-hours of power. With a little groovy calculating:
+<br/>
+<pre class="brush:groovy">def kwh = 6.38, kwhcost = 0.12<br/>def duration /* days */ = (((time('10/22/2010 06:54') - time('10/16/2010 10:10')) / 1000) / 3600) / 24<br/>def costPerDay = (kwh * kwhcost)/duration<br/>def costPerMonth = costPerDay * 30<br/>def time( d ){ new java.text.SimpleDateFormat('MM/dd/yyyy HH:mm').parse( d ).getTime()}<br/>def money( m ){ new java.text.DecimalFormat('$0.00').format( m )}<br/>println "${money(costPerDay)}/day ==&gt; ${money(costPerMonth)}/month"<br/></pre>
+I found that the server uses roughly $0.13/day or $3.93/month on average based on the time duration I tested in which
+the server was under normal usage. Obviously, this number is very dependent on the system you build your server with.
+Given some of the new Atom-based boxes that are available, you could probably really cut that cost down even more. If
+you consider that most hosting with any useful functionality is at least $3-5 per month, and a lot of the cloud-based
+services that are coming out are in the range of $5-10 per month... $3-5 per month for your own server with unlimited
+possibilities is not bad at all.&nbsp;Also there is one cost-cutting measure you can do with your own server that you
+cannot do with hosting... turn it off.<br/><br/>Finally, I also found a useful tool for working with the server. If you
+have an Android phone you can install <a href="http://code.google.com/p/connectbot/">ConnectBot</a> which gives you SSH
+shell access to your server. I don't have my SSH port forwarded from the router so this only works inside my home
+network via wireless, but ConnectBot makes it very easy to check on the status of the box, do a shutdown or restart the
+web server without having to fire up your desktop box.
+</body>
+</html>

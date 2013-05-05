@@ -1,6 +1,64 @@
+<html>
+<head>
+    <title>Jackrabbit</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-07-03T11:57:00.000-05:00"/>
+</head>
+<body>I decided to play around a little with <a href="http://jackrabbit.apache.org/">Jackrabbit</a> the other day...
+here are some of my notes... I am running on Ubuntu with <a href="http://tomcat.apache.org/">Tomcat 6</a> and all I had
+to do to get started was download the Jackrabbit war distribution and install it in the webapps directory, then add the
+jcr-1.0.jar (downloaded from Sun) to the TOMCAT/lib directory. Once you start up the server and go into the context you
+get a nice welcome screen:<br/>
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container"
+       style="margin-left: auto; margin-right: auto; text-align: center;">
+    <tbody>
+    <tr>
+        <td style="text-align: center;"><a
+                href="http://4.bp.blogspot.com/-X94aEnPsbig/T-X2e_oLqSI/AAAAAAAAC8Q/KnKofMSfr-k/s1600/jack-screen-1.png"
+                imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0"
+                                                                                    src="http://4.bp.blogspot.com/-X94aEnPsbig/T-X2e_oLqSI/AAAAAAAAC8Q/KnKofMSfr-k/s1600/jack-screen-1.png"/></a>
+        </td>
+    </tr>
+    <tr>
+        <td class="tr-caption" style="text-align: center;">Welcome screen.</td>
+    </tr>
+    </tbody>
+</table>
+I created a content repo in my home directory: <br/><br/>
+<pre>/home/cjstehno/.jackrabbit</pre>
+<br/>Once the repo is configured you get a list of common clients, with links on how to use them:<br/>
 
-<html><head>
-<title>Jackrabbit</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-07-03T11:57:00.000-05:00" />
-</head><body>I decided to play around a little with <a href="http://jackrabbit.apache.org/">Jackrabbit</a> the other day... here are some of my notes...  I am running on Ubuntu with <a href="http://tomcat.apache.org/">Tomcat 6</a> and all I had to do to get started was download the Jackrabbit war distribution and install it in the webapps directory, then add the jcr-1.0.jar (downloaded from Sun) to the TOMCAT/lib directory. Once you start up the server and go into the context you get a nice welcome screen:<br /><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://4.bp.blogspot.com/-X94aEnPsbig/T-X2e_oLqSI/AAAAAAAAC8Q/KnKofMSfr-k/s1600/jack-screen-1.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" src="http://4.bp.blogspot.com/-X94aEnPsbig/T-X2e_oLqSI/AAAAAAAAC8Q/KnKofMSfr-k/s1600/jack-screen-1.png" /></a></td></tr><tr><td class="tr-caption" style="text-align: center;">Welcome screen.</td></tr></tbody></table>I created a content repo in my home directory:   <br /><br /><pre>/home/cjstehno/.jackrabbit</pre><br />Once the repo is configured you get a list of common clients, with links on how to use them:<br /><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-oGOFuyDfahM/T-X3GNk5F2I/AAAAAAAAC8Y/CHwl6JJkjw8/s1600/jack-screen-2.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" src="http://1.bp.blogspot.com/-oGOFuyDfahM/T-X3GNk5F2I/AAAAAAAAC8Y/CHwl6JJkjw8/s1600/jack-screen-2.png" /></a></div>I was interested in Standard WebDAV to do some simple content sharing between a few computers. It seemed simple enough and there is even a WebDAV connection setup in Ubuntu, but I had a heck of a time getting it to work. Finally I just tried pasting the connection URL into Nautilus directly:<br /><pre>http://localhost:8080/jackrabbit/repository/default</pre>but that didn't work, so I tried a slight change,  <br /><pre>dav://localhost:8080/jackrabbit/repository/default</pre>which worked and asked me for a username and password, which the documentation says will take anything until you configure it. It looked like I had everything up and running:<br /><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-hmzcBPDx02s/T-X3PxnDx2I/AAAAAAAAC8g/5rHHxkNlqrE/s1600/jack-screen-3.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" src="http://2.bp.blogspot.com/-hmzcBPDx02s/T-X3PxnDx2I/AAAAAAAAC8g/5rHHxkNlqrE/s1600/jack-screen-3.png" /></a></div><br />Looks can be deceiving... I could add files but not edit them or add directories; however, after a refresh of the WebDAV view my folder was there. It did allow me to copy files from it into other directories and then work with them as normal. It does not seem like a very useful means of accessing the files. I can view everything in the web interface, but that is really not much better.  I decided to try connecting using one of the more programmatic means, the RMI client provided with Jackrabbit. It was actually very easy to connect and use. After digging around for a while with the files I had in the repository, It seems that this content repository stuff is quite flexible and could be very powerful, but the learning curve to make good use of it may be a little high... and there seems to be little documentation.  I wrote a little dumper app, which I called Jackalope so I could see how things were laid out in the repo:  <br /><pre class="brush:java">public class Jackalope {<br />   public static void main( final String[] args ) {<br />        final ClientRepositoryFactory factory = new ClientRepositoryFactory();<br />        Session session = null;<br />        try {<br />            final Repository repo = factory.getRepository( "//localhost/jackrabbit.repository" );<br />            session = repo.login( new SimpleCredentials("cjstehno", "foo".toCharArray() ) );<br /><br />            final String user = session.getUserID();<br />            final String name = repo.getDescriptor(Repository.REP_NAME_DESC);<br />            System.out.println("Logged in as " + user + " to a " + name + " repository.");<br /><br />            final Workspace ws = session.getWorkspace();<br />            System.out.println("Workspace: " + ws.getName());<br /><br />            final Node node = session.getRootNode();<br />            System.out.println("Node: " + node.getName());<br /><br />            final NodeIterator children = node.getNodes();<br />            System.out.println("Children: " + children.getSize());<br />            while(children.hasNext()){<br />                final Node child = (Node)children.next();<br />                System.out.println("--&gt; " + child.getName() + " [" + child.getPrimaryNodeType().getName() + "]");<br /><br />                final NodeDefinition nodeDef = child.getDefinition();<br />                System.out.println("--&gt;\tn: " + nodeDef.getDeclaringNodeType().getName());<br /><br />                final PropertyIterator props = child.getProperties();<br />                while(props.hasNext()){<br />                    final Property prop = (Property)props.next();<br />                    System.out.println("--&gt;\tp: " + prop.getName() + " = " + prop.getValue().getString());<br />                }<br /><br />                if(! child.getPrimaryNodeType().isNodeType( "rep:system" ) ){<br />                    final VersionHistory history = child.getVersionHistory();<br />                    System.out.println("--&gt; labels: " + Arrays.toString( history.getVersionLabels() ));<br />                }<br /><br />            }<br /><br />        } catch (final Exception e) {<br />            e.printStackTrace();<br />        } finally {<br />            session.logout();<br />        }<br />    }<br />}<br /></pre>It's nothing fancy, just a little code to poke around. There was apparently an Eclipse plug-in for navigating through JCR repos, but it has since died away. (Also, if you get errors running the code above, remove the last if block related to versioning... the versioning functionality is not well documented and this was bombing a lot for me).  Interesting stuff, but not really what I was looking for. I will keep it in mind for future use.</body></html>
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://1.bp.blogspot.com/-oGOFuyDfahM/T-X3GNk5F2I/AAAAAAAAC8Y/CHwl6JJkjw8/s1600/jack-screen-2.png"
+        imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0"
+                                                                          src="http://1.bp.blogspot.com/-oGOFuyDfahM/T-X3GNk5F2I/AAAAAAAAC8Y/CHwl6JJkjw8/s1600/jack-screen-2.png"/></a>
+</div>
+I was interested in Standard WebDAV to do some simple content sharing between a few computers. It seemed simple enough
+and there is even a WebDAV connection setup in Ubuntu, but I had a heck of a time getting it to work. Finally I just
+tried pasting the connection URL into Nautilus directly:<br/>
+<pre>http://localhost:8080/jackrabbit/repository/default</pre>
+but that didn't work, so I tried a slight change, <br/>
+<pre>dav://localhost:8080/jackrabbit/repository/default</pre>
+which worked and asked me for a username and password, which the documentation says will take anything until you
+configure it. It looked like I had everything up and running:<br/>
+
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://2.bp.blogspot.com/-hmzcBPDx02s/T-X3PxnDx2I/AAAAAAAAC8g/5rHHxkNlqrE/s1600/jack-screen-3.png"
+        imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0"
+                                                                          src="http://2.bp.blogspot.com/-hmzcBPDx02s/T-X3PxnDx2I/AAAAAAAAC8g/5rHHxkNlqrE/s1600/jack-screen-3.png"/></a>
+</div>
+<br/>Looks can be deceiving... I could add files but not edit them or add directories; however, after a refresh of the
+WebDAV view my folder was there. It did allow me to copy files from it into other directories and then work with them as
+normal. It does not seem like a very useful means of accessing the files. I can view everything in the web interface,
+but that is really not much better. I decided to try connecting using one of the more programmatic means, the RMI client
+provided with Jackrabbit. It was actually very easy to connect and use. After digging around for a while with the files
+I had in the repository, It seems that this content repository stuff is quite flexible and could be very powerful, but
+the learning curve to make good use of it may be a little high... and there seems to be little documentation. I wrote a
+little dumper app, which I called Jackalope so I could see how things were laid out in the repo: <br/>
+<pre class="brush:java">public class Jackalope {<br/>   public static void main( final String[] args ) {<br/>        final ClientRepositoryFactory factory = new ClientRepositoryFactory();<br/>        Session session = null;<br/>        try {<br/>            final Repository repo = factory.getRepository( "//localhost/jackrabbit.repository" );<br/>            session = repo.login( new SimpleCredentials("cjstehno", "foo".toCharArray() ) );<br/><br/>            final String user = session.getUserID();<br/>            final String name = repo.getDescriptor(Repository.REP_NAME_DESC);<br/>            System.out.println("Logged in as " + user + " to a " + name + " repository.");<br/><br/>            final Workspace ws = session.getWorkspace();<br/>            System.out.println("Workspace: " + ws.getName());<br/><br/>            final Node node = session.getRootNode();<br/>            System.out.println("Node: " + node.getName());<br/><br/>            final NodeIterator children = node.getNodes();<br/>            System.out.println("Children: " + children.getSize());<br/>            while(children.hasNext()){<br/>                final Node child = (Node)children.next();<br/>                System.out.println("--&gt; " + child.getName() + " [" + child.getPrimaryNodeType().getName() + "]");<br/><br/>                final NodeDefinition nodeDef = child.getDefinition();<br/>                System.out.println("--&gt;\tn: " + nodeDef.getDeclaringNodeType().getName());<br/><br/>                final PropertyIterator props = child.getProperties();<br/>                while(props.hasNext()){<br/>                    final Property prop = (Property)props.next();<br/>                    System.out.println("--&gt;\tp: " + prop.getName() + " = " + prop.getValue().getString());<br/>                }<br/><br/>                if(! child.getPrimaryNodeType().isNodeType( "rep:system" ) ){<br/>                    final VersionHistory history = child.getVersionHistory();<br/>                    System.out.println("--&gt; labels: " + Arrays.toString( history.getVersionLabels() ));<br/>                }<br/><br/>            }<br/><br/>        } catch (final Exception e) {<br/>            e.printStackTrace();<br/>        } finally {<br/>            session.logout();<br/>        }<br/>    }<br/>}<br/></pre>
+It's nothing fancy, just a little code to poke around. There was apparently an Eclipse plug-in for navigating through
+JCR repos, but it has since died away. (Also, if you get errors running the code above, remove the last if block related
+to versioning... the versioning functionality is not well documented and this was bombing a lot for me). Interesting
+stuff, but not really what I was looking for. I will keep it in mind for future use.
+</body>
+</html>

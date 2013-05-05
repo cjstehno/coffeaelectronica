@@ -1,6 +1,17 @@
-
-<html><head>
-<title>Calling Parent Code from IFrame</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2008-10-15T11:38:00.000-05:00" />
-</head><body>Every now and then I have needed to access the parent page enclosing an <tt>IFrame</tt> and I have never really found a good straight-forward example of how to do it, so I end up having to work it out each time I need it.<br /><a name='more'></a> So, for a parent (enclosing page) with an <tt>IFrame</tt> as follows:  <br /><br /><pre class="brush:html">&lt;html&gt;<br />    &lt;head&gt;<br />        &lt;title&gt;IFrame test&lt;/title&gt;<br />        &lt;script type="text/javascript"&gt;<br />        function closeIFrame(){<br />            if(confirm("Are you sure you want to close the iframe?")){<br />                document.getElementById("frame").style.display = 'none';<br />            }<br />        }<br />        &lt;/script&gt;<br />    &lt;/head&gt;<br />    &lt;body&gt;<br />        &lt;iframe id="frame" src="visitor.html" width="200" height="200"&gt;&lt;/iframe&gt;<br />    &lt;/body&gt;<br />&lt;/html&gt;<br /></pre><br />where the "visitor.html" page called by the <tt>IFrame</tt> is given as:  <br /><br /><pre class="brush:html">&lt;html&gt;<br />    &lt;head&gt;<br />        &lt;title&gt;Visitor&lt;/title&gt;<br />        &lt;script type="text/javascript"&gt;<br />        function closeMe(){<br />            parent.closeIFrame();<br />        }<br />        &lt;/script&gt;<br />    &lt;/head&gt;<br />    &lt;body&gt;<br />        &lt;p&gt;Hello, just visiting.&lt;/p&gt;<br />        &lt;button onclick="closeMe()"&gt;Close Me&lt;/button&gt;<br />    &lt;/body&gt;<br />&lt;/html&gt;<br /></pre><br />When the "Close Me" button is clicked, the parent page will dispose of the <tt>IFrame</tt>, but the JavaScript function to do this actually resides in the parent page.   One thing to note, is that both pages must reside on the same domain (or sub-domain) or else the script will not work, due to security restrictions. </body></html>
+<html>
+<head>
+    <title>Calling Parent Code from IFrame</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2008-10-15T11:38:00.000-05:00"/>
+</head>
+<body>Every now and then I have needed to access the parent page enclosing an <tt>IFrame</tt> and I have never really
+found a good straight-forward example of how to do it, so I end up having to work it out each time I need it.<br/><a
+        name='more'></a> So, for a parent (enclosing page) with an <tt>IFrame</tt> as follows: <br/><br/>
+<pre class="brush:html">&lt;html&gt;<br/>    &lt;head&gt;<br/>        &lt;title&gt;IFrame test&lt;/title&gt;<br/>        &lt;script type="text/javascript"&gt;<br/>        function closeIFrame(){<br/>            if(confirm("Are you sure you want to close the iframe?")){<br/>                document.getElementById("frame").style.display = 'none';<br/>            }<br/>        }<br/>        &lt;/script&gt;<br/>    &lt;/head&gt;<br/>    &lt;body&gt;<br/>        &lt;iframe id="frame" src="visitor.html" width="200" height="200"&gt;&lt;/iframe&gt;<br/>    &lt;/body&gt;<br/>&lt;/html&gt;<br/></pre>
+<br/>where the "visitor.html" page called by the <tt>IFrame</tt> is given as: <br/><br/>
+<pre class="brush:html">&lt;html&gt;<br/>    &lt;head&gt;<br/>        &lt;title&gt;Visitor&lt;/title&gt;<br/>        &lt;script type="text/javascript"&gt;<br/>        function closeMe(){<br/>            parent.closeIFrame();<br/>        }<br/>        &lt;/script&gt;<br/>    &lt;/head&gt;<br/>    &lt;body&gt;<br/>        &lt;p&gt;Hello, just visiting.&lt;/p&gt;<br/>        &lt;button onclick="closeMe()"&gt;Close Me&lt;/button&gt;<br/>    &lt;/body&gt;<br/>&lt;/html&gt;<br/></pre>
+<br/>When the "Close Me" button is clicked, the parent page will dispose of the <tt>IFrame</tt>, but the JavaScript
+function to do this actually resides in the parent page. One thing to note, is that both pages must reside on the same
+domain (or sub-domain) or else the script will not work, due to security restrictions.
+</body>
+</html>

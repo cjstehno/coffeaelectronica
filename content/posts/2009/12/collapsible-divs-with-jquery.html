@@ -1,6 +1,24 @@
+<html>
+<head>
+    <title>Collapsible Divs With JQuery</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-12-23T20:19:00.000-06:00"/>
+</head>
+<body>I coded up a nice little collapsible-group side bar thingy using <a href="http://jquery.com/">JQuery</a> and it
+was surprisingly easy. Say you have a sidebar with collapsible group content such as:<br/><a name='more'></a> <br/>
+<pre class="brush:html">&lt;div class="container"&gt;<br/> &lt;div class="group"&gt;<br/>  &lt;div class="group-title"&gt;Group A&lt;/div&gt;<br/>  &lt;div class="group-content"&gt;<br/>   This is where you would put the content for Group A.<br/>  &lt;/div&gt;<br/> &lt;/div&gt;<br/> &lt;div class="group"&gt;<br/>  &lt;div class="group-title"&gt;Group B&lt;/div&gt;<br/>  &lt;div class="group-content"&gt;<br/>   This is where you would put the content for Group B.<br/>  &lt;/div&gt;<br/> &lt;/div&gt;<br/> &lt;div class="group"&gt;<br/>  &lt;div class="group-title"&gt;Group C&lt;/div&gt;<br/>  &lt;div class="group-content"&gt;<br/>   This is where you would put the content for Group C.<br/>  &lt;/div&gt;<br/> &lt;/div&gt;<br/>&lt;/div&gt;<br/></pre>
+<br/>where you have group block titles and group content that you want to be able to toggle the visibility of. With a
+couple lines of JavaScript and JQuery it's a sinch: <br/><br/>
+<pre class="brush:javascript">$('div.group-title').bind('click',function(evt){<br/> $(evt.target).parent().find('.group-content').slideToggle(500);<br/>});   <br/></pre>
+<br/>which will be put inside an onload handler (also using JQuery). When the group title is clicked, the group-content
+block will toggle by sliding up or down in about half a second. With this model you can also place any number of these
+"components" on a page without the concern about event collision since the event handling is based on the click
+location. Add in a little CSS and you end up with:<br/>
 
-<html><head>
-<title>Collapsible Divs With JQuery</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-12-23T20:19:00.000-06:00" />
-</head><body>I coded up a nice little collapsible-group side bar thingy using <a href="http://jquery.com/">JQuery</a> and it was surprisingly easy. Say you have a sidebar with collapsible group content such as:<br /><a name='more'></a> <br /><pre class="brush:html">&lt;div class="container"&gt;<br /> &lt;div class="group"&gt;<br />  &lt;div class="group-title"&gt;Group A&lt;/div&gt;<br />  &lt;div class="group-content"&gt;<br />   This is where you would put the content for Group A.<br />  &lt;/div&gt;<br /> &lt;/div&gt;<br /> &lt;div class="group"&gt;<br />  &lt;div class="group-title"&gt;Group B&lt;/div&gt;<br />  &lt;div class="group-content"&gt;<br />   This is where you would put the content for Group B.<br />  &lt;/div&gt;<br /> &lt;/div&gt;<br /> &lt;div class="group"&gt;<br />  &lt;div class="group-title"&gt;Group C&lt;/div&gt;<br />  &lt;div class="group-content"&gt;<br />   This is where you would put the content for Group C.<br />  &lt;/div&gt;<br /> &lt;/div&gt;<br />&lt;/div&gt;<br /></pre><br />where you have group block titles and group content that you want to be able to toggle the visibility of. With a couple lines of JavaScript and JQuery it's a sinch:  <br /><br /><pre class="brush:javascript">$('div.group-title').bind('click',function(evt){<br /> $(evt.target).parent().find('.group-content').slideToggle(500);<br />});   <br /></pre><br />which will be put inside an onload handler (also using JQuery). When the group title is clicked, the group-content block will toggle by sliding up or down in about half a second. With this model you can also place any number of these "components" on a page without the concern about event collision since the event handling is based on the click location.  Add in a little CSS and you end up with:<br /><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-RUYANpK2FGc/T-kOc9lJ8DI/AAAAAAAAC8w/L1kSsB1I1JQ/s1600/collapsable-div.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" src="http://4.bp.blogspot.com/-RUYANpK2FGc/T-kOc9lJ8DI/AAAAAAAAC8w/L1kSsB1I1JQ/s1600/collapsable-div.png" /></a></div><br /></body></html>
+<div class="separator" style="clear: both; text-align: center;"><a
+        href="http://4.bp.blogspot.com/-RUYANpK2FGc/T-kOc9lJ8DI/AAAAAAAAC8w/L1kSsB1I1JQ/s1600/collapsable-div.png"
+        imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0"
+                                                                          src="http://4.bp.blogspot.com/-RUYANpK2FGc/T-kOc9lJ8DI/AAAAAAAAC8w/L1kSsB1I1JQ/s1600/collapsable-div.png"/></a>
+</div>
+<br/></body>
+</html>

@@ -1,6 +1,17 @@
-
-<html><head>
-<title>Highlight Text with JavaScript</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-09-15T19:02:00.000-05:00" />
-</head><body>A question arose recently about how to highlight a word or words in the text of a <tt>div</tt> element. It turns out that it's actually pretty easy using <a href="http://prototypejs.org/">Prototype</a>.<br /><a name='more'></a> The example below is the code needed to highlight each occurrance (up to ten of them) of the word 'pick' in the div. The operation will be performed when the content div is clicked.      <br /><br /><pre class="brush:html">&lt;html&gt; <br />    &lt;head&gt; <br />        &lt;style type="text/css"&gt;<br />            #content span { background-color: yellow; }<br />        &lt;/style&gt;<br />        &lt;script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.2/prototype.js"&gt;&lt;/script&gt;<br />        &lt;script type="text/javascript"&gt;<br />            Event.observe(window,'load',function(){<br />                $('content').observe('click',highlight);<br />            });<br />            <br />            function highlight(){<br />                $('content').innerHTML = $('content').innerHTML.sub('pick','&lt;span&gt;pick&lt;/span&gt;',10);                <br />            }<br />        &lt;/script&gt;<br />    &lt;/head&gt;<br />    &lt;body&gt;<br />    <br />        &lt;div id="content"&gt;<br />            Peter Piper picked a peck of pickeled peppers. <br />            How many peppers did Peter Piper pick?<br />        &lt;/div&gt;<br />    <br />    &lt;/body&gt;<br />&lt;/html&gt;<br /></pre><b><br /></b><br /><b>Note:</b> I used to Google-hosted version of the <a href="http://www.prototypejs.org/2008/5/27/prototype-hosted-on-google-s-servers">prototype library</a> which is handy.  This could easily be refactored to do any sort of style operation to the selected text, or replace it altogether. I will have to give this a try with JQuery as a comparison.</body></html>
+<html>
+<head>
+    <title>Highlight Text with JavaScript</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-09-15T19:02:00.000-05:00"/>
+</head>
+<body>A question arose recently about how to highlight a word or words in the text of a <tt>div</tt> element. It turns
+out that it's actually pretty easy using <a href="http://prototypejs.org/">Prototype</a>.<br/><a name='more'></a> The
+example below is the code needed to highlight each occurrance (up to ten of them) of the word 'pick' in the div. The
+operation will be performed when the content div is clicked. <br/><br/>
+<pre class="brush:html">&lt;html&gt; <br/>    &lt;head&gt; <br/>        &lt;style type="text/css"&gt;<br/>            #content span { background-color: yellow; }<br/>        &lt;/style&gt;<br/>        &lt;script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.2/prototype.js"&gt;&lt;/script&gt;<br/>        &lt;script type="text/javascript"&gt;<br/>            Event.observe(window,'load',function(){<br/>                $('content').observe('click',highlight);<br/>            });<br/>            <br/>            function highlight(){<br/>                $('content').innerHTML = $('content').innerHTML.sub('pick','&lt;span&gt;pick&lt;/span&gt;',10);                <br/>            }<br/>        &lt;/script&gt;<br/>    &lt;/head&gt;<br/>    &lt;body&gt;<br/>    <br/>        &lt;div id="content"&gt;<br/>            Peter Piper picked a peck of pickeled peppers. <br/>            How many peppers did Peter Piper pick?<br/>        &lt;/div&gt;<br/>    <br/>    &lt;/body&gt;<br/>&lt;/html&gt;<br/></pre>
+<b><br/></b><br/><b>Note:</b> I used to Google-hosted version of the <a
+        href="http://www.prototypejs.org/2008/5/27/prototype-hosted-on-google-s-servers">prototype library</a> which is
+handy. This could easily be refactored to do any sort of style operation to the selected text, or replace it altogether.
+I will have to give this a try with JQuery as a comparison.
+</body>
+</html>

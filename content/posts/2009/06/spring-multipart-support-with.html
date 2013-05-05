@@ -1,6 +1,22 @@
-
-<html><head>
-<title>Spring Multipart Support With Annotations</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-06-28T11:54:00.000-05:00" />
-</head><body>In working on the multi-file upload support in <a href="http://springsource.org/">Spring</a> (see <a href="http://www.coffeaelectronica.com/2008/02/spring-multipart-issue.html">Spring Multipart Issue</a>), I had to code up a simple example of how it works now. It took me a little searching to figure out how to use multipart support with the new controller annotation configurations, though it turns out to be really easy.<br /><a name='more'></a> I figured I'd post a quick summary of how it's done.  With your standard file upload form:  <br /><br /><pre class="brush:html">&lt;form action="upload.do" method="post" enctype="multipart/form-data"&gt;<br />    &lt;div&gt;File 1: &lt;input type="file" name="file" /&gt;&lt;/div&gt;<br />    &lt;input type="submit" /&gt;<br />&lt;/form&gt;<br /></pre><br />posting to your uploading controller, which is defined as follows:  <br /><br /><pre class="brush:java">@Controller<br />@RequestMapping("/upload.do")<br />public class UploadController {<br /><br />    @SuppressWarnings("unchecked")<br />    @RequestMapping(method=RequestMethod.POST)<br />    public ModelAndView upload(@RequestParam("file") final MultipartFile multipartFile){<br />        final ModelAndView mav = new ModelAndView("done");<br /><br />        // do stuff with the file<br /><br />        return mav;<br />    }<br />}<br /></pre><br />which just seems way too simple. Don't forget to configure the <tt>MultipartResolver</tt> along with the rest of your spring-mvc config:  <br /><br /><pre class="brush:xml">&lt;context:annotation-config /&gt;<br />&lt;context:component-scan base-package="com.stehno.springmulti" /&gt;<br /><br />&lt;bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" /&gt;<br />&lt;bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" /&gt;<br /><br />&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"&gt;<br />    &lt;property name="prefix" value="/WEB-INF/jsp/" /&gt;<br />    &lt;property name="suffix" value=".jsp" /&gt;<br />&lt;/bean&gt;<br />    <br />&lt;bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"&gt;<br />    &lt;property name="maxUploadSize" value="100000"/&gt;&lt;!-- Max size in bytes. --&gt;<br />&lt;/bean&gt;<br /></pre><br />and that's it.  Like I said, nothing real exciting here, really just a quick setup starting point.  <b>Note:</b> my fix of the multiple-file upload support is on hold until Spring 3.0 is officially released. I know what needs to be done, it's just a waiting game now. :-)</body></html>
+<html>
+<head>
+    <title>Spring Multipart Support With Annotations</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-06-28T11:54:00.000-05:00"/>
+</head>
+<body>In working on the multi-file upload support in <a href="http://springsource.org/">Spring</a> (see <a
+        href="http://www.coffeaelectronica.com/2008/02/spring-multipart-issue.html">Spring Multipart Issue</a>), I had
+to code up a simple example of how it works now. It took me a little searching to figure out how to use multipart
+support with the new controller annotation configurations, though it turns out to be really easy.<br/><a
+        name='more'></a> I figured I'd post a quick summary of how it's done. With your standard file upload form: <br/><br/>
+<pre class="brush:html">&lt;form action="upload.do" method="post" enctype="multipart/form-data"&gt;<br/>    &lt;div&gt;File 1: &lt;input type="file" name="file" /&gt;&lt;/div&gt;<br/>    &lt;input type="submit" /&gt;<br/>&lt;/form&gt;<br/></pre>
+<br/>posting to your uploading controller, which is defined as follows: <br/><br/>
+<pre class="brush:java">@Controller<br/>@RequestMapping("/upload.do")<br/>public class UploadController {<br/><br/>    @SuppressWarnings("unchecked")<br/>    @RequestMapping(method=RequestMethod.POST)<br/>    public ModelAndView upload(@RequestParam("file") final MultipartFile multipartFile){<br/>        final ModelAndView mav = new ModelAndView("done");<br/><br/>        // do stuff with the file<br/><br/>        return mav;<br/>    }<br/>}<br/></pre>
+<br/>which just seems way too simple. Don't forget to configure the <tt>MultipartResolver</tt> along with the rest of
+your spring-mvc config: <br/><br/>
+<pre class="brush:xml">&lt;context:annotation-config /&gt;<br/>&lt;context:component-scan base-package="com.stehno.springmulti" /&gt;<br/><br/>&lt;bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" /&gt;<br/>&lt;bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" /&gt;<br/><br/>&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"&gt;<br/>    &lt;property name="prefix" value="/WEB-INF/jsp/" /&gt;<br/>    &lt;property name="suffix" value=".jsp" /&gt;<br/>&lt;/bean&gt;<br/>    <br/>&lt;bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"&gt;<br/>    &lt;property name="maxUploadSize" value="100000"/&gt;&lt;!-- Max size in bytes. --&gt;<br/>&lt;/bean&gt;<br/></pre>
+<br/>and that's it. Like I said, nothing real exciting here, really just a quick setup starting point. <b>Note:</b> my
+fix of the multiple-file upload support is on hold until Spring 3.0 is officially released. I know what needs to be
+done, it's just a waiting game now. :-)
+</body>
+</html>

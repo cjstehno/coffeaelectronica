@@ -1,6 +1,20 @@
-
-<html><head>
-<title>Generics and Comparison</title>
-<meta name="grackle.layout" content="post" />
-<meta name="grackle.date-published" content="2009-08-01T19:54:00.000-05:00" />
-</head><body>A few years back, I wrote a post about how to use the <tt>Comparable</tt> and <tt>Comparator</tt> interfaces for comparing objects, "<a href="http://www.coffeaelectronica.com/2004/10/two-if-by-comparison.html">Two, If By Comparison</a>". While I was bringing the post over to this new site, I realized that it was written in the age long ago before Java generics. I decided to do a quick update to show how adding generics makes is a little easier. <br /><a name='more'></a>Our first update will be the Comparable version of the Person class:  <br /><span style="background-color: white;"></span><br /><pre class="brush:java">public class Person implements Comparable&lt;Person&gt; {<br />    private String id, firstName, lastName;<br />    private int age;<br /><br />    // not showing all the getters and setters here...<br /><br />    public int compareTo(Person person){<br />        // compare the last names using their compareTo methods<br />        return(lastName.compareTo(person.getLastName()));<br />    }<br />}</pre><br />Note the Person parameter in the <tt>Comparable</tt> interface and the Person parameter in the <tt>compareTo()</tt> method. It gets rid of a few lines and makes the code a little more clear.  The <tt>Comparator</tt>s become a bit more straight-forward as well:  <br /><br /><pre class="brush:java">public class LastNameComparator implements Comparator&lt;Person&gt; {<br /><br />    public boolean equals(Object obj){<br />        // we're just going to say that any LastNameComparators are equal<br />        return(obj instanceof LastNameComparator);<br />    }<br /><br />    public int compare(Person p1, Person p2){<br />        // compare their lastNames<br />        return(p1.getLastName().compareTo(p2.getLastName()));<br />    }<br />}<br /><br />public class AgeComparator implements Comparator&lt;Person&gt; {<br /><br />    public boolean equals(Object obj){<br />        // we're just going to say that any AgeComparators are equal<br />        return(obj instanceof AgeComparator);<br />    }<br /><br />    public int compare(Person p1, Person p2){<br />  // compare their ages<br />  int result = 0; // defaults to equal<br />  if(p1.getAge() &gt; p2.getAge()){<br />   result = 1;<br />  } else if(p1.getAge() &lt; p2.getAge()){<br />   result = -1;<br />  }<br /><br />  return(result);<br />    }<br />}</pre><br />Okay, so it's nothing really astounding or Earth-shattering, but I felt the need to give a little update.</body></html>
+<html>
+<head>
+    <title>Generics and Comparison</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2009-08-01T19:54:00.000-05:00"/>
+</head>
+<body>A few years back, I wrote a post about how to use the <tt>Comparable</tt> and <tt>Comparator</tt> interfaces for
+comparing objects, "<a href="http://www.coffeaelectronica.com/2004/10/two-if-by-comparison.html">Two, If By
+    Comparison</a>". While I was bringing the post over to this new site, I realized that it was written in the age long
+ago before Java generics. I decided to do a quick update to show how adding generics makes is a little easier. <br/><a
+        name='more'></a>Our first update will be the Comparable version of the Person class: <br/><span
+        style="background-color: white;"></span><br/>
+<pre class="brush:java">public class Person implements Comparable&lt;Person&gt; {<br/>    private String id, firstName, lastName;<br/>    private int age;<br/><br/>    // not showing all the getters and setters here...<br/><br/>    public int compareTo(Person person){<br/>        // compare the last names using their compareTo methods<br/>        return(lastName.compareTo(person.getLastName()));<br/>    }<br/>}</pre>
+<br/>Note the Person parameter in the <tt>Comparable</tt> interface and the Person parameter in the <tt>compareTo()</tt>
+method. It gets rid of a few lines and makes the code a little more clear. The <tt>Comparator</tt>s become a bit more
+straight-forward as well: <br/><br/>
+<pre class="brush:java">public class LastNameComparator implements Comparator&lt;Person&gt; {<br/><br/>    public boolean equals(Object obj){<br/>        // we're just going to say that any LastNameComparators are equal<br/>        return(obj instanceof LastNameComparator);<br/>    }<br/><br/>    public int compare(Person p1, Person p2){<br/>        // compare their lastNames<br/>        return(p1.getLastName().compareTo(p2.getLastName()));<br/>    }<br/>}<br/><br/>public class AgeComparator implements Comparator&lt;Person&gt; {<br/><br/>    public boolean equals(Object obj){<br/>        // we're just going to say that any AgeComparators are equal<br/>        return(obj instanceof AgeComparator);<br/>    }<br/><br/>    public int compare(Person p1, Person p2){<br/>  // compare their ages<br/>  int result = 0; // defaults to equal<br/>  if(p1.getAge() &gt; p2.getAge()){<br/>   result = 1;<br/>  } else if(p1.getAge() &lt; p2.getAge()){<br/>   result = -1;<br/>  }<br/><br/>  return(result);<br/>    }<br/>}</pre>
+<br/>Okay, so it's nothing really astounding or Earth-shattering, but I felt the need to give a little update.
+</body>
+</html>
