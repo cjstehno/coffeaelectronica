@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>Dynamic JavaScript Loading</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2005-06-15T09:38:00.000-05:00"/>
+    <meta name="grackle.tags" content="JavaScript"/>
+    <meta name="grackle.summary" content="Simple way to dynamically load JavaScript files at runtime."/>
+</head>
+<body>
+<p>I figured out a way to dynamically load JavaScript files at runtime. There are times when you may not always need
+to import all of your external JavaScripts, or maybe you are using Ajax to load content into a div and you also need to
+import some script that the content needs. Here is the solution and it works in IE and
+    <a href="http://mozilla.org/firefox">FireFox</a>:</p>
+
+<pre>function loadLibrary(path){
+    var headElt = document.getElementsByTagName("head").item(0);
+    var scriptElt = headElt.appendChild(document.createElement("script"));
+    scriptElt.setAttribute("type","text/javascript");
+    scriptElt.setAttribute("src",path);
+}</pre>
+
+<p>Pretty simple, and all you have to do to use it is:</p>
+
+<pre>loadLibrary("scripts/myscript.js");</pre>
+
+<p>This works for dynamically loading stylesheet too if you add a link element instead of a script element:</p>
+
+<pre>function loadStylesheet(path){
+    var headElt = document.getElementsByTagName("head").item(0);
+    var scriptElt = headElt.appendChild(document.createElement("link"));
+    scriptElt.setAttribute("type","text/css");
+    scriptElt.setAttribute("rel","stylesheet");
+    scriptElt.setAttribute("href",path);
+}</pre>
+
+</body>
+</html>

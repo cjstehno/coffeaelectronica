@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Spring Inner-class Instantiation</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2005-07-13T07:38:00.000-05:00"/>
+    <meta name="grackle.tags" content="Java,Spring"/>
+    <meta name="grackle.summary" content="You can instantiate inner classes as Spring beans."/>
+</head>
+<body>
+<p>The other day I ran into something I had never tried to do with <a href="http://springframework.org/">Spring</a>
+before; define a bean as an instance of an inner class. I did a little searching through the
+Spring docs, but could not find anything about it, negative or positive. So, I just gave it a try. Consider the class:</p>
+
+<pre>public abstract class IService {
+    public static class ServiceImpl extends IService {
+        // something useful...
+    }
+}</pre>
+
+<p>which would have a bean definition of:</p>
+
+<pre>&lt;bean id="myService" class="com.some.pkg.IService$ServiceImpl" /&gt;</pre>
+
+<p>where the $ is the separator between the main class and the inner class. This is how its represented in the actual
+class file so it makes sense. Nice.</p>
+
+</body>
+</html>

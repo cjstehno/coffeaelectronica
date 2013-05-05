@@ -1,0 +1,6 @@
+
+<html><head>
+<title>Not so Groovy Assumptions</title>
+<meta name="grackle.layout" content="post" />
+<meta name="grackle.date-published" content="2013-01-26T07:34:00.000-06:00" />
+</head><body>I love Groovy, but I was loving a lie... okay, all kidding aside, I had some assumptions about how Groovy behaved, that I have recently found to be wrong. Truly, this is no fault of Groovy, but it is easy to fall into this assumption if you are not careful.  Consider the following set of assertions:  <br /><pre class="brush:groovy">final long foo = 123<br />assert foo == 123<br /><br />foo = 246<br />assert foo == 246<br /><br />Map&lt;Long,Date&gt map = [:] as Map&lt;Long,Date&gt;<br />map.foo = 'bar'<br />assert map['foo'] == 'bar'<br /><br />Map&lt;Long,Date&gt; map2 = new HashMap&lt;Long,Date&gt;()<br />map2.foo = 'bar'<br />assert map2['foo'] == 'bar'<br /></pre><br />All four will assert true. Now, go back and look at the code with a Java-eye... see what I mean? Coming from a Java background I had always assumed that Groovy would at least honor these constructs if you used them, though it would not require them.  To me this is worse than not allowing them at all since it has given me a false sense of security.<br /><br />Live and learn... and remember the rule of assumptions.</body></html>

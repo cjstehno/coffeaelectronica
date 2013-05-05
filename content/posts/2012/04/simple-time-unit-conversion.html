@@ -1,0 +1,6 @@
+
+<html><head>
+<title>Simple Time Unit Conversion</title>
+<meta name="grackle.layout" content="post" />
+<meta name="grackle.date-published" content="2012-04-11T08:45:00.000-05:00" />
+</head><body>Here's a quick tip I found recently. I am sure we have all done this or run into this while coding time duration values, most of which end up being milliseconds.<br /><br /><pre class="brush:groovy">long waitTime = 2 * 60 * 1000 // 2 minutes<br /></pre><br />or worse yet, you run into the less descriptive version:<br /><br /><pre class="brush:groovy">long waitTime = 120000<br /></pre><br />Neither of these is wrong or even all that horrible considering the fact that generally you set these values and forget them; however, there is a clean way to do this that is also much more explicit using TimeUnit:<br /><br /><pre class="brush:groovy">import java.util.concurrent.TimeUnit<br /><br />long waitTime1 = TimeUnit.MILLISECONDS.convert( 2, TimeUnit.MINUTES )<br /></pre><br />which says, "Give me 2 minutes, in milliseconds".<br /><br />This allows you to have the expression of the units involved right in the code while making it trivial to change the value as needed without potential math errors (yes, I have seen missing zeros).</body></html>

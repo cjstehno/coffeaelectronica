@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>End of Time, Well Date Anyway</title>
+    <meta name="grackle.layout" content="post"/>
+    <meta name="grackle.date-published" content="2005-02-18T07:59:00.010-06:00"/>
+    <meta name="grackle.tags" content="Java"/>
+    <meta name="grackle.summary" content="An easy way to specify a date far in the future."/>
+</head>
+<body>
+<div class="pull-left" style="padding:6px;"><img class="img-rounded" src="/rc/timeclock.jpg"/></div>
+
+<p>I have run across this issue before you need to specify a "far-off" expiration date for something using the
+    <code>java.util.Date</code> class. Generally I have specified something 100 years in the future like 1/1/2100 or
+    something like that using the old deprecated Date constructors... but that is not really a good practice or habit
+    to get into. I came up with two better solutions.</p>
+
+<p>First, in the case where you want to specify a static date, you could run a quick test to determine the long time
+    value for the date you create using the deprecated constructors. You then modify your code to use the long value in
+    the constructor, which is the only remaining non-empty constructor.</p>
+
+<p>The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable
+    y2k-like issues) you can use the following:</p>
+
+<pre>Date expiration = new Date(Long.MAX_VALUE);</pre>
+
+<p>which will yield a date so far in the future that you would be proud to have your code exist that long and happy to
+    fix it (at least your descendants should be happy to fix it). The date it represents is:</p>
+
+<pre>Sun Aug 17 00:12:55 MST 292278994</pre>
+
+<p>I think that should suffice.</p>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>CoffeaElectronica: <%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Software Engineering and programming blog.">
+    <meta name="author" content="Christopher J. Stehno">
+
+    <link href="/rc/bootstrap.min.css" rel="stylesheet">
+    <style> body { padding-top: 60px; } </style>
+    <link href="/rc/bootstrap-responsive.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="brand" href="/index.html">CoffeaElectronica</a>
+            <div class="nav-collapse collapse">
+                <ul class="nav">
+                    <li class="active"><a href="/index.html">Home</a></li>
+                    <li><a href="/archives.html">Archives</a></li>
+                    <li><a href="/about.html">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="content-area" class="container">
+    <div class="page-header">
+        <h1><%= title %></h1>
+        <div>
+            <small><%= datePublished.format('MMM dd, yyyy') %>: <% tags.each { tag-> %><span class="label label-info"><%= tag %></span> <% } %></small>
+        </div>
+    </div>
+
+    <%= content %>
+
+    <hr />
+    <div class="media" style="margin-bottom:10px;">
+        <a class="pull-left" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US"><img class="media-object" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png"></a>
+        <div class="media-body">
+            Copyright &copy; 2013 Christopher J. Stehno / <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">CoffeaElectronica</span> is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+        </div>
+    </div>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="/rc/bootstrap.min.js"></script>
+
+</body>
+</html>
