@@ -67,7 +67,7 @@ of the <code>ApplicationContextAware</code> interface. Now, when your applicatio
 you simply pull the manager bean out of spring (which will load only the manager), call the execute(String) method with
 the desired command id. Then, only the desired command bean will be loaded and executed. This has come in very handy
 recently for handling front end interface actions. This laziness allows the system to start up faster, be more stable,
-and more memory efficient. Sometimes being lazy is a good thing.<p>
+and more memory efficient. Sometimes being lazy is a good thing.</p>
 
 <p>In my development, I have created an abstract lazy mapping manager using this strategy... it works great. What I would
     like to come up with is a version of this that not only does lazy loading, but then unloads the bean after a period

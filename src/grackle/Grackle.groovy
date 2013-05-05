@@ -122,7 +122,7 @@ class Grackle {
 
     private processPosts(final File destDir){
         processContent(postDirName){ contentModel, mergedContent ->
-            def dateDir = "posts/${contentModel.datePublished.format(POST_DATE_DIR_FORMAT)}"
+            def dateDir = "${contentModel.datePublished.format(POST_DATE_DIR_FORMAT)}"
             def outputDir = new File(destDir, dateDir)
             outputDir.mkdirs()
 
