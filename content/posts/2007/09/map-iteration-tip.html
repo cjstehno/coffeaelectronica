@@ -3,16 +3,41 @@
     <title>Map Iteration Tip</title>
     <meta name="grackle.layout" content="post"/>
     <meta name="grackle.date-published" content="2007-09-27T12:25:00.000-05:00"/>
+    <meta name="grackle.tags" content="Java"/>
+    <meta name="grackle.summary" content="The more efficient way to iterate over map contents."/>
 </head>
-<body>Say you have a <tt>Map</tt> and that you need to iterate over its contents and do something with both the key and
-the value for each mapping. I have often seen the following code used: <br/>
-<pre class="brush:java">Iterator i = map.keySet().iterator();<br/>while(i.hasNext()){<br/>    Object key = i.next();<br/>    Object val = map.get(key);<br/>    // do something with them<br/>}</pre>
-While this is correct and generally there is nothing wrong with it, you are doing an extra <tt>get()</tt> call into the
-map; however, if you iterate over the entry Set you can remove that extra call: <br/>
-<pre class="brush:java">Iterator i = map.entrySet().iterator();<br/>while(i.hasNext()){<br/>    Entry entry = (Entry)i.next();<br/>    Object key = entry.getKey();<br/>    Object val = entry.getValue();<br/>    // do something with them<br/>}</pre>
-Also, as a side note, with Java 5 and above you can use the new foreach loop to simplify things even more: <br/>
-<pre class="brush:java">for(Entry&lt;object,object&gt; entry : map.entrySet()){<br/>    Object key = entry.getKey();<br/>    Object val = entry.getValue();<br/>    // do something<br/>}<br/></pre>
-It's not going to double your processing speed or anything, but it is a little more efficient, especially when you are
-iterating over a large map of items.
+<body>
+<p>Say you have a <code>Map</code> and that you need to iterate over its contents and do something with both the key and
+the value for each mapping. I have often seen the following code used: </p>
+
+<pre>Iterator i = map.keySet().iterator();
+    while(i.hasNext()){
+    Object key = i.next();
+    Object val = map.get(key);
+    // do something with them
+}</pre>
+
+<p>While this is correct and generally there is nothing wrong with it, you are doing an extra <code>get()</code> call into the
+map; however, if you iterate over the entry Set you can remove that extra call: </p>
+
+<pre>Iterator i = map.entrySet().iterator();
+while(i.hasNext()){
+    Entry entry = (Entry)i.next();
+    Object key = entry.getKey();
+    Object val = entry.getValue();
+    // do something with them
+}</pre>
+
+<p>Also, as a side note, with Java 5 and above you can use the new foreach loop to simplify things even more: </p>
+
+<pre>for(Entry&lt;object,object&gt; entry : map.entrySet()){
+    Object key = entry.getKey();
+    Object val = entry.getValue();
+    // do something
+}</pre>
+
+<p>It's not going to double your processing speed or anything, but it is a little more efficient, especially when you are
+iterating over a large map of items.</p>
+
 </body>
 </html>
