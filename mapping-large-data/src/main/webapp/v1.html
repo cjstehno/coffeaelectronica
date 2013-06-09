@@ -1,0 +1,47 @@
+<html>
+<head>
+  <title>Mapping: Demo v1</title>
+  <link type="text/css" href="map.css" />
+
+  <script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script type="text/javascript">
+    var PROJECTION_EXTERNAL = new OpenLayers.Projection('EPSG:4326');
+    var PROJECTION_INTERNAL = new OpenLayers.Projection('EPSG:900913');
+
+    $(function(){
+      var map = new OpenLayers.Map({
+        div:'map',
+        layers:[
+          new OpenLayers.Layer.OSM(),
+          new OpenLayers.Layer.Vector('Data')
+        ]
+      });
+
+      map.zoomToMaxExtent();
+
+      $.ajax('poi/v1/fetch', { contentType:'application/json' }).done(function(data){
+        updateMarkers(map, data);
+      });
+    });
+
+    function updateMarkers( map, data ){
+      var layer = map.getLayersByName('Data')[0];
+
+      var markers = $.map(data, function(item){
+        return new OpenLayers.Feature.Vector(
+          new OpenLayers.Geometry.Point(item.longitude, item.latitude).transform(PROJECTION_EXTERNAL, PROJECTION_INTERNAL),
+          { item:item },
+          OpenLayers.Util.applyDefaults({ fillColor:'#0000ff' }, OpenLayers.Feature.Vector.style['default'])
+        );
+      });
+
+      layer.addFeatures(markers);
+    }
+  </script>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+</html>
