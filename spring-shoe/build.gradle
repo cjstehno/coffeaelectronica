@@ -1,0 +1,26 @@
+
+apply plugin: 'groovy'
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+compileGroovy {
+    groovyOptions.optimizationOptions.indy = false
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.3.2'
+
+    compile 'javax.servlet:javax.servlet-api:3.0.1'
+    compile 'org.eclipse.jetty:jetty-webapp:8.1.15.v20140411'
+
+    compile 'org.springframework.boot:spring-boot:1.1.5.RELEASE'
+    compile 'org.springframework:spring-web:4.0.6.RELEASE'
+    compile 'org.springframework:spring-webmvc:4.0.6.RELEASE'
+}
