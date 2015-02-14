@@ -14,6 +14,7 @@
           <ul class="nav navbar-nav">
             <li><a href="<%if (content.rootpath) {%>${content.rootpath}<% } else { %><% }%>index.html">Home</a></li>
             <li><a href="<%if (content.rootpath) {%>${content.rootpath}<% } else { %><% }%>about.html">About</a></li>
+            <li><a href="<%if (content.rootpath) {%>${content.rootpath}<% } else { %><% }%>archive.html">Archive</a></li>
             <li><a href="<%if (content.rootpath) {%>${content.rootpath}<% } else { %><% }%>${config.feed_file}">Subscribe</a></li>
           </ul>
         </div><!--/.nav-collapse -->
