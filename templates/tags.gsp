@@ -6,7 +6,7 @@
 		<h1>Tag: ${tag}</h1>
 	</div>
 	
-	<!--<ul>-->
+	<ul>
 		<%def last_month=null;%>
 		<%tag_posts.each {post ->%>
 		<%if (last_month) {%>
@@ -20,7 +20,7 @@
 			<ul>
 		<%}%>
 		
-		<li>${post.date.format("dd")} - <a href="${post.uri}">${post.title}</a></li>
+		<li>${post.date.format("dd")} - <a href="/${post.uri}">${post.title}</a></li>
 		<% last_month = post.date.format("MMMM yyyy")%>
 		<%}%>
 	</ul>
