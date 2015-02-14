@@ -1,0 +1,9 @@
+
+- verify links 
+- verify images in new system
+
+- customize and clean up the blog template
+- add any other required pages
+
+-	figure out how to publish to ghpages
+-	figure out how to use own domain name for ghpages
