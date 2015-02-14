@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>MessageFormat Goodies</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>MessageFormat Goodies</h1>
+	</div>
+
+	<p><em>24 November 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>The <code>java.text.MessageFormat</code> class is, in my opinion, underutilized. It is what <code>org.springframework.context.MessageSource</code> implementations use under the covers to provide message formatting, so they are probably used quite a bit, but do you really let them do what they are made to do... formatting? I am guilty of it to; you convert a Date object to a formatted string before handing it off to a <code>MessageSource</code> or <code>MessageFormat</code> instance... but no more. I wrote a quick<br/>little format dumper to show what each type of formatting prints out:</p>
+<pre><code class="java">Object[] params = new Object[]{ new Date() };
+out.println(&quot;Dates:&quot;);
+out.println(&quot;  default:\t&quot; + format(&quot;{0}&quot;,                 params) );
+out.println(&quot;  short:\t&quot;   + format(&quot;{0,date,short}&quot;,      params) );
+out.println(&quot;  medium:\t&quot;  + format(&quot;{0,date,medium}&quot;,     params) );
+out.println(&quot;  long:\t\t&quot;  + format(&quot;{0,date,long}&quot;,       params) );
+out.println(&quot;  custom:\t&quot;  + format(&quot;{0,date,d MMMM yyyy}&quot;,params) );
+
+out.println(&quot;\nTime:&quot;);
+out.println(&quot;  default:\t&quot; + format(&quot;{0,time}&quot;,         params) );
+out.println(&quot;  short:\t&quot;   + format(&quot;{0,time,short}&quot;,   params) );
+out.println(&quot;  medium:\t&quot;  + format(&quot;{0,time,medium}&quot;,  params) );
+out.println(&quot;  long:\t\t&quot;  + format(&quot;{0,time,long}&quot;,    params) );
+out.println(&quot;  full:\t\t&quot;  + format(&quot;{0,time,full}&quot;,    params) );
+out.println(&quot;  custom:\t&quot;  + format(&quot;{0,time,HH:mm:ss}&quot;,params) );
+
+params = new Object[]{ new Float(31415.967F) };
+out.println(&quot;\nNumbers:&quot;);
+out.println(&quot;  default:\t&quot;  + format(&quot;{0}&quot;,                  params) );
+out.println(&quot;  integer:\t&quot;  + format(&quot;{0,number,integer}&quot;,   params) );
+out.println(&quot;  currency:\t&quot; + format(&quot;{0,number,currency}&quot;,  params) );
+out.println(&quot;  percent:\t&quot;  + format(&quot;{0,number,percent}&quot;,   params) );
+out.println(&quot;  custom:\t&quot;   + format(&quot;{0,number,#,###.0000}&quot;,params) );
+</code></pre><p>Note: I used static imports for <code>System.out</code> and <code>MessageFormat.format</code> so that I could minimize the code<br/>noise. For the same reason, I pulled the format label text outside of the formatting call; they could have easily been done as:</p>
+<pre><code class="java">out.println( format(&quot;  short:\t{0,time,short}&quot;, params) );
+</code></pre><p>It just seemed easier to see the formatting the other way. When I ran my format dumper I ended up with:</p>
+<pre><code>Dates:
+  default: 11/23/09 7:59 PM
+  short: 11/23/09
+  medium: Nov 23, 2009
+  long:  November 23, 2009
+  custom: 23 November 2009
+
+Time:
+  default: 7:59:37 PM
+  short: 7:59 PM
+  medium: 7:59:37 PM
+  long:  7:59:37 PM CST
+  full:  7:59:37 PM CST
+  custom: 19:59:37
+
+Numbers:
+  default: 31,415.967
+  integer: 31,416
+  currency: $31,415.97
+  percent: 3,141,597%
+  custom: 31,415.9668
+</code></pre><p>I am going to make a point to use these from now on, rather than converting manually beforehand.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

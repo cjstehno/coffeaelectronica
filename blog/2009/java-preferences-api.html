@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Java Preferences API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Java Preferences API</h1>
+	</div>
+
+	<p><em>25 July 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>The Java Preferences API (java.util.preferences) appeared in the 1.4.x release of the JDK with little fanfare or<br/>ceremony; it was just one of the new features in the release and it is not one that you hear about very often.</p><p>I don't think I have ever seen it being used anywhere, but it is quite flexible and useful. Preferences are references<br/>hierarchical by package name, similar to the Java Logging API (or <a href="http://logging.apache.org/">Log4J</a>). This allows for<br/>preferences to be stored a various levels (nodes) of the hierarchy. There are two node branches availabe, the <code>UserNode</code><br/>branch and the <code>SystemNode</code> branch. The JavaDocs state that</p>
+<blockquote><p>The precise description of "user" and "system" will vary from implementation to implementation.</p>
+</blockquote><p>But, in general "user" preferences will be different for each user of an application, while system preferences are more<br/>global in scope such as application configuration details. You retrieve the preferences for the class you are working<br/>with with the following statement:</p>
+<pre><code class="java">Preferences userPrefs = Preferences.userNodeForPackage(com.you.MyClass.class);
+Preferences systemPrefs = Preferences.systemNodeForPackage(com.you.MyClass.class);
+</code></pre><p>You can really use any class in your application as a reference point, as long as it is a logical association. Once<br/>you have a Preferences object, you can get and set values with simple accessor methods:</p>
+<pre><code class="java">userPrefs.putInt(&quot;historyCount&quot;,10);
+int histCnt = userPrefs.getInt(&quot;historyCount&quot;,5);
+
+systemPrefs.putBoolean(&quot;allowEdit&quot;,true);
+boolean allowEdit = systemPrefs.getBoolean(&quot;allowEdit&quot;,false);
+</code></pre><p>Notice, that in the <code>getInt()</code> method the second parameter is a default value of the preference so that if it has not been<br/>defined yet, you still have a value to fall back on. Also, the data is persisted automatically; you don't need to explicitly<br/>save it. If you want to export your preferences for backup or import into another system, the API provides two export<br/>methods, one for just the current node, and the other for the current node and its child nodes.</p>
+<pre><code class="java">userPrefs.exportNode( outstream ); // for just the one node, no child nodes
+
+userPrefs.exportSubtree( outstream ); // for the node and its child nodes
+</code></pre><p>Importing preferences is done using the <code>importPreferences(InputStream)</code> method, which will import all the given preferences<br/>into the local preference system.</p>
+<pre><code class="java">Preferences.importPreferences( instream );
+</code></pre><p>The import/export format for preferences is a defined XML format (see JavaDocs for DTD). The preferences I detailed earlier<br/>would look something like (results may vary):</p>
+<pre><code class="xml">&lt;preferences&gt;
+    &lt;root type=&quot;user&quot;&gt;
+        &lt;node name=&quot;com&quot;&gt;
+            &lt;node name=&quot;you&quot;&gt;
+                &lt;node name=&quot;MyClass&quot;&gt;
+                    &lt;map&gt;
+                        &lt;entry key=&quot;historyCount&quot; value=&quot;10&quot; /&gt;
+                    &lt;/map&gt;
+                &lt;/node&gt;
+            &lt;/node&gt;
+        &lt;/node&gt;
+    &lt;/root&gt;
+    &lt;root type=&quot;system&quot;&gt;
+        &lt;node name=&quot;com&quot;&gt;
+            &lt;node name=&quot;you&quot;&gt;
+                &lt;node name=&quot;MyClass&quot;&gt;
+                    &lt;map&gt;
+                        &lt;entry key=&quot;allowEdit&quot; value=&quot;false&quot; /&gt;
+                    &lt;/map&gt;
+                &lt;/node&gt;
+            &lt;/node&gt;
+        &lt;/node&gt;
+    &lt;/root&gt;
+&lt;/preferences&gt;
+</code></pre><p>One more point of interest is that you can register a listener for node and preference change events:</p>
+<pre><code class="java">userPrefs.addNodeChangeListener( listener );
+userPrefs.addPreferenceChangeListener( listener );
+</code></pre><p>Node change events occur when a node is modified by adding or removing a child node. Preference change events are<br/>fired when the data contained in a preference node is modified. These could be useful for cases when you have<br/>interrelated preferences such that when you delete or change one of them, you need to modify the others accordingly. So,<br/>the next time you think about using a <code>Properties</code> object, reconsider and think about whether or not a <code>Preferences</code><br/>object might serve your needs better.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

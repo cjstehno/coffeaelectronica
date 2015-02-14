@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Mocking those Stubborn Loggers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Mocking those Stubborn Loggers</h1>
+	</div>
+
+	<p><em>24 November 2007</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/testing.html'>testing</a></p>
+
+	<p><p>I have run into a couple instances where I would benefit from being able to mock logging, such as when the result<br/>of an operation is only some output to a log file. Reflection comes in very handy for this.</p><p>I created a utility method called <code>injectFieldValue</code> which allows a specified value to be injected into a non-final<br/>field of an object.</p>
+<pre><code class="java">public static void injectFieldValue(Object target, String fieldName, Object fieldValue) throws Exception {
+    final Field logField = target.getClass().getDeclaredField(fieldName);
+    logField.setAccessible(true);
+    logField.set(target, fieldValue);
+}
+</code></pre><p>It allows you to inject a value into any non-final field of the target class. With this method you can now create a<br/>mock Log object and inject it into your target object under test which then allows you to put expectations on the<br/>logging so that you are sure that it is called correctly. Your mock test code could look something like this:</p>
+<pre><code class="java">public void testLog() throws Exception {
+    final Log log = mock(Log.class);
+    checking(new Expectations(){
+        {
+            one(log).info(&quot;something&quot;);
+        }
+    });
+    MockUtils.injectFieldValue(target,&quot;log&quot;,log);
+
+    target.doSomething();
+}
+</code></pre><p>I don't recommend this approach for normal coding, but for testing the gloves can come off. Also, I don't recommend<br/>this for everywhere you have logging, just for those cases when logging is an expected result that needs to be<br/>validated... in other words, not very often. This technique will work for <code>static</code> loggers but not <code>final</code>.</p>
+<blockquote><p><em>Note:</em> If the field you are mocking is in a parent of your target object, you will need to rewrite this method to<br/>walk up the hierarchy to find the target field. Not hard to do, just not done here.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

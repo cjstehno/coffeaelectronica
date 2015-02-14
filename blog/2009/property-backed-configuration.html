@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Property Backed Configuration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Property Backed Configuration</h1>
+	</div>
+
+	<p><em>23 May 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>A useful trick I started doing for property-backed configuration files is to provide something a little more rich<br/>than a simple <code>Properties</code> object as a provider.</p><p>Use a <code>Properties</code> instance as a delegate to pull out the properties, but provide a more useful interface for the values themselves. Say you have a<br/>properties file such as:</p>
+<pre><code>path.storage = /some/path
+</code></pre><p>You could simply access these via a <code>Properties</code> instance, and use it directly as in:</p>
+<pre><code class="java">String path = props.getProperty(&quot;path.storage&quot;);
+File file = new File(path,&quot;archive.zip&quot;);
+</code></pre><p>but consider a potentially more useful approach</p>
+<pre><code class="java">File file = config.getStorageFile(&quot;archive.zip&quot;);
+</code></pre><p>with</p>
+<pre><code class="java">public File getStorageFile(String name){
+    return new File( props.getProperty(&quot;path.storage&quot;), name );
+}
+</code></pre><p>You could even pull the file extension into the method if it made sense to do so... say, if all files in that path<br/>were .zip files you could then enforce more control on how it was used such as:</p>
+<pre><code class="java">public File getStorageFile(String name){
+    return new File(props.getProperty(&quot;path.storage&quot;),name + &quot;.zip&quot;);
+}
+
+File file = config.getStorageFile(&quot;archive&quot;);
+</code></pre><p>These helper methods would be part of a class called Config or something similar that delegates to an internal <code>Properties</code> object:</p>
+<pre><code class="java">public class Config {
+    private final Properties props;
+
+    public Config(Properties p){
+        this.props = p;
+    }
+
+    public File getStorageFile(String name){
+        return new File(props.getProperty(&quot;path.storage&quot;),name);
+    }
+}
+</code></pre><p>You could also do the loading of the properties file inside this class. Some property validation could also be helpful.<br/>This strategy really helped to clean up a project that originally had a lot of properties that were used all over the<br/>place with very little order. Converting to this approach actually made the code more understandable and less error prone as well.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

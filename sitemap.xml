@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <url>
+    	<loc>http://coffeaelectronica.comabout.html</loc>
+    	<lastmod>2013-09-24</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/gradle-and-codenarc.html</loc>
+    	<lastmod>2014-11-07</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/hello-again-slick2d.html</loc>
+    	<lastmod>2014-10-11</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/spring-boot-embedded-server-api.html</loc>
+    	<lastmod>2014-09-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/nodetypes-rabbit-hole.html</loc>
+    	<lastmod>2014-08-23</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/wabbit-season-with-jackrabbit.html</loc>
+    	<lastmod>2014-08-23</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/simple-configuration-dsl-using-groovy.html</loc>
+    	<lastmod>2014-07-19</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2014/going-native-with-gradle.html</loc>
+    	<lastmod>2014-03-16</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2013/mapping-large-data-sets.html</loc>
+    	<lastmod>2013-06-09</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2013/javasisst-mind-blown.html</loc>
+    	<lastmod>2013-05-25</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2013/junit-rules.html</loc>
+    	<lastmod>2013-03-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2013/integration-testing-with-junit-and-maven.html</loc>
+    	<lastmod>2013-02-09</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2013/multi-threaded-work-queue.html</loc>
+    	<lastmod>2013-01-27</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2012/call-screening-tip.html</loc>
+    	<lastmod>2012-09-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2012/google-protocol-buffers.html</loc>
+    	<lastmod>2012-05-13</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2012/personal-development-process.html</loc>
+    	<lastmod>2012-05-06</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2012/simple-time-unit-conversion.html</loc>
+    	<lastmod>2012-04-11</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2012/when-gstrings-attack.html</loc>
+    	<lastmod>2012-03-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2011/home-server-v2.html</loc>
+    	<lastmod>2011-10-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2011/overlap-ccross-multiple-variables.html</loc>
+    	<lastmod>2011-09-05</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2011/adding-icons-to-your-links.html</loc>
+    	<lastmod>2011-02-09</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2010/tour-de-mock-5.html</loc>
+    	<lastmod>2010-10-29</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2010/java-and-ipv6.html</loc>
+    	<lastmod>2010-10-24</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2010/from-junk-box-to-jukebox.html</loc>
+    	<lastmod>2010-10-17</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2010/finding-your-center.html</loc>
+    	<lastmod>2010-08-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2010/sorting-in-javascript.html</loc>
+    	<lastmod>2010-04-12</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/collapsible-div-with-jquery.html</loc>
+    	<lastmod>2009-12-23</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/if-at-first-you-dont-succeed.html</loc>
+    	<lastmod>2009-12-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/xml-serialization.html</loc>
+    	<lastmod>2009-11-27</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/message-format-goodies.html</loc>
+    	<lastmod>2009-11-24</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/converting-numbers-to-ranges.html</loc>
+    	<lastmod>2009-11-21</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/dev-environment.html</loc>
+    	<lastmod>2009-11-13</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/hearding-jackrabbit.html</loc>
+    	<lastmod>2009-10-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/highlighting-text-with-javascript-jquery.html</loc>
+    	<lastmod>2009-09-24</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/unix-y2038-bug.html</loc>
+    	<lastmod>2009-09-19</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/highlighting-text-with-javascript.html</loc>
+    	<lastmod>2009-09-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/parsing-name-value-pairs.html</loc>
+    	<lastmod>2009-08-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/io-template-api.html</loc>
+    	<lastmod>2009-08-11</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/java-preferences-api.html</loc>
+    	<lastmod>2009-07-25</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/tour-de-mock-4.html</loc>
+    	<lastmod>2009-07-23</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/tour-de-mock-3.html</loc>
+    	<lastmod>2009-07-22</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/tour-de-mock-2.html</loc>
+    	<lastmod>2009-07-21</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/tour-de-mock-1.html</loc>
+    	<lastmod>2009-07-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/javascript-link-decoration.html</loc>
+    	<lastmod>2009-06-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/property-backed-configuration.html</loc>
+    	<lastmod>2009-05-23</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/adding-ivy-to-ant-boilerplate.html</loc>
+    	<lastmod>2009-04-16</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/puzzle-of-the-Jars-and-pebbles.html</loc>
+    	<lastmod>2009-04-08</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/layered-build-scripting.html</loc>
+    	<lastmod>2009-02-17</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/boilerplate-ant-build.html</loc>
+    	<lastmod>2009-01-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2009/simple-image-rotation.html</loc>
+    	<lastmod>2009-01-08</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/floating-following-div.html</loc>
+    	<lastmod>2008-10-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/ant-input-and-private-tasks.html</loc>
+    	<lastmod>2008-10-21</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/calling-parent-code-from-iframe.html</loc>
+    	<lastmod>2008-10-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/java-regex-search-and-replace.html</loc>
+    	<lastmod>2008-08-12</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/embedding-jetty-6-in-spring.html</loc>
+    	<lastmod>2008-08-05</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/rendering-calendard.html</loc>
+    	<lastmod>2008-05-31</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/spring-deserialized-objectfactory.html</loc>
+    	<lastmod>2008-04-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/fun-with-robot.html</loc>
+    	<lastmod>2008-04-04</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/scaling-images-with-groovy.html</loc>
+    	<lastmod>2008-03-03</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/cruise-control-operations.html</loc>
+    	<lastmod>2008-02-08</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/finding-matching-ints.html</loc>
+    	<lastmod>2008-02-02</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2008/circular-arrays.html</loc>
+    	<lastmod>2008-01-25</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/playlist-randomization.html</loc>
+    	<lastmod>2007-12-21</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/export-eclipse-working-sets.html</loc>
+    	<lastmod>2007-12-07</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/mocking-those-stubborn-loggers.html</loc>
+    	<lastmod>2007-11-24</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/creating-spring-contexts-programmatically.html</loc>
+    	<lastmod>2007-11-01</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/custom-spring-editors.html</loc>
+    	<lastmod>2007-11-01</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/single-line-collection-creation.html</loc>
+    	<lastmod>2007-10-09</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/recursion-vs-iteration.html</loc>
+    	<lastmod>2007-09-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/map-iteration-tip.html</loc>
+    	<lastmod>2007-09-27</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/are-you-still-mocking-me.html</loc>
+    	<lastmod>2007-09-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/mocking-objects-with-non-empty-constructors.html</loc>
+    	<lastmod>2007-09-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2007/velociscript.html</loc>
+    	<lastmod>2007-07-06</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2006/when-ajax-was-just-a-cleanser.html</loc>
+    	<lastmod>2006-11-14</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2006/are-you-mocking-me.html</loc>
+    	<lastmod>2006-09-20</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2006/spring-rmi-jndi-cool.html</loc>
+    	<lastmod>2006-09-10</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2006/embedding-jetty-in-spring.html</loc>
+    	<lastmod>2006-02-01</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/lazy-bean-mapping-and-command-pattern.html</loc>
+    	<lastmod>2005-10-26</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/simple-hashing.html</loc>
+    	<lastmod>2005-10-25</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/extracting-a-property-from-a-collection.html</loc>
+    	<lastmod>2005-10-17</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/spring-inner-class-instantiation.html</loc>
+    	<lastmod>2005-07-13</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/dynamic-javascript-loading.html</loc>
+    	<lastmod>2005-06-15</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/end-of-time-well-date-anyway.html</loc>
+    	<lastmod>2005-02-18</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/commons-collections-transformers.html</loc>
+    	<lastmod>2005-01-06</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2005/commons-collections-predicates.html</loc>
+    	<lastmod>2005-01-04</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2004/two-if-by-comparison.html</loc>
+    	<lastmod>2004-10-14</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2004/worker-bean-pattern.html</loc>
+    	<lastmod>2004-05-28</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2004/proper-care-and-feeding-of-your-jdbc.html</loc>
+    	<lastmod>2004-05-27</lastmod>
+    </url>
+
+    <url>
+    	<loc>http://coffeaelectronica.comblog/2004/proxy-method-logging.html</loc>
+    	<lastmod>2004-02-11</lastmod>
+    </url>
+
+</urlset>

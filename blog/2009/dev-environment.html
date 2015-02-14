@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Development Environment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Development Environment</h1>
+	</div>
+
+	<p><em>13 November 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>One of the tasks I have been given at work is to help modernize the "old school" organization and implement more standardized Java development practices; it has gotten me thinking a lot about what makes a good development procedure/environment.</p><p>The list I came up with, should be very familiar to most developers, and though they are most often considered part of "agile" development, they are in my opinion, just good development practices that go beyond any specific development methodology:</p>
+<ul>
+  <li>Coding to interfaces</li>
+  <li>Unit testing</li>
+  <li>Decoupled tools</li>
+  <li>Automated build (with command line ability)</li>
+  <li>Good source control</li>
+  <li>Continuous integration</li>
+  <li>Good bug tracking</li>
+</ul><h2>Coding to Interfaces</h2><p>Write your services and DAOs based on interfaces rather than concrete classes. This allows you to test code in a more decoupled manner and allows you greater implementation flexability. It also makes team development more manageable, since you can agree on some interfaces early on in the project and then code to them separately withough the need to wait for the missing pieces.</p><h2>Unit Testing</h2><p>Again... how do you know that your code works without proof. Unit testing in some automated, reproducable format is crucial to providing confidence that your code does what it is supposed to do. Into this category I also throw code coverage, which gives you some clues as to how thoroughly you have tested your code.</p><h2>Decoupled Tools</h2><p>Your tools should work for you, not against you. Your IDEs, servers, build tools, etc should not be tied together in any way. Developers should be able to use whatever IDE/tools (other than servers) that they are familiar with.</p><h2>Automated Build</h2><p>Your project(s) should be buildable from the command line in a repeatable manner with little effort. Tools like <a href="http://ant.apache.org/">Ant</a> and <a href="http://maven.apache.org/">Maven</a> provide rich environments for build production, while still allowing good integration with most IDEs. This goes along somewhat with the previous point about decoupled tools. There is no reason why a developer should not be able to easity edit a file with a plain text editor, run the tests and produce build from the command line with no less confidence than working in a full-featured IDE.</p><h2>Source Control</h2><p>Whether it's a personal project, a prototype, or a project for work, it should have some sort of good source control setup for it. There are tons of free options (<a href="http://gitscm.org/">git</a>, <a href="http://subversion.tigris.org/">svn</a>, <a href="http://bazaar-vcs.org/en/">bazar</a>, <a href="http://mercurial.selenic.com/">mercurial</a>, cvs) and even some good commercial options (<a href="http://perforce.com/">perforce</a>), each with varrying levels of IDE integration and ease of use. A good source control system should provide good IDE integration as well as good command line usability.</p><h2>Continuous Integration</h2><p>If you have more than one person committing code to a project you will need a continuous integration server (<a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a>, <a href="http://hudson-ci.org/">Hudson</a>, <a href="http://continuum.apache.org/">Continuum</a> ) setup to do automated builds at least once a day. Having a build kicked off after a checkin is made is also very helpful. CI builds provide an addition level of assurance that the project compiles and is testable on something other than the developers machine. It also provides help with larger teams in keeping the repository clean from bad code commits. A failing build becomes a red flag that should be fixed right away.</p><h2>Bug Tracking</h2><p>A good means of logging and managing bug tickets is very important to keeping track of what has been done as well as what needs to be done. Don't use an in-house spreadsheed, access database or some other bogus bug tracker. Install one of the many free options (<a href="http://www.bugzilla.org/">bugzilla</a>, <a href="http://trac.edgewall.org/">trac</a>, redmine, <a href="http://www.mantisbt.org/">mantis</a>) or one of the commercial options (fogbugz). A good tracker should provide a number of access points so that developer tools can also integrate with the tracker and provide a more rich interaction experience. I am sure that most of this is nothing new, but I wanted to get it all down in one place for future reference. Let me know if I have missed or over/under-stated anything.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Adding Ivy to Ant Boilerplate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Adding Ivy to Ant Boilerplate</h1>
+	</div>
+
+	<p><em>16 April 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/ant.html'>ant</a></p>
+
+	<p><p>I have wanted to delve deeper into <a href="http://ant.apache.org/ivy">Ivy</a> for a while now, but something always pulled me away<br/>before I got very far into it. Well today I had some time, so I did a little digging.</p><p>Ivy is a dependency management system along similar lines to that provided by <a href="http://maven.apache.org/">Maven</a> but without<br/>all of Maven's other features. Ivy <em>just</em> does dependency management. Ivy uses a project (module) description file for<br/>project configuration, generally named <code>ivy.xml</code> and put in the root of your project. Then you can add additional ant<br/>tasks to manage the dependencies.</p><p>Dependency management puts the common jars you (and everyone else) use in a common repository so that you can have quick<br/>standardized access to the jar and version that you need for each project. Ivy knows how to find these based on the<br/>configuration of your dependencies in the <code>ivy.xml</code> file. The dependencies are then cached locally for your use<br/>and added to projects as required.</p><p>A simple <code>ivy.xml</code> file is shown below:</p>
+<pre><code class="xml">&lt;ivy-module version=&quot;2.0&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xsi:noNamespaceSchemaLocation=&quot;http://ant.apache.org/ivy/schemas/ivy.xsd&quot;&gt;
+    &lt;info organisation=&quot;com.stehno&quot; module=&quot;foobar&quot; /&gt;
+    &lt;configurations&gt;
+        &lt;conf name=&quot;prod&quot; description=&quot;Production environment conf.&quot;/&gt;
+        &lt;conf name=&quot;dev&quot; transitive=&quot;false&quot; description=&quot;Testing environment conf.&quot;/&gt;
+    &lt;/configurations&gt;
+    &lt;dependencies&gt;
+        &lt;!-- For Production --&gt;
+        &lt;dependency org=&quot;org.springframework&quot; name=&quot;spring-webmvc&quot; rev=&quot;2.5.6&quot; conf=&quot;prod-&gt;default&quot;&gt;
+            &lt;exclude org=&quot;commons-attributes&quot;/&gt;
+            &lt;exclude org=&quot;commons-digester&quot; /&gt;
+            &lt;exclude org=&quot;jexcelapi&quot; module=&quot;jxl&quot;/&gt;
+            &lt;exclude org=&quot;velocity&quot; /&gt;
+            &lt;exclude org=&quot;org.apache.poi&quot; /&gt;
+            &lt;exclude org=&quot;struts&quot; /&gt;
+            &lt;exclude org=&quot;org.apache.tiles&quot; /&gt;
+            &lt;exclude module=&quot;freemarker&quot; /&gt;
+            &lt;exclude module=&quot;xml-apis&quot; /&gt;
+            &lt;exclude module=&quot;jasperreports&quot; /&gt;
+            &lt;exclude module=&quot;velocity-tools-generic&quot; /&gt;
+            &lt;exclude module=&quot;velocity-tools-view&quot; /&gt;
+            &lt;exclude module=&quot;itext&quot; /&gt;
+            &lt;exclude module=&quot;jfreechart&quot; /&gt;
+            &lt;exclude module=&quot;jcommon&quot; /&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency org=&quot;commons-lang&quot; name=&quot;commons-lang&quot; rev=&quot;2.4&quot; conf=&quot;prod-&gt;default&quot;/&gt;
+            &lt;!-- For Development --&gt;
+            &lt;dependency org=&quot;junit&quot; name=&quot;junit&quot; rev=&quot;4.4&quot; conf=&quot;dev-&gt;default&quot;/&gt;
+            &lt;dependency org=&quot;org.springframework&quot; name=&quot;spring-test&quot; rev=&quot;2.5.6&quot; conf=&quot;dev-&gt;default&quot; /&gt;
+    &lt;/dependencies&gt;
+&lt;/ivy-module&gt;
+</code></pre><p>You see basic module information (info element) which is used to identify your project. The configurations define<br/>various configurations available. In this case I have one <code>prod</code> and one <code>dev</code> configuration so that I can<br/>define one set of dependencies that will be pushed out with the production artifact and one that is only used locally<br/>for testing and development. The dependencies are defined in dependency elements using the standard Maven repository<br/>conventions, the conf attribute being a reference to which configuration the dependency belongs to. The<br/><code>-&gt;default</code> is something I am not totally clear on, but I think it means that the dependency will also be<br/>associated with the <code>default</code> configuration.</p><p>One downside I have noticed about Ivy is that when it pulls down dependencies, it pulls them all down without prejudice.<br/>So when you have something like <a href="http://springframework.org/">Spring</a> which has a lot of non-required dependencies, you get them all and<br/>have to exclude those you don't want (as I did in the sample with the exclude elements). It's not horrible but you have<br/>to do it by hand. If you don't really care about the size of your application you can just forget about it and let it<br/>pull down everything. Something missing along these lines is a general exclusion that would exclude a dependent jar from<br/>any module. The way it stands, if module A and module B both depend on the module C, which is not required, you will<br/>have to exclude it from both dependency definitions.</p><p>The dependency management strategy that I am going with here is one that I hope will "stay out of my way". I was thinking about when dependency resolution is really needed.<br/>Maven checks for dependency changes whenever you do anything (at least pre-2.0 did, I am not sure about 2.0) so that<br/>even running <code>clean</code> caused a dependency check... how wasteful is that? In my opinion, dependency management<br/>should be done when you want it done. When is it relevant?</p>
+<ul>
+  <li>when you add or remove a dependency</li>
+  <li>when you change a dependency version</li>
+</ul><p>How often do these events really happen? In a structured working environment these events often require buy-in from<br/>other developers and/or managers. Even at home on your own projects, they only happen when you feel the need to change<br/>one... not every time you run your build script. On a related note, IDEs tend to get cranky when you keep<br/>adding/removing jars out from under them too.</p><p>This leads me to add three new targets to my <a href="http://www.coffeaelectronica.com/2009/01/boilerplate-ant-build.html">Boilerplate Ant File</a>:</p><p>The <code>depends</code> target to update the local dependencies in your project.</p>
+<pre><code class="xml">&lt;target name=&quot;depends&quot; description=&quot;Update the dependencies for the project.&quot;&gt;
+    &lt;ivy:retrieve sync=&quot;true&quot; conf=&quot;prod&quot; pattern=&quot;${web.src.dir}/WEB-INF/lib/[artifact].[ext]&quot; /&gt;
+    &lt;ivy:retrieve sync=&quot;true&quot; conf=&quot;dev&quot; pattern=&quot;${lib.dir}/[artifact].[ext]&quot; /&gt;
+&lt;/target&gt;
+</code></pre><p>The <code>clean-depends</code> target to clean out the dependency directories.</p>
+<pre><code class="xml">&lt;target name=&quot;clean-depends&quot; description=&quot;Clean out the managed dependencies.&quot;&gt;
+    &lt;delete&gt;
+        &lt;fileset dir=&quot;${web.src.dir}/WEB-INF/lib&quot; includes=&quot;*.jar&quot; /&gt;
+        &lt;fileset dir=&quot;${lib.dir}&quot; includes=&quot;*.jar&quot; /&gt;
+    &lt;/delete&gt;
+&lt;/target&gt;
+</code></pre><p>And finally, the <code>depends-report</code> target to generate a nice report of all the project dependencies.</p>
+<pre><code class="xml">&lt;target name=&quot;depends-report&quot; depends=&quot;depends&quot; description=&quot;Generates dependency report for the project.&quot;&gt;
+    &lt;ivy:report todir=&quot;${depends.report.dir}&quot; conf=&quot;dev,prod&quot; /&gt;
+&lt;/target&gt;
+</code></pre>
+<blockquote><p><em>NOTE:</em> At this point you will have to add these to the boilerplate file if you are using it - I will be creating a<br/>project for this build management stuff and sharing it out soon in a more official manner so stay tuned.</p>
+</blockquote><p>With these new targets you can refresh your dependencies and be ready to code with:</p>
+<pre><code>ant clean-all clean-depends depends test
+</code></pre><p>Do this whenever you add/update/remove dependencies or when you pull the project out of source control... you don't<br/>want to put your jars in source control any more if you are currently doing that. You can usually write rules/configurations<br/>in your source control to keep out the jar files. This keeps the storage space down and the transfer time down since you<br/>will have the jars stored in your local cache when you need them.</p><p>If you have never done automated dependency management you may not really see the value of it. You get the most benefit when you are<br/>working in a multi-project environment, which I will be supporting and blogging about soon.</p><p>Be warned that this post really only scratches the surface of what ivy can do. I recommend visiting their web site and checking out the<br/>documentation. They have decent documentation of all the config elements; however, their examples are a little on the weak side.<br/>You have to get into their sample code to get a real helpful guide.</p>
+<blockquote><p>You can find an updated version of this build script in my <a href="http://github.com/cjstehno/AntBoilerplate">AntBoilerplate</a> project.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

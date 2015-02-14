@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>XML Serialization</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>XML Serialization</h1>
+	</div>
+
+	<p><em>27 November 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>Another pair of those seemingly forgotten classes in the core Java API are the <code>java.beans.XMLEncoder</code> and <code>java.beans.XMLDecoder</code>. Added in 1.4, they don't really seem to be used all that much, that I have come across anyway. It seems that whenever someone needs to convert objects into xml, they instantly reach for 3rd-party libraries rather than looking in the core API. Not to downplay other APIs, but I do think XMLEncoder and XMLDecoder deserve consideration, especially when you simply need to export data objects in a simple and repeatable manner.</p><p>First off, we need something to work with, how about a nice Person class:</p>
+<pre><code class="java">public class Person {
+    private String firstName, lastName;
+    private short age;
+
+    public Person(){ super(); }
+
+    public Person(final String firstName, final String lastName, final short age){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+    }
+
+    public String getFirstName() { return firstName; }
+
+    public void setFirstName(final String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+
+    public void setLastName(final String lastName) { this.lastName = lastName; }
+
+    public short getAge() { return age; }
+
+    public void setAge(final short age) { this.age = age; }
+
+    @Override
+    public String toString() { return firstName+&quot; &quot;+lastName+&quot; (&quot;+age+&quot;)&quot;; }
+}
+</code></pre><p>It's nothing special, just first name, last name and age with getters and setters. I also overrode the <code>toString()</code> method so we can get something useful from it. Now say you are in a situation where you need to quickly convert objects of the Person class to a format usable by another client (maybe another programming language); as much trouble as XML can be a times, it is still a good interoperability choice. Converting a collection of Person objects to XML is trivial:</p>
+<pre><code class="java">final Collection&lt;Person&gt; people = new LinkedList&lt;Person&gt;();
+people.add( new Person(&quot;Joe&quot;,&quot;Smith&quot;,(short) 32) );
+people.add( new Person(&quot;Abe&quot;,&quot;Ableman&quot;,(short) 54) );
+people.add( new Person(&quot;Cindy&quot;,&quot;Lindy&quot;,(short) 42) );
+
+final XMLEncoder encoder = new XMLEncoder( outputStream );
+encoder.writeObject(people);
+encoder.close();
+</code></pre><p>Which will generate the following XML in the given output stream:</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;java version=&quot;1.6.0_13&quot; class=&quot;java.beans.XMLDecoder&quot;&gt;
+    &lt;object class=&quot;java.util.LinkedList&quot;&gt;
+        &lt;void method=&quot;add&quot;&gt;
+            &lt;object class=&quot;foo.Person&quot;&gt;&lt;void property=&quot;age&quot;&gt;&lt;short&gt;32&lt;/short&gt;&lt;/void&gt;
+                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Joe&lt;/string&gt;&lt;/void&gt;
+                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Smith&lt;/string&gt;&lt;/void&gt;
+            &lt;/object&gt;
+        &lt;/void&gt;
+        &lt;void method=&quot;add&quot;&gt;
+            &lt;object class=&quot;foo.Person&quot;&gt;
+                &lt;void property=&quot;age&quot;&gt;&lt;short&gt;54&lt;/short&gt;&lt;/void&gt;
+                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Abe&lt;/string&gt;&lt;/void&gt;
+                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Ableman&lt;/string&gt;&lt;/void&gt;
+            &lt;/object&gt;
+        &lt;/void&gt;
+        &lt;void method=&quot;add&quot;&gt;
+            &lt;object class=&quot;foo.Person&quot;&gt;
+                &lt;void property=&quot;age&quot;&gt;&lt;short&gt;42&lt;/short&gt;&lt;/void&gt;
+                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Cindy&lt;/string&gt;&lt;/void&gt;
+                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Lindy&lt;/string&gt;&lt;/void&gt;
+            &lt;/object&gt;
+        &lt;/void&gt;
+    &lt;/object&gt;
+&lt;/java&gt;
+</code></pre><p>Yeah, it's not pretty and it's a bit on the verbose side, but it was easy to produce and easy to read. Now, if you want to read that back into Java objects, it it equally as simple:</p>
+<pre><code class="java">final XMLDecoder decoder = new XMLDecoder( inputStream );
+final Collection&lt;Person&gt; persons = (Collection&lt;Person&gt;)decoder.readObject();
+decoder.close();
+</code></pre><p>which will give you back copies of your original objects. If you were to call <code>toString()</code> on the resulting<br/>collection you would get:</p>
+<pre><code>[Joe Smith (32), Abe Ableman (54), Cindy Lindy (42)]
+</code></pre><p>Exactly what you put in. Obviously, this is not the best approach for serializing and deserializing data, but it's another tool in the tool box and I am always surprised by how few developers actually know that they are available.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

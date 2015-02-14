@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Highlighting Text with JavaScript and JQuery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Highlighting Text with JavaScript and JQuery</h1>
+	</div>
+
+	<p><em>24 September 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/javascript.html'>javascript</a></p>
+
+	<p><p>In my recent post about <a href="Highlighting-Text-with-JavaScript">Highlighting Text With JavaScript</a> I suggested that I should try doing the same functionality with <a href="http://jquery.com/">JQuery</a>.</p><p>So I did, and I am really starting to like JQuery. Below are the modifications to the HTML shown in the previous posting; basically you just swap out the two script elements in the <a href="http://prototypejs.org/">Prototype</a> version with those shown below:</p>
+<pre><code class="html">&lt;script type=&quot;text/javascript&quot; src=&quot;http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+    jQuery(function(){
+        $(&#39;#content&#39;).bind(&#39;click&#39;,highlight);
+    });
+
+    function highlight(){
+        var htm = $(&#39;#content&#39;).html();
+        var str = &#39;&#39;;
+
+        jQuery.each( htm.split(&#39; &#39;), function(){
+            if(jQuery.trim(this) != &#39;&#39;){
+                str += this.replace(&#39;pick&#39;,&#39;&lt;span&gt;pick&lt;/span&gt;&#39;);
+            }
+
+            str += &#39; &#39;;
+        });
+
+        $(&#39;#content&#39;).html(str);
+    }
+&lt;/script&gt;
+</code></pre><p>JQuery does on-load event handling and event-handling in general, from what I have seen, in a very similar way to<br/>how Prototype does it. The <code>highlight()</code> function is a bit more complex in this version as JQuery does not seem<br/>to have the same level of String manipulation support out of the box; however, maybe I missed it in the documentation or<br/>perhaps there is a good plugin that adds better string handling. This post is not really meant to compare the two<br/>libraries overall; it was more to satisfy my curiousity and get some practice with JQuery when solving a problem I have<br/>already solved with Prototype.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

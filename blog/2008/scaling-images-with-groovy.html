@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Scaling Images with Groovy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Scaling Images with Groovy</h1>
+	</div>
+
+	<p><em>03 March 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><p>I had the need to scale some large JPG images from my camera so I whipped up a quick little<br/><a href="http://groovy.codehaus.org/">Groovy</a> script to do the trick.</p>
+<pre><code class="groovy">// groovy ScaleImages.groovy DIRNAME SCALE%
+import javax.imageio.ImageIO
+import java.io.File
+import java.awt.Image
+import java.awt.Color
+import java.awt.image.BufferedImage
+
+class ScaleImages {
+
+    static void main(String[] args){
+        def directory = new File(args[0])
+        if(!directory.isDirectory()){
+            println &#39;You must specify a valid directory!&#39;
+            System.exit(0)
+        }
+
+        def scale = Integer.valueOf(args[1])
+
+        directory.eachFile {
+            def image = ImageIO.read(it)
+            int w = image.getWidth() * scale / 100
+            int h = image.getHeight() * scale / 100
+
+            def scaled = image.getScaledInstance(w,h,Image.SCALE_SMOOTH)
+
+            def newImage = new BufferedImage(w,h,image.getType())
+            def graphics = newImage.createGraphics()
+            graphics.drawImage(scaled,0,0,w,h,Color.white,null)
+
+            if(ImageIO.write(newImage,&quot;jpg&quot;,new File(it.getParent(),&quot;scaled_${it.name}&quot;))){
+                println &quot;scaled: $it&quot;
+            } else {
+                println &quot;failed: $it&quot;
+            }
+        }
+    }
+}
+</code></pre><p>It's pretty simple. You load the image file to create a <code>BufferedImage</code>. You then create a scaled<br/><code>Image</code> and draw it onto the new empty <code>BufferedImage</code> and save it off. I would recommend some performance<br/>enhancements if you are doing huge batches of images but for a directory containing a handful of images it works great<br/>and pretty fast. Also, note that this does not handle sub-directories of images, only the directory that you give it.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

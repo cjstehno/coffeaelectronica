@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Tour de Mock 4 - Easymock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Tour de Mock 4 - Easymock</h1>
+	</div>
+
+	<p><em>23 July 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/testing.html'>testing</a></p>
+
+	<p><p><a href="http://easymock.org/">EasyMock</a> is a bit of a different breed. The latest version (2.5.x) seems more expressive than the previous version but it has an odd, and in my opinion cumbersome, need to call a replay method, while most of the other mocking APIs seemingly either negate the need for this or do it under the covers so you don't have to worry about it.</p><p>The <code>@Before</code> method is nothing very different from the other examples:</p>
+<pre><code class="java">@Before
+public void before() throws ServletException {
+    this.emailListService = createMock(EmailListService.class);
+
+    final ServletConfig servletConfig = createMock(ServletConfig.class);
+    final ServletContext servletContext = createMock(ServletContext.class);
+
+    expect(servletConfig.getServletContext()).andReturn(servletContext);
+    expect(servletContext.getAttribute(EmailListService.KEY)).andReturn(emailListService);
+
+    replay(servletConfig,servletContext);
+
+    this.servlet = new EmailListServlet();
+    servlet.init(servletConfig);
+    this.request = createMock(HttpServletRequest.class);
+    this.response = createMock(HttpServletResponse.class);
+}
+</code></pre><p>However, the code is reasonably expressive and gets the functional point across in a reasonable amount of code. The exception<br/>test is expressive; however, again as in the <code>before()</code> method we see that clunky <code>replay()</code> method that just feels like<br/>an out-of-place artifact of a poor design decision.</p>
+<pre><code class="java">@Test(expected=IOException.class)
+public void doGet_without_list() throws Exception {
+    expect(request.getParameter(&quot;listName&quot;)).andReturn(null);
+    expect(emailListService.getListByName(null)).andThrow(new IOException());
+
+    replay(request,emailListService);
+
+    servlet.doGet(request, response);
+}
+</code></pre><p>The sequential handling, in the "with list" test is fairly straight-forward, probably the least invasive of all the APIs so<br/>far in handling method invocation sequences.</p>
+<pre><code class="java">@Test
+public void doGet_with_list() throws Exception {
+    expect(request.getParameter(&quot;listName&quot;)).andReturn(&quot;foolist&quot;);
+
+    final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
+    expect(emailListService.getListByName(&quot;foolist&quot;)).andReturn(list);
+
+    final PrintWriter writer = createMock(PrintWriter.class);
+    checkOrder(writer,true);
+    expect(response.getWriter()).andReturn(writer);
+
+    writer.println(&quot;larry@stooge.com&quot;);
+    writer.println(&quot;moe@stooge.com&quot;);
+    writer.println(&quot;curley@stooge.com&quot;);
+    writer.close();
+
+    replay(request,response,writer,emailListService);
+
+    servlet.doGet(request, response);
+    verify(writer);
+}
+</code></pre><p>The code for the entire test case is as follows:</p>
+<pre><code class="java">public class EmailListServlet_EasyMockTest {
+
+    private EmailListServlet servlet;
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+    private EmailListService emailListService;
+
+    @Before
+    public void before() throws ServletException {
+        this.emailListService = createMock(EmailListService.class);
+        final ServletConfig servletConfig = createMock(ServletConfig.class);
+        final ServletContext servletContext = createMock(ServletContext.class);
+
+        expect(servletConfig.getServletContext()).andReturn(servletContext);
+        expect(servletContext.getAttribute(EmailListService.KEY)).andReturn(emailListService);
+
+        replay(servletConfig,servletContext);
+
+        this.servlet = new EmailListServlet();
+        servlet.init(servletConfig);
+
+        this.request = createMock(HttpServletRequest.class);
+        this.response = createMock(HttpServletResponse.class);
+    }
+
+    @Test(expected=IOException.class)
+    public void doGet_without_list() throws Exception {
+        expect(request.getParameter(&quot;listName&quot;)).andReturn(null);
+        expect(emailListService.getListByName(null)).andThrow(new IOException());
+
+        replay(request,emailListService);
+
+        servlet.doGet(request, response);
+    }
+
+    @Test
+    public void doGet_with_list() throws Exception {
+        expect(request.getParameter(&quot;listName&quot;)).andReturn(&quot;foolist&quot;);
+
+        final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
+        expect(emailListService.getListByName(&quot;foolist&quot;)).andReturn(list);
+
+        final PrintWriter writer = createMock(PrintWriter.class);
+        checkOrder(writer,true);
+        expect(response.getWriter()).andReturn(writer);
+
+        writer.println(&quot;larry@stooge.com&quot;);
+        writer.println(&quot;moe@stooge.com&quot;);
+        writer.println(&quot;curley@stooge.com&quot;);
+        writer.close();
+
+        replay(request,response,writer,emailListService);
+
+        servlet.doGet(request, response);
+
+        verify(writer);
+    }
+}
+</code></pre><p>Maybe it's because I am used to a different mocking strategy, or perhaps it's just an older API (I think EasyMock was one<br/>of the first), but I am not really fond of EasyMock. It's another tool in the toolbox and I know there are quite a few<br/>developers out there who swear by it. It's not one that I will use often.</p>
+<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

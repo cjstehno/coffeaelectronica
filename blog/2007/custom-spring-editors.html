@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Custom Spring Editors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Custom Spring Editors</h1>
+	</div>
+
+	<p><em>01 November 2007</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><p>I had the need recently to inject an array of strings into a bean property and I was curious about whether or not I could<br/>inject the strings as comma-separated values (CSV). With a little poking around in the <a href="http://springframework.org/">Spring API</a><br/>I found that the supporting <code>PropertyEditor</code> is already there, but not configured by default. My next question was about<br/>how you go about configuring custom property editors. Configuring custom property editors is quite easy, you add a<br/><code>CustomEditorConfigurer</code> bean to your context which will register itself with the bean factory at load-time. By mapping<br/>your custom editors to the <code>CustomEditorConfigurer</code>, you register them with the enclosing bean factory... pretty simple:</p>
+<pre><code class="xml">&lt;bean id=&quot;customEditorConfigurer&quot; class=&quot;org.springframework.beans.factory.config.CustomEditorConfigurer&quot;&gt;
+    &lt;property name=&quot;customEditors&quot;&gt;
+        &lt;map&gt;
+            &lt;entry key=&quot;java.lang.String[]&quot;&gt;
+                &lt;bean class=&quot;org.springframework.beans.propertyeditors.StringArrayPropertyEditor&quot;&gt;
+                    &lt;constructor-arg value=&quot;:&quot; /&gt;
+                &lt;/bean&gt;
+            &lt;/entry&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>Note that the value of the entry key attribute is the full class name of the property type to be handled by the editor.<br/>Only one editor can be registered for a given type. The <code>StringArrayPropertyEditor</code> is available with the core<br/>Spring API and it will convert a delimited string into a string array. The delimiter is configurable as a constructor<br/>argument; it defaults to comma, but I have overridden it here to use a colon in this case as an example. Once you have<br/>this in place, the added configuration work is done. Let's create a simple test bean to ensure that the editor is<br/>registered properly:</p>
+<pre><code class="java">public class SomeBean {
+    private String[] array;
+
+    public void setArray(String[] array) {this.array = array;}
+
+    public String[] getArray() {return array;}
+}
+</code></pre><p>Add it to the spring context:</p>
+<pre><code class="xml">&lt;bean id=&quot;someBean&quot; class=&quot;SomeBean&quot;&gt;
+    &lt;property name=&quot;array&quot; value=&quot;one:two:three:four&quot; /&gt;
+&lt;/bean&gt;
+</code></pre><p>Now if you load the context and pull the bean out you will find that the array property contains four elements, with<br/>values of "one", "two", "three", and "four" respectively. It's just that easy! Just to verify that we have not lost any<br/>pre-existing functionality, you can add another bean that loads the array using the spring list tag:</p>
+<pre><code class="xml">&lt;bean id=&quot;someBean2&quot; class=&quot;SomeBean&quot;&gt;
+    &lt;property name=&quot;array&quot;&gt;
+        &lt;list&gt;
+            &lt;value&gt;alpha&lt;/value&gt;
+            &lt;value&gt;bravo&lt;/value&gt;
+            &lt;value&gt;charlie&lt;/value&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>You will notice that this method still works fine as well. There are a few other custom editors that spring provides in<br/>the <code>org.springframework.bean.propertyeditors</code> package, and it is also quite easy to implement your own, but I<br/>will save that for another day.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Javassist - Mind Blown</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Javassist - Mind Blown</h1>
+	</div>
+
+	<p><em>25 May 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>I have been doing a lot with Java reflection recently in one of my personal projects and while doing some research I came across the <a href="http://www.javassist.org">Javassist</a> bytecode manipulation API.</p><p>Javassist allows you to create new classes and/or manipulate existing classes at runtime... at the bytecode level, and it does it without you having to understand all the deep down details of classfiles.</p><p>Let's take an example and say that I have an interface:</p>
+<pre><code class="java">package jsist;
+
+public interface Greeter {
+
+	String sayHello( String name );
+	
+	String sayGoodbye( String name );
+}
+</code></pre><p>It's very easy to dynamically implement that interface at runtime, but first we need a little demo application:</p>
+<pre><code class="java">package jsist;
+
+public class Demo {
+
+    private static final ClassPool CLASS_POOL = ClassPool.getDefault();
+    private static CtClass STRING_CLASS;
+
+    static {
+        try{
+            STRING_CLASS = CLASS_POOL.get( &quot;java.lang.String&quot; );
+        } catch( NotFoundException e ){
+            e.printStackTrace();
+        }
+    }
+
+    public static void main( final String[] args ) throws Exception {
+		useIt( implementIt() );
+	}
+	
+	private static Class implementIt() throws Exception {
+		// will contain our javassist code
+	}
+	
+	private static void useIt( Class clazz ) throws  Exception {
+        System.out.println( clazz );
+
+        Greeter greeter = (Greeter)clazz.newInstance();
+
+        System.out.println(&quot;Hi : &quot; + greeter.sayHello(&quot;Bytecode&quot;));
+        System.out.println(&quot;Bye: &quot; + greeter.sayGoodbye( &quot;Java&quot; ));
+    }
+}
+</code></pre><p>This will give us a simple test bed for the various dynamic implementations of the Greeter interface. Basically, it builds an implementation of the interface, prints out the class and the result of executing the two methods. Now for the fun part.</p><p>Our first example will be a simple implementation of the interface:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
+	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
+
+	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayGoodbyeMethod );
+	sayGoodbyeMethod.setBody( &quot;return \\&quot;Goodbye, \\&quot; + $1;&quot; );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>We start off by creating a new class called <code>jsist.gen.Greeter</code> where the package name does not need to exist; it will be created. We then need to add the interface we want to implement, the <code>jsist.Greeter</code> interface. Next we have to provide method implementations.</p><p>It feels a bit odd to create a <code>CtMethod</code> object with the <code>greeterClass</code> instance and then add the method to the instance, but this is the pattern that is used. I am sure there must be some internal reason for doing so.</p><p>The <code>setBody(String)</code> method is the key worker here. It allows you to provide source code as a template using the Javassist source template language. With what I have done above it it equivalent to:</p>
+<pre><code class="java">return &quot;Hello, &quot; + arg0;
+</code></pre><p>for the <code>sayHello(String)</code> method, and similar for the other. The important thing to note here is that your provided source is compiled down to Java bytecode, this is not some embedded scripting language.</p><p>Next we need to change the modifiers of the class to remove "abstract", and then with a call to the <code>toClass()</code> method we have a standard Java <code>Class</code> object representing our newly created implementation.</p><p>If you run the demo with this, you will get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : Hello, Bytecode
+Bye: Goodbye, Java
+</code></pre><p>Ok, that was fun, but how about an abstract class? Let's say we have an abstract implemenation of the <code>Greeter</code> interface:</p>
+<pre><code class="java">public abstract class AbstractGreeter implements Greeter {
+
+    @Override
+    public String sayGoodbye( String name ){
+        return &quot;(Abstract) Goodbye, &quot; + name;
+    }
+}
+</code></pre><p>Note, I have implemented the <code>sayGoodbye(String)</code> method but not the <code>sayHello(String)</code> to make things more interesting. Our implementation of the <code>implementIt()</code> method now becomes:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
+	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>The first difference to note is that now we are setting the superclass rather than the interface, since our superclass already implements the interface. Also, notice that since we already have an implementation of the <code>sayGoodbye(String)</code> method, we only need to implement <code>sayHello(String)</code>. Other than that, there is little difference. When you run with this implementation you get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : Hello, Bytecode
+Bye: (Abstract) Goodbye, Java
+</code></pre><p>As expected, our dynamic implementation plays nicely with the concrete implementation.</p><p>Now, what if you already have objects that implement the functionality of the two interface methods, but that do not implement the <code>Greeter</code> interface? Say, we have:</p>
+<pre><code class="java">public class Hello {
+
+    public String say( String name ){
+        return &quot;(Delegate) Hello, &quot; + name;
+    }
+}
+
+public class Goodbye {
+
+    public String say( String name ){
+        return &quot;(Delegate) Goodbye, &quot; + name;
+    }
+}
+</code></pre><p>You can easily implement the interface by copying the methods from these classes:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
+	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
+
+	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
+	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( helloSay, null );
+
+
+	CtClass gbClass = CLASS_POOL.get( &quot;jsist.Goodbye&quot; );
+	CtMethod gbSay = gbClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayGoodbyeMethod );
+	sayGoodbyeMethod.setBody( gbSay, null );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>This version is similar to the original interface implementation, except that now rather than providing source code for the method bodies, we provide a method object. You first find the <code>Hello</code> class in the <code>ClassPool</code> and then find it's <code>say(String)</code> method - the description string is the formal JVM parameter format, but I found it simple to dump out the methods and just copy it as a shortcut.</p><p>If you run this version, you get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : (Delegate) Hello, Bytecode
+Bye: (Delegate) Goodbye, Java
+</code></pre><p>Showing that both methods were from the delegate classes.</p><p>For our final example, to round things out, let's go back to the abstract class and provide a delegate for the abstract method rather than source:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
+	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
+
+	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
+	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( helloSay, null );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>There is not really anything here, you have not already seen, but when you run it you see:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : (Delegate) Hello, Bytecode
+Bye: (Abstract) Goodbye, Java
+</code></pre><p>As expected, one method provided by the delegate and one by the abstract class' implementation.</p><p>There are other bytecode manipulation libraries, but most of the ones I looked at seemed to be very abstract or probably closer to the actual class file format, whereas Javassist is a lot more familar when coming from a Java reflection background.</p><p>It seems very powerful and full of interesting potential. I am by no means an expert with it, but I wanted to share what I had found since the documentation is reasonably good, but not very rich with examples.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

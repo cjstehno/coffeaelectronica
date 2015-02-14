@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Layered Build Scripting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Layered Build Scripting</h1>
+	</div>
+
+	<p><em>17 February 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/ant.html'>ant</a></p>
+
+	<p><p>In a recent posting, <a href="boilerplate-ant-build.html">Boilerplate Ant Build</a>, I<br/>presented my basic Ant build starting point. This post takes that one step farther and presents suggestions for using<br/>an <a href="http://ant.apache.org/">Ant</a> build file as a tool box for building more "smart" build tools.</p><p>As a developer you should strive to keep your project buildable and accessible to all the bells and whistles of your<br/>IDE while also maintaining a simple straight-forward command line interface for use in other tools or at those times<br/>when you don't need/want to fire up your IDE for a simple task. Ant is a great build automation tool that is supported<br/>on the command line and by all the major IDEs.<br/><br/>With your Ant Build Script you can compile, test, and deploy<br/>the project with simple command line entries or IDE actions. As I started to use this approach more and more I found<br/>that I ended up using the same commands over and over and some of them were on the long-ish side especially when<br/>typed in the command line:</p>
+<pre><code>ant clean-all test deploy-remote -Ddeploy.remote.conn=myuname:mypword@server:/home/myuname/artifacts
+</code></pre><p>Not hard to pull from memory after you do it a few times, but when you are in a hurry you are more apt to make a<br/>mistake. What I like to do, and I recommend, is to create simple shortcut helper scripts for running these common<br/>commands. Your first thought might be to just add them to the build.xml file, and this is not a horrible idea, but I<br/>prefer keeping them separate from the "official" builder since in some cases these scripts may only work for my<br/>environment or under special circumstances. They are secondary tools that make use of your build tool kit.</p><p>So how should you write them? You could create a second Ant build file for your tasks and just call ant with that file,<br/>which could make ant calls into the main build script.</p>
+<pre><code>ant -f yourfile.xml clean-dev-deploy
+</code></pre><p>Nothing wrong with that, but I recommend learning a multi-platform scripting language such as <a href="http://groovy.codehaus.org/">Groovy</a><br/>or <a href="http://ruby-lang.org/">Ruby</a> and doing your secondary script using that language. Apart from keeping your skills<br/>fresh and learning a new language, it also provides a very rich scripting environment that can be used on any platform<br/>supported by the language (Groovy and Ruby are supported on Windows, Linux and Mac). You may wonder why I am not<br/>promoting bash shell scripting here and one reason is that I have never been very fond of it, but also it is more tied<br/>to the operating system and less functional when compared with the other two I mentioned.</p><p>These scripts should reside in the root of the project directory right along side your build.xml file for ease of<br/>management and use. They should be checked into your source control, though you may want to XXX-out passwords<br/>(meaning you will need to checkout a copy and customize it for your use - and not check it back in) or parametrize it to<br/>add those in at run time.</p><p>The deployment command line I mentioned previously becomes simple and repeatable with a little Ruby foo...</p>
+<pre><code class="ruby">puts `ant clean-all test deploy-remote -Ddeploy.remote.conn=myuname:mypword@server:/home/myuname/artifacts`
+</code></pre><p>I end up with a simple script that will run the same set of tasks every time without a chance of me flubbing the<br/>directory or username. I tend to give them short concise names that distinguish what they are used for, such as <code>devpush.rb</code><br/>in this case. You can point your IDE to this script and have it run it with the click of a button (at least in <a href="http://eclipse.org/">Eclipse</a><br/>you can, not sure of others). You can also run it on the command line</p>
+<pre><code>ruby devpush.rb
+</code></pre><p>which is the most portable way, or if you make the script executable (<code>chmod +x</code>):</p>
+<pre><code>./devpush.rb
+</code></pre><p>I have these scripts for every server that I deploy code to. Once you get the hang of your chosen scripting language you<br/>can also find a lot of other build/deployment related tasks to script such as the script I have for doing a tomcat deployment<br/>of a war file. It stops the server, archives the existing context, copies out the new war, cleans the log files and starts<br/>the server... all using a ruby script.</p><p>There are also some other interesting alternatives to Ant that I have taken an interest in lately, <a href="http://gant.codehaus.org/">Gant</a><br/>and <a href="http://www.gradle.org/">Gradle</a>, both of which are build scripting DSLs based on Groovy; Gant is ant-like, while<br/>Gradle is more maven-esque. They both seem quite promising.</p><p>Keep your builds simple, fast and unambiguous so that you can focus on the real work of developing software <em>of</em> your<br/>project not <em>for</em> your project.</p>
+<blockquote><p><em>Side note on choosing between Groovy and Ruby</em> I love both Ruby and Groovy as scripting languages so it's hard to really<br/>push one over the other. They each have their strengths and weaknesses. Ruby is great for build scripting and general<br/>command line task scripting. It has a rich library of built in functionality, it's fast and you can get a lot of function<br/>for very little code. Groovy is best when you really need Java integration or Database integration, which is much<br/>simpler using JDBC... or when you need to do something more advanced that, as a Java developer you know how to do in Java,<br/>but not in Ruby. Groovy is just an extension of Java, though a very powerful one.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Embedding Jetty in Spring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Embedding Jetty in Spring</h1>
+	</div>
+
+	<p><em>01 February 2006</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><blockquote><p>The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, <a href="Embedding-Jetty-6-in-Spring">Embedding Jetty 6 in Spring</a>.</p>
+</blockquote><p>I came across <a href="http://jetty.mortbay.org/">Jetty</a> a while back and finally got around to really playing with<br/>it recently. I was amazed at how flexible it was and how easy it was to embed it inside a <a href="http://springframework.org/">Spring</a><br/>Application Context. I did have to write a couple of small helper extensions to ease things along but other than that it was pretty<br/>much just a configuration exercise. What follows is a brief discussion on what I did and how I did it.</p><p>Basically what you need, per the Jetty documentation, is an <code>HttpServer</code> instance listening on a port, and an<br/><code>HttpContext</code> with a couple <code>Handler</code>s. If all you want is a simple web server, with no servlet support it's very easy<br/>and requires no special extensions. Add the following beans to a spring bean config file:</p>
+<pre><code class="xml">&lt;bean id=&#39;httpServer&#39; class=&#39;org.mortbay.http.HttpServer&#39; init-method=&#39;start&#39;&gt;
+    &lt;property name=&#39;listeners&#39;&gt;
+        &lt;list&gt;
+            &lt;bean class=&#39;org.mortbay.http.SocketListener&#39;&gt;
+                &lt;property name=&#39;port&#39; value=&#39;80&#39; /&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name=&#39;contexts&#39;&gt;
+        &lt;list&gt;
+            &lt;bean class=&#39;org.mortbay.http.HttpContext&#39;&gt;
+                &lt;property name=&#39;contextPath&#39; value=&#39;/&#39; /&gt;
+                &lt;property name=&#39;resourceBase&#39; value=&#39;c:/&#39; /&gt;
+                &lt;property name=&#39;handlers&#39;&gt;
+                    &lt;list&gt;
+                        &lt;bean class=&#39;org.mortbay.http.handler.ResourceHandler&#39;/&gt;
+                    &lt;/list&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>Now, when you start up the Spring Application Context you will also start up an HTTP Server listening on port 80 that<br/>will serve pages from your <code>C</code> drive. How much simpler could that be? You could get rid of the <code>init-method</code> and set<br/><code>lazy-init</code> to true if you don't need/want it to fire up right away.</p><p>Okay, so web server shmeb server you say? Let's get down to something more interesting. Now, let's turn this plain old<br/>HTTP server into a servlet container... amazingly enough, there is not much more required to make this happen; however,<br/>we do need some extensions in order to work with things in Spring.</p><p>First, we will need an instance of <code>ServletHttpContext</code> instead of the HTTP Context that we have in there now (or you<br/>could set it up to use both). Unfortunately, the standard <code>ServletHttpContext</code> class only has "add" methods for adding<br/>servlets... there is no bulk setter; so we have to add one, which leads up to our first helper class, the<br/><code>ServlerHttpContextBean</code>. All this class does is extend <code>ServletHttpContext</code> and add the following method:</p>
+<pre><code class="java">public void setServletMappings(Map servletMappings) throws Exception {
+    if(MapUtils.isNotEmpty(servletMappings)){
+        Iterator paths = servletMappings.keySet().iterator();
+        while(paths.hasNext()){
+            String path = (String)paths.next();
+            ServletDefinitionBean servletConfig = (ServletDefinitionBean)servletMappings.get(path);
+
+            // add the servlet to the context
+            ServletHolder holder = addServlet(
+                servletConfig.getBeanName(),
+                path,
+                servletConfig.getServletClassName()
+            );
+
+            // configure the holder
+            if(holder != null){
+                if(servletConfig.getInitOrder() != -1){
+                    holder.setInitOrder(servletConfig.getInitOrder());
+                }
+
+                Enumeration e = servletConfig.getInitParameterNames();
+                while(e.hasMoreElements()){
+                    String name = (String)e.nextElement();
+                    holder.setInitParameter( name, servletConfig.getInitParameter(name) );
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<blockquote><p><em>Note:</em> Some of my collection helper classes are not shown, but their method signatures should be a good enough explanation of what they do.</p>
+</blockquote><p>The servlet mappings (Path key to <code>ServletDefinitionBean</code> value) are processed to add each servlet to the context and<br/>then configure its holder to set any initialization parameters.</p><p>You will notice the other helper class being used to configure the servlets. The <code>ServletDefinitionBean</code> is used to allow<br/>Spring configuration of the servlets to be added. This is a fairly simple class:</p>
+<pre><code class="java">public class ServletDefinitionBean implements Serializable, BeanNameAware {
+
+    private static final long serialVersionUID = 8232043638313653802L;
+    private String beanName,servletClassName;
+    private Map initParameters;
+    private int initOrder = -1;
+
+    public ServletDefinitionBean(){ super(); }
+
+    public void setInitOrder(int initOrder) { this.initOrder = initOrder; }
+
+    public int getInitOrder() { return initOrder; }
+
+    public String getServletClassName() { return servletClassName; }
+
+    public void setServletClassName(String servletClass) {
+        this.servletClassName = servletClass;
+    }
+
+    public String getBeanName() { return beanName; }
+
+    public void setBeanName(String beanName) { this.beanName = beanName; }
+
+    public void setInitParameters(Map initParameters){
+        this.initParameters = initParameters;
+    }
+
+    public Enumeration getInitParameterNames(){
+        if(MapUtils.isNotEmpty(initParameters)){
+            return(IteratorUtils.asEnumeration( initParameters.keySet().iterator()) );
+        } else {
+            return(CollectionUtils.EMPTY_ENUMERATION);
+        }
+    }
+
+    public String getInitParameter(String name){
+        return(MapUtils.getString(initParameters,name));
+    }
+}
+</code></pre><p>This class is used to store the initialization parameters and any other data required to configure a servlet. And that's<br/>it. Now all you need to do is update the spring configuration to use the new beans.</p>
+<pre><code class="xml">&lt;bean id=&#39;httpServer&#39; class=&#39;org.mortbay.http.HttpServer&#39; init-method=&#39;start&#39;&gt;
+    &lt;property name=&#39;listeners&#39;&gt;
+        &lt;list&gt;
+            &lt;bean class=&#39;org.mortbay.http.SocketListener&#39;&gt;
+                &lt;property name=&#39;port&#39; value=&#39;80&#39; /&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name=&#39;contexts&#39;&gt;
+        &lt;list&gt;
+            &lt;bean class=&#39;com.stehno.spring.jetty.ServletHttpContextBean&#39;&gt;
+                &lt;property name=&#39;contextPath&#39; value=&#39;/&#39; /&gt;
+                &lt;property name=&#39;resourceBase&#39; value=&#39;c:/&#39; /&gt;
+                &lt;property name=&#39;handlers&#39;&gt;
+                    &lt;list&gt;
+                        &lt;bean class=&#39;org.mortbay.http.handler.ResourceHandler&#39; /&gt;
+                        &lt;bean class=&#39;org.mortbay.jetty.servlet.ServletHandler&#39; /&gt;
+                    &lt;/list&gt;
+                &lt;/property&gt;
+                &lt;property name=&#39;servletMappings&#39;&gt;
+                    &lt;map&gt;
+                        &lt;entry key=&#39;/hi/*&#39; value-ref=&#39;helloServlet&#39;/&gt;
+                    &lt;/map&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>You will notice that in order to serve normal resources, you still need to include a <code>ResourceHandler</code>. I have mapped<br/>the 'helloServlet' to the path '/hi/*'. The servlet definition bean is configured as follows:</p>
+<pre><code class="xml">&lt;bean id=&#39;helloServlet&#39; class=&#39;com.stehno.spring.jetty.ServletDefinitionBean&#39;&gt;
+    &lt;property name=&#39;servletClassName&#39; value=&#39;test.HelloServlet&#39; /&gt;
+    &lt;property name=&#39;initParameters&#39;&gt;
+        &lt;map&gt;
+            &lt;entry key=&#39;text&#39; value=&#39;Hello Jetty-embedded Spring!&#39; /&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>It's just a simple Hello World type servlet that I will leave you to write yourself. But, if you fire up the Application<br/>Context and point your browser to 'http://localhost/hi/blah' you will run this servlet.</p><p>I have not fully put this through its paces, but I have installed and run a Spring Dispatcher servlet that had its own application<br/>context with controllers and was able to hit the controllers and get the expected response. Jetty seems to be well-developed<br/>and very flexible and combining it with spring makes it even more so. I think there are many uses for this setup. It could<br/>be used in a desktop application to provide web services, for unit testing of servlets or controllers, or for web proxy-ing.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

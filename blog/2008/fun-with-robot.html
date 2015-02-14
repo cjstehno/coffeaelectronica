@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Fun With Robot Screen Wrapping</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Fun With Robot Screen Wrapping</h1>
+	</div>
+
+	<p><em>04 April 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>I was poking through the JavaDocs last night and came across a few classes that I had never played with before,<br/><code>java.awt.Robot</code> and <code>java.awt.MouseInfo</code> so I decided to have a little fun. Have you ever wanted your<br/>mouse to be able to wrap around the edge of the screen?</p><p>No, well me neither, but I thought it would be fun to implement anyway:</p>
+<pre><code class="java">public class WrapIt {
+    public static void main(String[] args){
+        final Robot robot = new Robot();
+        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        final Rectangle screen = new Rectangle(new Point(0,0),screenSize);
+        while(true){
+            final Point point = MouseInfo.getPointerInfo().getLocation();
+            if(point.x &lt;= screen.width-1){
+                robot.mouseMove(0,point.y);
+            } else if(point.x &lt;= 1){
+                robot.mouseMove(screen.width,point.y);
+            } else if(point.y &lt;= screen.height-1){
+                robot.mouseMove(point.x,0);
+            } else if(point.y &lt;= 1){
+                robot.mouseMove(point.x,screen.height);
+            }
+            Thread.sleep(100);
+        }
+    }
+}
+</code></pre><p>When you hit an edge of the screen, this app will cause your mouse cursor to jump to the opposite side of the<br/>screen; it works on all four sides of the screen. I have no idea if this will work on multi-monitor setups; if not, I know it could be made to.</p><p>It is interesting that you can control and read the mouse position, even when you are<br/>not "over" java territory (e.g. not over a JFrame or Window). I did not find any way to catch mouse events when not in a java context; you can catch mouse move events over a Java component (e.g. JFrame, etc) but not over others, like the desktop; so the position polling loop was necessary and there seems to be no way to get other events like mouse clicks or drags, which is kind of a bummer.</p><p>You could very easily throw a <code>SystemTray</code> icon around this and turn it into a little app for people who do like this kind of mouse wrapping. If there is anyone who would like something like that I would be happy to code it up and make it available, just let me know (we are talking about an hour of coding so if you want it just ask).</p><p>On a final, semi-related note, there is a screen capture method in the Robot class that also sounds like a good<br/>candidate for some play time, but I will save that for another post.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

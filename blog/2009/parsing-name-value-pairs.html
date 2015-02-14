@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Parsing Name Value Pairs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Parsing Name Value Pairs</h1>
+	</div>
+
+	<p><em>15 August 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>A coding problem I have run into numerous times has been the relatively simple parsing of a sequence of name/value<br/>pair data.</p><p>Say you have something like the following:</p>
+<pre><code class="java">String data = &quot;alpha=100,bravo=200,charlie=300&quot;;
+</code></pre><p>which you need to parse into a <code>Map&lt;string,Integer&gt;</code> for whatever reason. Generally I have taken the brute force (i.e. lazy solution)<br/>approach of splitting the string by the grouping token (comma in this case) and then looping through those results and<br/>splitting each by the separation token (equals in this case), something like the code shown below:</p>
+<pre><code class="java">final String[] nvps = StringUtils.split( data, &#39;,&#39; );
+for( final String nvp : nvps ){
+    final String[] nv = StringUtils.split( nvp, &#39;=&#39; );
+    map.put(nv[0], Integer.valueOf(nv[1]) );
+}
+</code></pre><p>It's not a bad solution to the problem, not very efficient, but not bad. Most of the time when I have run into the<br/>need for this, efficiency has not really been much of an issue. Sidenote: I used <code>org.apache.commons.lang.StringUtils.split(String,char)</code><br/>due to how it handles nulls and blanks safely. I recently thought about a more efficent approach to this problem. With a<br/>little help from regular expressions, you can refactor the above code to:</p>
+<pre><code class="java">final String[] parts = data.split(&quot;=|,&quot;);
+for(int i=0; i&lt;parts.length; i+=2){
+    map.put( parts[i], Integer.valueOf(parts[i+1]) );
+}
+</code></pre><p>which does the same work in almost negligible time when compared to the original. I ran some simple benchmark tests<br/>with larger lists of name/value pairs and found that even as the first method took about 32ms, the second method still<br/>registered as taking 0ms. I would say that it's an improvement. Also, with the second approach you would not even really<br/>need to have different tokens for the group and the separator since it's really just taking two values at a time and<br/>then skipping to the next pair. Now, generally I am of the opinion that premature optimization is evil; however, I don't<br/>really count things like this as optimization, but rather as "better coding".</p><p>As a followup, you can also write a version of the second method using an alternate form of the <code>StringUtils.split(...)</code><br/>method, with no noticeable loss of efficiency:</p>
+<pre><code class="java">final String[] parts = StringUtils.split(data,&quot;,=&quot;);
+for(int i=0; i&lt;parts.length; i+=2){
+    map.put( parts[i], Integer.valueOf(parts[i+1]) );
+}
+</code></pre><p>which kind of combines the best of both worlds. You get more efficient and simple code without the need for regular<br/>expressions and with the extra safety features provided by <code>StringUtils</code>.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

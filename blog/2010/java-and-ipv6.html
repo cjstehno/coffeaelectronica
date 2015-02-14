@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Java and IPv6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Java and IPv6</h1>
+	</div>
+
+	<p><em>24 October 2010</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>In case you have not run into it yet, <a href="http://en.wikipedia.org/wiki/IPv6">IPv6</a> is creeping into our lives. Recently I<br/>had to work on functionality that had to support the storing of both IPv4 and IPv6 in a database record... and it's<br/>actually pretty easy.</p><p>Let's say we have tow IP addresses, one of each type:</p>
+<pre><code>157.166.224.26
+1080:0:0:0:8:800:200C:417A
+</code></pre><p>The first thing we need to do is parse the string values into <code>java.net.InetAddress</code> objects.</p>
+<pre><code class="java">InetAddress inet = InetAddress.getByName( ipstr );
+</code></pre><p>which works in either case. From there you may want to determine which type of address you are working with. The only way<br/>that I found (though I didn't spend all that long) was to do an instance check:</p>
+<pre><code class="java">if( inet instanceof Inet6Address ){
+    // you have an IPv6 address
+} else if( inet instanceof Inet4Address ){
+    // you have an IPv4 address
+} else {
+    // I dont know what you have
+}
+</code></pre><p>From there you will need to convert the InetAddress object into bytes for storage. You could store the addresses as<br/>strings, but you end up more dependant on hacky format recognition tricks, and the byte conversion is nice and pre-built<br/>for you:</p>
+<pre><code class="java">byte[] bytes = inet.getAddress();
+</code></pre><p>Now you are ready to store the address in the database. Without going into all the db-related code you end up with:</p>
+<pre><code class="java">statement.setBytes( 1, bytes );
+</code></pre><p>You could just as easily write the bytes to an output stream or other storage format. Once you have the address stored<br/>somewhere, you need to pull it out again. First you need to read the bytes from your storage location. Assuming a database,<br/>you get something like:</p>
+<pre><code class="java">byte[] inbytes = resultSet.getBytes( 1 );
+</code></pre><p>With these bytes you can create an InetAddress again,</p>
+<pre><code class="java">InetAddress inetIn = InetAddress.getByAddress( inbytes );
+</code></pre><p>From there, a nice <code>getHostAddress()</code> call will get you your formatted IP address string, for both IPv4 and<br/>IPv6. Notice there is no code specific to either type. The instance checking is only required if you want to know<br/>specifically which type you have... and there may be a better way to do that, I didn't come across one. One oddity I<br/>found is that IPv4 addresses mapped to IPv6 addresses can get a little strange depending on how your application handles<br/>them; the InetAddress class parses them fine, but converts them to IPv4 addresses rather than noting that they are<br/>mapped addresses. Not a big deal, but something to keep in mind.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

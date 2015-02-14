@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Spring Deserialized Object Factory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Spring Deserialized Object Factory</h1>
+	</div>
+
+	<p><em>28 April 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><p>I recently had the idea that it would be interesting to have a <a href="http://springframework.org/">Spring</a> factory bean that<br/>would load a serialized object as its object contribution. I have no idea at this point what it would be useful for; it<br/>was just something that popped into my head. My example below describes a license key system that is not based on<br/>anything real so please don't expect this to be a good license key implementation... it's just an example of the<br/>deserialized bean factory idea.</p><p>First, we need something to serialize. As I mentioned earlier, I am doing a quick and dirty license key system so the<br/>key itself would be a good candidate for the serializable object. Let's create a license key object as follows:</p>
+<pre><code class="java">public class LicenseKey implements Serializable {
+    private static final long serialVersionUID = -3151020875557193150L;
+    private long created;
+    private String key;
+
+    public LicenseKey(){
+        super();
+    }
+
+    public LicenseKey(final long created, final String key){
+        this.created = created;
+        this.key = key;
+    }
+
+    public long getCreated() {return created;}
+
+    public String getKey() {return key;}
+}
+</code></pre><p>Notice that it implements the Serializable interface and has a couple of fields that we can later use to prove that<br/>the bean is deserialized and loaded properly. Next, we need to serialize this object into a license key file, which will<br/>later be used by the factory bean. I threw together a simple serializer which also utilizes the<br/><a href="http://commons.apache.org/lang">Jakarta Commons - Lang API</a>:</p>
+<pre><code class="java">public class Serializer {
+    public static void main(final String[] args) throws FileNotFoundException {
+        final LicenseKey key = new LicenseKey(System.currentTimeMillis(),UUID.randomUUID().toString());
+        SerializationUtils.serialize(key, new FileOutputStream(new File(&quot;license.key&quot;)));
+        System.out.println(&quot;Done&quot;);
+    }
+}
+</code></pre><p>This just creates a simple key object and serializes it to the current directory as the "license.key" file, which<br/>we will use later. Now that we have a serialized license key, we need a Spring factory bean to load and instantiate the<br/><code>LicenseKey</code> object it represents. The <code>DeserializedObjectFactory</code> is simply an extension of Spring's <code>AbstractFactoryBean</code><br/>that deserializes the given file resource and verifies that it is an instance of the specified class.</p>
+<pre><code class="java">public class DeserializedObjectFactory extends AbstractFactoryBean {
+    private final Class&lt;? extends Serializable&gt; objectType;
+    private final Resource resource;
+
+    public DeserializedObjectFactory(final Class&lt;? extends Serializable&gt; objectType, final Resource resource){
+        this.objectType = objectType;
+        this.resource = resource;
+    }
+
+    @Override
+    protected Object createInstance() throws Exception {
+        final Object obj = SerializationUtils.deserialize(resource.getInputStream());
+        Assert.isInstanceOf(objectType, obj, &quot;Serialized object must be of type: &quot; + objectType);
+        return obj;
+    }
+
+    @Override
+    public Class&lt;? extends Serializable&gt; getObjectType() {
+        return objectType;
+    }
+}
+</code></pre><p>The generic parameter restrictions and the instance checking add a bit of safety to the factory such that it keeps<br/>you from loading something completely unexpected. In order to make use of these beans, we will need some client class to<br/>actually use the deserialized object, and that's where the <code>LicenseVerifier</code> class comes in. The license verifier<br/>is a simple class that takes a license key as a parameter and has a verification method that will be used to ensure that<br/>a proper license key is configured.</p>
+<pre><code class="java">public class LicenseVerifier {
+    private static final Log log = LogFactory.getLog(LicenseVerifier.class);
+    private LicenseKey licenseKey;
+
+    public void setLicenseKey(final LicenseKey licenseKey) {
+        this.licenseKey = licenseKey;
+    }
+
+    public void verify(){
+        // do some license verification
+        Assert.notNull(licenseKey, &quot;No license key exists!&quot;);
+        Assert.notNull(licenseKey.getKey(), &quot;Invalid key!&quot;);
+        log.info(&quot;License verified: created: &quot; + licenseKey.getCreated() + &quot;, key: &quot; + licenseKey.getKey());
+    }
+}
+</code></pre><p>Finally we need the glue that brings all of this together, the Spring context file:</p>
+<pre><code class="xml">&lt;bean id=&quot;license.key&quot; class=&quot;spring.DeserializedObjectFactory&quot;&gt;
+    &lt;constructor-arg value=&quot;spring.LicenseKey&quot; /&gt;
+    &lt;constructor-arg value=&quot;license.key&quot; /&gt;
+&lt;/bean&gt;
+
+&lt;bean id=&quot;license.verifier&quot; class=&quot;spring.LicenseVerifier&quot; init-method=&quot;verify&quot;&gt;
+    &lt;property name=&quot;licenseKey&quot; ref=&quot;license.key&quot; /&gt;
+&lt;/bean&gt;
+</code></pre><p>Notice the <code>init-method</code> on the license verifier bean; it is used to ensure that the license is verified<br/>when the context starts up. With that, you can startup the context and watch the magic happen:</p>
+<pre><code class="java">new FileSystemXmlApplicationContext(&quot;context.xml&quot;)
+</code></pre><p>You should get some miscellaneous logging and then the license verification log entry with populated data, which will<br/>look something like this (of course your values will be different):</p>
+<pre><code>INFO: License verified: created: 1209321756486, key: 5ed38eba-799a-4b8c-9bfc-dd539c20bafe
+</code></pre><p>That's all there is to it. Like I said, I am not sure what it would really be useful for but it was an interesting<br/>little experiment. I found it interesting because it would be simple to swap out serialized object files as needed to<br/>provide different instances, in this case different licenses. This concept could also be used with other "serialization"<br/>methods, such as XML or some other custom serializer. I chose the default Java serialization just for ease of<br/>demonstration.</p><p>Again I must mention that this simply a demo and is NOT intended to be a legitimate licensing strategy and it<br/>contains MANY security holes. If you use it, you are on your own and I take no responsibility for the results.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

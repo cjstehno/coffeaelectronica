@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Worker Bean Pattern</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Worker Bean Pattern</h1>
+	</div>
+
+	<p><em>28 May 2004</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>I stumbled upon something that I thought would make a good design pattern, if no one else has already come up<br/>with it. The only name I could think of for it was the "Worker Bean Pattern".</p><p>Basically the pattern consists of two classes, the Manager class and the Worker class. The Manager class is used to<br/>create semi-transient Worker classes as required for use by client objects. The example I will use to help me describe<br/>this pattern is a web-based wizard-style input form.</p><p>The Manager class is basically a loose combination of the Factory Pattern and the Singleton Pattern. There should be<br/>only one instance of a particular Manager object in the system. For my example, let's call the Manager class <code>FormManager</code><br/>and say that it is an object stored in the application scope of the server context (so that there will be only one<br/>instance per server context). The Manager class' function is to "manage" the Worker<br/>instances. It creates them, populates their data, and destroys them with no external objects acting directly on the<br/>Worker classes in a fashion other than read-only. We can stub out the methods of our <code>FormManager</code> as<br/>the following:</p>
+<pre><code class="java">public class FormManager {
+    public FormWorker createFormWorker(){}
+
+    public void postFormData(FormWorker fw, String name, String[] values){}
+
+    public void destroyFormWorker(FormWorker fw){}
+}
+</code></pre><p>where <code>FormWorker</code> is the Worker. The <code>createFormWorker()</code> method is used to create a<br/><code>FormWorker</code> or use by the client when they first enter the wizard form set. This Worker could be pulled from a<br/>pool of available workers or created as needed. The client puts the <code>FormWorker</code> the session scope. As the pages<br/>of the wizard form are submitted, each posts its data to the <code>postFormData()</code> method, which processes the data<br/>and modifies the <code>FormWorker</code> as necessary. Once the final wizard page has been submitted and the client has no<br/>more use for the <code>FormWorker</code>, it is passed to the <code>destroyFormWorker()</code> method so that it can be disposed<br/>of, or returned to the pool.</p><p>The Worker is basically an encapsulation of data required to perform an operation in the Manager that requires more<br/>than a single step. In our example that <code>FormWorker</code> is stored in the user's session so that the current<br/>state of the wizard form is maintained between pages. The Worker's data should not be accessible outside of the<br/>Manager. It exists only as a temporary extension of the Manager. Once the client has finished with a Worker it<br/>should be disposed of by the Manager. In our example, <code>FormWorker</code>s could be pooled within the<br/><code>FormManager</code> to minimize new object creation and increase efficiency. Our <code>FormWorker</code> would look<br/>something like this:</p>
+<pre><code class="java">public class FormWorker {
+    FormWorker(){}
+
+    void addData(String name, String[] value){}
+
+    String[] getData(String name){}
+
+    void setUserId(String userId){}
+
+    public String getUserId(){}
+}
+</code></pre><p>You'll notice that most of the methods have the default access, accessible to only other classes in the same<br/>package. You would want to place the <code>FormManager</code> and <code>FormWorker</code> in the same package for this to work.<br/>Another interesting means of achieving this association, if you prefer, would be to nest the <code>FormWorker</code> inside<br/>the <code>FormManager</code> as a static nested class; with a nested class, you can enforce the isolation of the worker<br/>using private methods. Let's do that for our example and flesh out the methods a bit more for the final stub:</p>
+<pre><code class="java">// Manager
+public class FormManager {
+    public FormWorker createFormWorker(String userId){
+        FormWorker fw = checkoutWorker();
+        if(fw != null){ fw.setUserId(userId); }
+        return(fw);
+    }
+
+    public void postFormData(FormWorker fw, String name, String[] values){
+        fw.addData(name,values);
+    }
+
+    public void destroyFormWorker(FormWorker fw){
+        fw.clearData();
+        fw.setUserId(null);
+        checkinWorker(fw);
+    }
+
+    // Worker
+    public static class FormWorker {
+        private String userId;
+        private HashMap data;
+
+        private FormWorker(){ this.data = new HashMap(); }
+
+        private void addData(String name, String[] value){
+            data.put(name,value);
+        }
+
+        private String[] getData(String name){
+            return( (String[])data.get(name) );
+        }
+
+        private void clearData(){ data.clear(); }
+
+        private void setUserId(String userId){
+            this.userId = userId;
+        }
+
+        public String getUserId(){ return(userId); }
+    }
+}
+</code></pre><p>Obviously this is still missing some code and does not really do anything interesting; however, it should give you<br/>the basic feel of my idea. I used something similar to this in a project recently (actually, a wizard web form set) and<br/>it worked very nicely. Of course there are other ways to skin this cat. You could even simply put the "working" data<br/>into the session itself, though I tend to like things neat and tidy without having to keep track of a lot of session<br/>variables.</p><p>This may or may not already be a pattern on someone's list or in a book somewhere, but I did not<br/>find it. I present it in the hope that it will be useful to someone, and as I said, I am always open for comments or<br/>suggestions.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

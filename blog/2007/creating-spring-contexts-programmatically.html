@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Creating Spring Contexts Programmatically</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Creating Spring Contexts Programmatically</h1>
+	</div>
+
+	<p><em>01 November 2007</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><p>If you are familiar with the <a href="http://springframework.org/">Spring Framework</a> I am sure that you know how to create a<br/>context and fill it with beans using XML (DTD or Schema) or maybe even using properties files (have to try that one<br/>sometime), but have you ever tried creating a context programmatically... purely in Java? It's actually not all that<br/>difficult, just a little verbose.</p><p>The context itself is created as the <code>GenericWebApplicationContext</code>. Let's consider a scenario in which you have two<br/>beans, a Spring MVC <code>Controller</code> implementation called <code>AddressController</code>, and a service bean, called <code>AddressService</code>,<br/>such that the service bean must be injected into the controller bean. First we create the context:</p>
+<pre><code class="java">GenericWebApplicationContext context = new GenericWebApplicationContext();
+</code></pre><p>Then we create the service bean and add it to the context:</p>
+<pre><code class="java">RootBeanDefinition addressSvcBean = new RootBeanDefinition(AddressService.class);
+context.registerBeanDefinition(&quot;addressService&quot;,addressSvcBean);
+</code></pre><p>Not too bad. Now the interesting one, the controller will also need a reference to the service bean.</p>
+<pre><code class="java">RootBeanDefinition addressCtrBean = new RootBeanDefinition(AddressController.class);
+MutablePropertyValues props = new MutablePropertyValues();
+props.addPropertyValue(&quot;addressService&quot;,addressSvcBean);
+addressCtrBean.setPropertyValues(props);
+context.registerBeanDefinition(&quot;addressController&quot;,addressCtrBean);
+</code></pre><p>Notice that you pass in the <code>addressSvcBean</code> object to the <code>addressService</code> property; this is the dependency injection<br/>in action. You now have a context with two beans, one of which depends on the other.</p>
+<blockquote><p><em>Note:</em> that an actual controller implementation would probably require more properties to be specified but this is just to show you how it's done.</p>
+</blockquote><p>Finally you will need to startup the context:</p>
+<pre><code class="java">context.refresh();
+context.start();
+</code></pre><p>Why would you ever want to do this over one of the less tedious methods? Maybe you just like doing things in code<br/>or you need a simple context with a few beans, some of which are mocked, and its just easier to handle in code. If<br/>nothing else it's nice to know that it can be done. I guess that it would also be useful if you had some other<br/>configuration format that you wanted to support... your "parser" would call/generate this code underneath.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

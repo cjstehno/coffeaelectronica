@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Home Server v2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Home Server v2</h1>
+	</div>
+
+	<p><em>15 October 2011</em> ~ <a href='/tags/blog.html'>blog</a></p>
+
+	<p><p>Since my <a href="From-Junk-Box-to-Jukebox-in-a-Couple-Hours">last home server</a> was fried by a lightning storm a few months back,<br/>I have been serverless, which is an uncomfortable position for a server software developer. I did some good research and decided to try and put together a new box from scratch. My<br/>previous server was just a converted "retired" desktop box I had so this would be a fun project.</p><p><a href="http://lifehacker.com/">Lifehacker</a> put out a timely series of articles about how to build your own<br/>computer. It was an awesome introduction for someone like myself who had never done more than swap out some RAM or a<br/>hard drive. If you are a computer-build noob (like me), I would highly recommend giving the series a read<br/>(<a href="http://lifehacker.com/5828747/how-to-build-a-computer-from-scratch-the-complete-guide">How to Build a Computer from Scrath: A Complete Guide</a>)<br/>if you are thinking of putting together your own box.</p><p>For my home server I had only a few requirements:</p>
+<ul>
+  <li>Low power consumption - this is running at home, I don't want to overly-inflate my electrical bill.</li>
+  <li>Low price - this is a home server box for my projects and some helpful apps for my wife, it needs to be cheap.</li>
+  <li>Room to grow - something with some upgrade room would be nice</li>
+</ul><p>What I was able to put together fit all those criteria nicely:</p>
+<ul>
+  <li><a href="http://www.newegg.com/Product/Product.aspx?Item=N82E16811112219">LIAN LI PC-A05NA Silver Aluminum ATX Mini Tower Computer Case</a> - I had originally found a cheaper, smaller case; however, the Lifehacker article recommends some brands over others so I spent a few dollars more and I feel that it was worth it. The case has a lot of room for what I have and may want to add in the future. It also has great cooling and even looks nice.</li>
+  <li><a href="http://www.newegg.com/Product/Product.aspx?Item=N82E16817371035">Antec EarthWatts EA-500D Green 500W ATX12V v2.3 / EPS12V 80 PLUS BRONZE Certified Active PFC Power Supply</a> - Again, I had a cheaper one picked out but deferred to a Lifehacker-recommended brand. It's also a "green" model with greater power efficiency and enough available power to allow for future growth.</li>
+  <li><a href="http://www.newegg.com/Product/Product.aspx?Item=N82E16813121442">Intel BOXD525MW Intel Atom D525@1.8GHz (Dual Core) BGA559 Intel NM10 Mini ITX Motherboard/CPU Combo</a> - I decided to start with an Intel motherboard with an Atom processor for low power usage and I think it should be enough processor power for my needs (1.8 GHz dual core 64-bit)</li>
+  <li><a href="http://www.newegg.com/Product/Product.aspx?Item=N82E16820139033&amp;cm_sp=Pers_InterAlsoBought-_-20-139-033_3_DM-_-13-121-442&amp;nm_mc=AFC-C8Junction&amp;cm_mmc=AFC-C8Junction-_-RSSDailyDeals-_-na-_-na&amp;AID=10521304&amp;PID=4165814&amp;SID=2ixej4ic5pa5">Kingston ValueRAM 4GB (2 x 2GB) 204-Pin DDR3 SO-DIMM DDR3 1066 (PC3 8500) Laptop Memory Model KVR1066D3SOK2/4GR</a> - The supported max is 4GB, I bought 4GB.</li>
+  <li><a href="http://www.newegg.com/Product/Product.aspx?Item=N82E16822136195&amp;nm_mc=AFC-C8Junction&amp;cm_mmc=AFC-C8Junction-_-RSSDailyDeals-_-na-_-na&amp;AID=10521304&amp;PID=4165814&amp;SID=ppu8hu6z3s">Western Digital Caviar Blue WD800AAJS 80GB 7200 RPM 8MB Cache SATA 3.0Gb/s 3.5" Internal Hard Drive -Bare Drive</a> - Your standard Western Digital in the smallest size that I could find (80GB) without going into something too old. My storage requirements are small. I had originally wanted to get a SSD but that would have blown the cost up too much.</li>
+  <li>No optical drive, sound card, video card or network card; the latter three all being integrated on the motherboard, the optical drive was not necessary for a server like this.</li>
+</ul><p>I bought everything from <a href="http://newegg.com/">NewEgg</a> for a grand total (with extra warranty and shipping) out of pocket of a hair over<br/><em>$300</em>. Not bad at all considering everything I looked at "off the rack" was at least $400, and usually had more or less<br/>than what I actually wanted. Maybe someone with more experience building systems could do better since there are probably<br/>areas I could have cut corners on where I played it safe.</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/compbuild1.jpg" alt="The components""/></p><p>Once all the parts came in (the following week, damn they ship fast), I put everything together with the help of the<br/>Lifehacker articles. With a little help and guidance it was actually a pretty easy and mostly straight-forward process<br/>that took about three hours. Once everything was secured and wired together, I fired it up for the first time and was<br/>able to get into the BIOS; however, my hard drive was not being recognized. After trying different cables and then<br/>trying the drive in my desktop computer the only thing I can figure is that the drive was dead on arrival, great quality<br/>control WD! I ran out to BestBuy and bought another of the same drive (well the same brand but larger size) for<br/>basically the same price to test my theory and I was correct. Once the new drive was in place everything worked fine. I<br/>returned the dead drive to NewEgg and have gotten my refund with no problems.</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/compbuild12.jpg" alt="The completed build""/></p><p>Next, I moved on to the OS. My server OS of choice is <a href="http://www.ubuntu.com/">Ubuntu</a> so I downloaded the<br/>64-bit version of Ubuntu 11.04 and followed the instructions to create a USB installer... I have no optical drive,<br/>remember. It was down right simple and it booted from the stick with no problem and installed, as always, like a<br/>dream.</p><p>From there I basically followed along with my previous post to install my shared directories and the<br/>applications I wanted. It's been nice having a server up and running again.</p><p>I think in a couple years when it's<br/>time to upgrade my desktop, I will do a custom build. It's kind of fun and you get exactly what you want.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

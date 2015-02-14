@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Adding Icons to your Links</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Adding Icons to your Links</h1>
+	</div>
+
+	<p><em>09 February 2011</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/javascript.html'>javascript</a></p>
+
+	<p><p>I have started working on a new browser start page for myself and thought it would be nice to have the favicon images for the links I add to the page. Obviously, you could just download them and render them next to the link by brute force, but then you'd have to do that for every link you added... a big waste of time.</p><p>I thought about it for a few minutes and came up with an automated solution that works pretty well. You know the path to the favicon for a given url; it's just thesite.com/favicon.ico, though there are ways to change this that I am not<br/>accounting for. With a little JQuery JavaScripting you can pull the icon from the link itself. First, we need to style<br/>the external anchor tags in preparation for the icon:</p>
+<pre><code class="css">a[href^=&quot;http://&quot;]{
+    background-repeat:no-repeat;
+    background-position:left;
+    padding-left:17px;
+}
+</code></pre><p>This will cause all anchor tags with an href starting with "http://" (external) to be left-padded and have some<br/>additional background configuration. This basically adds a blank spot for the icon. Now we need some JavaScript to pull<br/>the icon for the link:</p>
+<pre><code class="javascript">jQuery(function(){
+    $(&#39;a[href^=&quot;http&quot;]&#39;).each(function(it){
+        var url = $(this).attr(&#39;href&#39;);
+        var slashIndex = url.indexOf(&#39;/&#39;,7);
+        if( slashIndex != -1 ){
+            url = url.substring(0, slashIndex);
+        }
+
+        $(this).css(&#39;background-image&#39;,&quot;url(&#39;&quot; + url + &quot;/favicon.ico&#39;)&quot;);
+    });
+});
+</code></pre><p>Using JQuery, I find each of the external anchor tags, and ignoring the path part of the url, I set the<br/>"background-image" property of the anchor to be the favicon url. And that's it. Below is the full example:</p>
+<pre><code class="html">&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Test&lt;/title&gt;
+        &lt;style type=&quot;text/css&quot;&gt;
+            a[href^=&quot;http://&quot;]{
+                background-repeat:no-repeat;
+                background-position:left;
+                padding-left:17px;
+            }
+        &lt;/style&gt;
+        &lt;script type=&quot;text/javascript&quot; src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js&quot;&gt;&lt;/script&gt;
+        &lt;script type=&quot;text/javascript&quot;&gt;
+            jQuery(function(){
+                $(&#39;a[href^=&quot;http&quot;]&#39;).each(function(it){
+                    var url = $(this).attr(&#39;href&#39;);
+                    var slashIndex = url.indexOf(&#39;/&#39;,7);
+                    if( slashIndex != -1 ){
+                        url = url.substring(0, slashIndex);
+                    }
+
+                    $(this).css(&#39;background-image&#39;,&quot;url(&#39;&quot; + url + &quot;/favicon.ico&#39;)&quot;);
+                });
+            });
+        &lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        This is some text surrounding &lt;a href=&quot;http://jqueryui.com&quot;&gt;JQuery UI&lt;/a&gt; the link I am playing with.
+        Also I will add another link &lt;a href=&quot;http://google.com&quot;&gt;Google&lt;/a&gt;.
+        More &lt;a href=&quot;http://jqueryui.com/demos/&quot;&gt;Demos&lt;/a&gt;.&lt;br/&gt;
+        Local links like &lt;a href=&quot;local.html&quot;&gt;this&lt;/a&gt; will be unchanged.
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre><p>When you render this example, you will get something like the following image. href-icons.png I am sure there are<br/>tweaks that could be done and other scenarios to consider, but this is an interesting starting point.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

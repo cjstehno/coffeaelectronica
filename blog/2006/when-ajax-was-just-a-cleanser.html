@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>When Ajax was just a Cleanser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>When Ajax was just a Cleanser</h1>
+	</div>
+
+	<p><em>14 November 2006</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/javascript.html'>javascript</a></p>
+
+	<p><blockquote><p>Original Posting: 11/14/2006</p>
+</blockquote><p>A few years ago the company I was working for did the <a href="http://simcityscape.com/">SimCityScape</a> (now long gone, but you<br/>can view an <a href="http://web.archive.org/web/20041204013218/http://simcity.ea.com/scape/">Archived version</a>) web interface,<br/>which was the online component to the SimCity 2 game (EA Games/Maxis). I was the developer assigned to do the high-end<br/>JavaScript and any other programming for the site, while the CSS and design work was done by one of our graphic designers.<br/>One of the requirements was that the game interface should not have to reload when an action is performed... it was a very<br/>heavy interface with a pile of images that all had to be placed with some complex JavaScript -- to reload this page with<br/>each action would have made the game unplayable.</p><p>These days I am sure the first thing that pops into your head is "AJAX, baby!"... well maybe without the "baby" part;<br/>however, back a couple years ago Ajax was still just a cleanser and there was no well-supported means of accomplishing<br/>"behind the scenes" data transfer without a page reload.</p><p>So what did I do? Well, I'll tell you but you have to promise you won't run away screaming... I am going to say a<br/>word that has a lot of undue negativity associated with it... applet.</p><p>Yes, I said it; I used an applet embedded in the page to allow the interaction on the front end to communicate with the<br/>backend, sans reload. It worked great, though I am not saying there weren't some issues with it, especially since we had<br/>a "no plugin" requirement put on us, meaning that I only had the MS IE JVM (which is still lost somewhere around Java<br/>1.1) available to me. I was able to use JavaScript to interface with the applet on the page which would fire off a<br/>request to the server. The server response was formatted text that was parsed into a data structure and returned to the<br/>JavaScript on the page (no <a href="http://json.org/">JSON</a> back then either). The nice thing about using an applet<br/>was that you could pass Java objects back to JavaScript and "just use them". No fuss. No conversion.</p><p>Today I had the thought that even with all of this Ajax goodness, there still may be an interest in using an applet... so I will<br/>work a simple little example that does everything I mentioned above.</p><p>Let's just make a simple data retrieval applet to demonstrate my point. You can take it from there if you are interested.<br/>The applet itself is quite simple. You just want to extend <code>JApplet</code> and override the <code>init()</code> method.<br/>All we are doing in our <code>init()</code> is getting the server url (there are other ways of getting this, but this is<br/>nice and easy). The applet code is shown below:</p>
+<pre><code class="java">public class ControllerApplet extends JApplet {
+    private String baseUrl;
+
+    public void init() {
+        this.baseUrl = getParameter(&quot;base.url&quot;);
+        super.init();
+    }
+
+    public Map retrieveData(int id) throws Exception {
+        Map map = new HashMap();
+        URL url = new URL(baseUrl + &quot;?pid=&quot; + id);
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            String line = reader.readLine();
+            if(line != null){
+                String[] nvps = line.split(&quot;;&quot;);
+                for(int n=0; n&lt;nvps.length; n++){
+                    String[] parts = nvps[n].split(&quot;:&quot;);
+                    ap.put(parts[0],parts[1]);
+                }
+            }
+        } catch(Exception ex){throw ex;}
+        finally {
+            if(reader != null){
+                try {reader.close();} catch(Exception e){}
+            }
+        }
+
+        return(map);
+    }
+}
+</code></pre><p>You will notice that the interesting method is the <code>retrieveData(int)</code> method. This is where the fun is.<br/>This method opens a stream to a local url (must be on the same server) and retrieves data from a JSP page (shown later)<br/>using a parameter. The data returned is read into a map which will then be used by the JavaScript that calls the applet.</p><p>Let's embed this applet in a page and see something happen. I am only going to show the important fragments:</p>
+<pre><code class="html">&lt;applet name=&#39;controller&#39; code=&#39;controller.ControllerApplet&#39; width=&#39;0&#39; height=&#39;0&#39; mayscript=&#39;mayscript&#39;&gt;
+    &lt;param name=&#39;base.url&#39; value=&#39;http://localhost:8080/data.jsp&#39; /&gt;
+&lt;/applet&gt;
+
+&lt;form name=&#39;theForm&#39;&gt;
+    Person: &lt;select name=&#39;pid&#39;&gt;
+        &lt;option value=&#39;1&#39;&gt;Abe Ableman&lt;/option&gt;
+        &lt;option value=&#39;2&#39;&gt;Bob Baker&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;button onClick=&#39;doSubmit(document.theForm.pid.value)&#39;&gt;Retrieve Info&lt;/button&gt;
+&lt;/form&gt;
+</code></pre><p>There is a lot to look at here. The first thing is the applet tag (you probably should use the Java Plugin<br/>object/embed tags, but this works for both IE and FireFox). The applet tag is given a name so that it can be easily<br/>referenced and <code>mayscript</code> is set so that we can call the applet using JavaScript. Also of note is the fact that<br/>this applet is 0 by 0; It's a stealth applet.</p><p>The form is just a simple select list to pick a person that you want to retrieve information about. Now we need the<br/>JavaScript function that does the work:</p>
+<pre><code class="javascript">function doSubmit(pid){
+    try {
+        var data = document.applets[&#39;controller&#39;].retrieveData(pid);
+        var info = &#39;Name: &#39; + data.get(&#39;Name&#39;) + &#39;\nDepartment: &#39; + data.get(&#39;Department&#39;) + &#39;\nTitle: &#39; + data.get(&#39;Title&#39;);
+        alert(info);
+    } catch(ex){
+        alert(&#39;Exception: &#39; + ex.toString());
+    }
+}
+</code></pre><p>That wasn't too bad. Basically all you have to do is call the <code>retrieveData(int)</code> method on the applet and<br/>the applet does the rest. One feature I have always liked about this is the ability to pass actual Java objects from the<br/>applet to the JavaScript. You will note that the data structure used here is a <code>Map</code> and JavaScript has no<br/>problems letting you handle it on the client side.</p><p>The JSP page I used for this is just a simple data switch:</p>
+<pre><code class="html">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/plain&quot; pageEncoding=&quot;UTF-8&quot;%&gt;&lt;%
+String pid = request.getParameter(&quot;pid&quot;);
+if(pid != null &amp;&amp; pid.equals(&quot;1&quot;)){
+    out.println(&quot;Name:Abe Ableman;Department:Accounting;Title:Head Bean Counter;&quot;);
+} else if(pid != null &amp;&amp; pid.equals(&quot;2&quot;)){
+    out.println(&quot;Name:Bob Baker;Department:Development;Title:Code Slave;&quot;);
+} %&gt;
+</code></pre><p>Ultimately that's all there is to it and this example works on IE 6 and FireFox 1.5. You can expand this to use<br/>XML, SOAP, formal HTTP clients, etc, but this is the meat of it all. The big problem you run into is security restraints<br/>that keep you in your own domain and the fact that the applet must be loaded before you can use it. The latter seems<br/>obvious, but I ran into cases where things were not loaded as you would expect.</p><p>In my opinion, Ajax is a more stable way of doing things, but you should always keep alternatives like this in mind.<br/>Applets got a bad reputation over the years that I don't think they really deserve; they were an amazing addition to the<br/>web when they came out and they can still be pretty cool.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

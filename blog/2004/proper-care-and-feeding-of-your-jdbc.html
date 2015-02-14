@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Proper Care and Feeding of your JDBC Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Proper Care and Feeding of your JDBC Code</h1>
+	</div>
+
+	<p><em>27 May 2004</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>If you've been developing very long, you have probably run across this numerous times, but for those of you that<br/>are new to JDBC, here is a quick tip that will help you greatly in the long run (I have seen it done wrong many times).<br/>When you perform your connection retrieval (directly or from a pool - use a pool as often as possible), make sure that<br/>you clean up your resources when you are done.</p>
+<pre><code class="java">Connection conn = null;
+Statement st = null;
+ResultSet rs = null;
+try {
+    conn = getConnection();
+    st = conn.createStatement();
+    rs = st.executeQuery(sql);
+
+    while(rs.next()){
+        // ... work it
+    }
+
+    // minimize code here to free conn ASAP.
+
+} catch(Exception ex){
+    // log this or something
+} finally {
+    if(rs != null){
+        try {rs.close();} catch(Exception e){}
+    }
+    if(st != null){
+        try {st.close();} catch(Exception e){}
+    }
+    if(conn != null){
+    try {conn.close();} catch(Exception e){}
+    }
+}
+</code></pre><p>If you follow this format as a general rule, you will end up with fewer database related problems, especially if you<br/>use connection pooling. Connections that are not disposed of properly can cause very bad things to happen in your<br/>application. Also, note that I mention minimizing the code within the try/catch block. You want to use your<br/>connection and clean it up as soon as possible (again, especially if you are pooling) so that the resources are not<br/>hanging around needlessly. Another interesting point is the set of empty catch blocks. We have all been told that<br/>empty catch blocks are a bad thing; however, I have seen this style used in pretty much every description of this code.<br/>The JDBC developers (in their infinite wisdom) decided that every method should throw a <code>SQLException</code>, even<br/>though there is little you can really do about it when you are trying to close up the connection. That is why you just<br/>ignore them; though here I ignore them separately so that one does not affect the others. You can clean up this code<br/>even more if you use the <a href="http://commons.apache.org/dbutils">Jakarta Commons - DbUtils API</a>:</p>
+<pre><code class="java">Connection conn = null;
+Statement st = null;
+ResultSet rs = null;
+try {
+    conn = getConnection();
+    st = conn.createStatement();
+    rs = st.executeQuery(sql);
+
+    while(rs.next()){
+        // ... work it
+    }
+
+    // minimize code here to free conn ASAP.
+
+} catch(Exception ex){
+    // log this or something
+} finally {
+    DbUtils.closeQuietly(rs);
+    DbUtils.closeQuietly(st);
+    DbUtils.closeQuietly(conn);
+}
+</code></pre><p>You are not really required to close the <code>ResultSet</code>, and the <code>Statement</code> if you close the <code>Connection</code> properly;<br/>however, it adds an extra level of assurance especially when you are using a driver that<br/>may not be fully compliant or properly implemented. The <a href="http://springframework.org/">Spring Framework</a> also provides<br/>some very useful APIs for working with JDBC such as template methods, row mappers, and callback<br/>closure-like structures, an example would be:</p>
+<pre><code class="java">new ConnectionCallback(){
+    public Object doInConnection(Connection conn) throws SQLException, DataAccessException {
+        st = conn.createStatement();
+        rs = st.executeQuery(sql);
+        while(rs.next()){
+            // ... work it
+        }
+
+        // minimize code here to free conn ASAP.
+    }
+}
+</code></pre><p>There are quite a few helpful constructs in the Spring JDBC API to make JDBC interaction easier to work with.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

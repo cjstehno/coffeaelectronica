@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Going Native with Gradle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Going Native with Gradle</h1>
+	</div>
+
+	<p><em>16 March 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+
+	<p><p>With my recent foray into Java game programming, I found the support for managing the native sub-dependencies of jar files to be a bit lacking in Gradle. I did find a few blog posts about the general ways of adding it to your build; however, I did not find any specific plugin or built-in support. Since I am planning on doing a handful of simple games as a tutorial for game programming it made sense for me to pull out my native library handling functionality into a Gradle plugin... and thus the <a href="https://github.com/cjstehno/gradle-natives">Gradle Natives Plugin</a> was born.</p><p>First, we need a project to play with. I found a simple <a href="http://philphilphil.wordpress.com/2009/05/28/helloworld-using-lwjgl/">LWJGL Hello World</a> application that works nicely for our starting point. So, create the standard Gradle project structure with the following files:</p>
+<pre><code class="java">// hello/src/main/java/hello/HelloWorld.java
+package hello;
+
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
+ 
+public class HelloWorld {
+    public static void main (String args[]){
+        try {
+            Display.setTitle(&quot;Hello World&quot;);
+            Display.create();
+			
+			while(!Display.isCloseRequested()){
+				Thread.sleep(100);      
+			}
+		
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+			Display.destroy();
+		}
+    }
+}
+</code></pre><p>with a standard Gradle build file as a starting point: </p>
+<pre><code class="groovy">// hello/build.gradle
+
+apply plugin:&#39;java&#39;
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile &#39;org.lwjgl.lwjgl:lwjgl:2.9.1&#39;
+}
+</code></pre><p>At this point, the project will build, but will not run without jumping through some extra hoops. Let's do some of that hoop-jumping in Gradle with the <code>application</code> plugin. Add the following to the <code>build.gradle</code> file:</p>
+<pre><code class="groovy">apply plugin:&#39;application&#39;
+
+mainClassName = &#39;hello.HelloWorld&#39;
+</code></pre><p>This adds the <code>run</code> task to the build which will run the <code>HelloWorld</code> main class; however, this still won't work since it does not know how to deal with the LWJGL native libraries. That's where the <code>natives</code> plugin comes in. At this time there is no official release of the plugin on Bintray (coming soon), so you will need to clone the repo and build the plugin, then install it into your local maven repo:</p>
+<pre><code>git clone git@github.com:cjstehno/gradle-natives.git
+
+cd gradle-natives
+
+gradle build install
+</code></pre><p>Once that is done, you will need to add the natives plugin to your build:</p>
+<pre><code class="groovy">buildscript {
+    repositories {
+        mavenLocal()
+    }
+
+    dependencies {
+        classpath &#39;gradle-natives:gradle-natives:0.1&#39;
+    }
+}
+
+apply plugin:&#39;natives&#39;
+</code></pre><p>And then you will need to apply the custom configuration for your specific native libraries. You will need to add an entry in the jars list for each dependency jar containing native libraries. These are the jars that will be searched on the classpath for native libraries by platform.</p>
+<pre><code class="groovy">natives {
+	jars = [
+		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
+	]
+}
+</code></pre><p>This will allow the associated native libraries to be unpacked into the build directory with:</p><p><code>gradle unpackNatives</code></p><p>Which will copy the libraries into a directory for each platform under <code>build/natives/PLATFORM</code>. Then we need one more step to allow it to be run. The <code>java.library.path</code> needs to be set before the run:</p>
+<pre><code class="groovy">run {
+    systemProperty &#39;java.library.path&#39;, file( &#39;build/natives/windows&#39; )
+}
+</code></pre><p>Then you can run the application using:</p><p><code>gradle run</code></p><p>Granted, there are still issues to be resolved with the plugin. Currently, it is a little picky about when it is run. If you have tests that use the native libraries you will need to build without tests and then run the tests:</p>
+<pre><code>gradle clean build unpackNatives -x test
+
+gradle test
+</code></pre><p>Lastly, you can also specify the platforms whose library files are to be copied over using the <code>platforms</code> configuration property, for example:</p>
+<pre><code class="groovy">natives {
+	jars = [
+		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
+	]
+	platforms = &#39;windows&#39;
+}
+</code></pre><p>Will only copy the windows libraries into the build.</p><p>Feel free to create an issue for any bugs you find or features you would like to see. Also, I am open to bug fixes and pull requests from others.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

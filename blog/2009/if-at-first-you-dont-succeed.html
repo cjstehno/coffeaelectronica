@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>If at First You Don't Succeed...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>If at First You Don't Succeed...</h1>
+	</div>
+
+	<p><em>20 December 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>Sometimes you run into an operation that is a little on the flaky side and might sometimes fail on one execution<br/>but then work fine on the next; apart from fixing the underlying issue which may not be within your control, you can<br/>implement an operation retry strategy. With an operation retry strategy you attempt to execute an operation and then<br/>retry it if it fails. After a specified number of attempts (or under certain exceptions) you can allow the operation to<br/>fail gracefully. This gives you greater isolation of the questionable service while also allowing you more control what<br/>happens on a failure.</p><p>I have run into this issue a few years back with a twitchy SMTP server, and now again with a slightly-flaky database<br/>connection pool. Last time I wrote a very code-specific retry strategy (and like a doof, never blogged about it), but<br/>this time something more reusable is in order since this component would be used extensively throughout the code.</p><p>Basically the requirement is the ability to run a repeatable operation some number of times until it either succeeds or<br/>exceeds a specified number of attempts, at which point it will stop trying and fail. Since there are no closures in<br/>Java yet, I came up with a <code>Retriable</code> interface with a single method which will execute the operation and return it's<br/>return value if there is one.</p>
+<pre><code class="java">public interface Retriable&lt;T&gt; {
+    public T execute() throws Exception;
+}
+</code></pre><p>I had originally considered using <code>java.lang.Runnable</code>; however, a return value simplifies cases where you<br/>are trying to extract some value from the operation. Similarly I considered the <code>org.apache.commons.lang.Closure</code><br/>class and discarded if for the same reason.</p><p>The retry logic itself is pretty straight-forward. The failure condition is based on exceptions thrown by the operation<br/>execution. If an execption is thrown that is not contained in the "catchAndThrow" list, the counter will be incremented and the operation will be tried again if the max number of<br/>tries has not been exceeded. The "catchAndThrow" list is an array of Exception classes which if caught are to be thrown<br/>out of the handler rather than initiating a retry. This allows some desired exceptions to be handled by the calling<br/>method.</p>
+<pre><code class="java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
+    boolean retry = true;
+    int count = 0;
+    do {
+        try {
+            return op.execute();
+        } catch(final Exception e) {
+            if( ArrayUtils.contains(catchAndThrow, e.getClass()) ) throw e;
+
+            retry = ++count &lt; maxRetries;
+
+            if(log.isWarnEnabled() &amp;&amp; !retry) {
+                log.warn(&quot;RetriesFailed[&quot; + op.getClass().getName() + &quot;]: &quot; + e.getMessage(), e);
+            }
+        }
+    } while( retry );
+
+    throw new MaxRetriesExceededException(maxRetries,op.getClass().getName());
+}
+</code></pre><p>You will notice that if all the retries fail, a <code>MaxRetriesExceededException</code> is thrown. This allows calling<br/>methods to catch and handle the case when total failure occurs in a method-specific manner.</p><p>A more advanced retry strategy could also be derived from this where the failure condition is based on an injected<br/>object (ala strategy pattern) so that other criteria could be used to determine success and failure. The exception catch<br/>and throw filter could also be enhanced in this manner.<br/><br/>The retry object itself, which I have called<br/>the <code>Retrier</code> is a reusable thread-safe POJO so it can be configured via dependency injection (Spring) and used for any<br/>number of <code>Retriable</code> operations.</p>
+<pre><code class="xml">&lt;bean id=&quot;retrier&quot; class=&quot;retry.Retrier&quot;&gt;
+    &lt;property name=&quot;maxRetries&quot; value=&quot;3&quot; /&gt;
+    &lt;property name=&quot;catchAndThrow&quot;&gt;
+        &lt;list&gt;
+            &lt;value&gt;java.lang.NullPointerException&lt;/value&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>What you end up with is a very clean way to perform retiable logic:</p>
+<pre><code class="java">final long id = someBeanId;
+final String criteria = searchCriteria;
+
+SomeBean resultBean = retrier.execute( new Retriable&lt;SomeBean&gt;(){
+    public SomeBean execute() throws Exception {
+        return searchDao.findBean(id,criteria);
+    }
+} );
+</code></pre><p>In this sample code a searchDao is being called in a retriable manner using parameters from the calling method. As<br/>long as parameters are final they can be passed into the anonymous inner class craeted by the inline creation of the<br/><code>Retriable</code>. You will also see that with the use of generics you get a seamless integration of the retiable<br/>operation into your code.</p><h2>Slightly Different Approach</h2><p>After a bit more thought, I came up with a slightly different approach to the retry execution method:</p>
+<pre><code class="java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
+    for(int r=0; r&lt;maxRetries; r++){
+        try {
+            return op.execute();
+        } catch(final Exception e) {
+            if( ArrayUtils.contains(catchAndThrow, e.getClass()) ) throw e;
+
+            if(log.isWarnEnabled()){
+                log.warn(&quot;RetryCaughtException[&quot; + r + &quot;]: &quot; + e.getMessage());
+            }
+        }
+    }
+
+    if(log.isWarnEnabled()) {
+        log.warn(&quot;RetriesFailed: &quot; + op.getClass().getName());
+    }
+
+    throw new MaxRetriesExceededException(maxRetries,op.getClass().getName());
+}
+</code></pre><p>This approach does not rely on the boolean to end the loop. If an exception is thrown it will try again until a<br/>return value is returned or the retry count has been exceeded. With this approach you only fall out of the loop on a<br/>retry exceeded condition, hence the logging and the thrown exception. This feels a little cleaner than the other<br/>approach. I have not run it through the unit testing so, you might do that first if you intend to use this code.</p>
+<blockquote><p>I have added this code to my <a href="https://github.com/cjstehno/codeperks">CodePerks</a> project.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Ant Input Prompting and Private Targets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Ant Input Prompting and Private Targets</h1>
+	</div>
+
+	<p><em>21 October 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/ant.html'>ant</a></p>
+
+	<p><p>I have found the <a href="http://ant.apache.org/">Ant</a> <code>input</code> tag useful lately for setting up runtime parameters of an Ant build.</p><p>We have a few different server configuration settings that vary based on which server the artifact is being built for<br/>and the <code>input</code> tag makes this really easy:</p>
+<pre><code class="xml">&lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
+</code></pre><p>The downside of this is that it will prompt you to enter this every time you run the build, which can become<br/>annoying and really prohibits automated building. This is where the <tt>unless</tt> attribute of the <code>target</code> tag<br/>comes into play. First create a private target (one whose name starts with "-") that will prompt for the config name:</p>
+<pre><code class="xml">&lt;target name=&quot;-prompt-for-config&quot;&gt;
+    &lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
+&lt;/target&gt;
+</code></pre><p>Then add the <code>unless</code> attribute to check for the presence of the <code>config.name</code> property:</p>
+<pre><code class="xml">&lt;target name=&quot;-prompt-for-config&quot; unless=&quot;config.name&quot;&gt;
+    &lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
+&lt;/target&gt;
+</code></pre><p>which will cause this task to be run only if the specified property is not set. The you can have other tasks depend<br/>on this private task, which will only run if you have not specified the <code>config.name</code> property on the ant command<br/>line.</p>
+<pre><code class="xml">&lt;target name=&quot;compile&quot; depends=&quot;-prompt-for-config&quot; description=&quot;Compiles the java sources.&quot;&gt;
+    &lt;!-- do stuff --&gt;
+&lt;/target&gt;
+</code></pre><p>Calling ant with the following will not prompt the user for the <code>config.name</code>:</p>
+<pre><code>ant compile -Dconfig.name=foo
+</code></pre><p>I have used this in a few places now to make the build a bit more flexible, such as for doing server deployments,<br/>artifact installations, etc. It is a handy ant trick to keep in mind.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

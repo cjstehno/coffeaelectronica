@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Collapsible Divs with JQuery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Collapsible Divs with JQuery</h1>
+	</div>
+
+	<p><em>23 December 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/javascript.html'>javascript</a></p>
+
+	<p><p>I coded up a nice little collapsible-group side bar thingy using <a href="http://jquery.com/">JQuery</a> and it was surprisingly<br/>easy. Say you have a sidebar with collapsible group content such as:</p>
+<pre><code class="html">&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;group&quot;&gt;
+        &lt;div class=&quot;group-title&quot;&gt;Group A&lt;/div&gt;
+        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group A.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;group&quot;&gt;
+        &lt;div class=&quot;group-title&quot;&gt;Group B&lt;/div&gt;
+        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group B.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;group&quot;&gt;
+        &lt;div class=&quot;group-title&quot;&gt;Group C&lt;/div&gt;
+        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group C.&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre><p>where you have group block titles and group content that you want to be able to toggle the visibility of. With a<br/>couple lines of JavaScript and JQuery it's a sinch:</p>
+<pre><code class="javascript">$(&#39;div.group-title&#39;).bind(&#39;click&#39;,function(evt){
+    $(evt.target).parent().find(&#39;.group-content&#39;).slideToggle(500);
+});
+</code></pre><p>which will be put inside an onload handler (also using JQuery). When the group title is clicked, the group-content<br/>block will toggle by sliding up or down in about half a second. With this model you can also place any number of these<br/>"components" on a page without the concern about event collision since the event handling is based on the click<br/>location. Add in a little CSS and you end up with:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/collapsable-div.png" alt="Screen shot of div.""/></p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

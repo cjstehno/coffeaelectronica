@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>NodeTypes - Deeper Down the Rabbit Hole</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>NodeTypes - Deeper Down the Rabbit Hole</h1>
+	</div>
+
+	<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><p>In my last post about <a href="http://jackrabbit.apache.org">Jackrabbit</a>, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.</p><p>In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.</p><p>For this post, you will want to refer to the code presented in the other post, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>" as a starting point (especially the last version of the code, which the code here will be based on).</p><p>For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since <a href="http://tika.apache.org">Apache Tika</a> is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your <code>build.gradle</code> file to update the version:</p>
+<pre><code class="groovy">compile &#39;org.apache.tika:tika-parsers:1.5&#39;
+</code></pre><p>Tika provides metadata extractors for a wide range of file formats, one of which is JPEG images, which is what we are playing with here.</p><p>First, we need to extract the metadata from the image file. I did this just after the main method's file reference statement:</p>
+<pre><code class="groovy">def metadata = extractMetadata( file )
+</code></pre><p>The code for the <code>extractMetadata(File)</code> method is as follows:</p>
+<pre><code class="groovy">private static Map&lt;String,String&gt; extractMetadata( File imageFile ){
+    def meta = new Metadata()
+    def extractor = new ImageMetadataExtractor( meta )
+
+    log.info &#39;Extracting metadata from {}&#39;, imageFile
+
+    extractor.parseJpeg(imageFile)
+
+    def props = [:]
+    meta.names().sort().each { name-&gt;
+        props[name] = meta.get(name)
+        log.info &quot; : &lt;image-meta&gt; $name : ${meta.get(name)}&quot;
+    }
+
+    return props
+}
+</code></pre><p>It's just a simple straight-forward use of the Tika <code>ImageMetadataExtractor</code>, which pulls out all the data and stores it into a Map for use later.</p><p>Then, after we create the main file node, we want to apply the metadata properties to it:</p>
+<pre><code class="groovy">applyMetadata( fileNode, metadata )
+</code></pre><p>The <code>applyMetadata(Node,Map)</code> method applies the metadata from the map as properties on the node. The code is as shown below:</p>
+<pre><code class="groovy">private static void applyMetadata( Node node, Map&lt;String,String&gt; metadata ){
+    node.addMixin(&#39;pp:photo&#39;)
+    node.setProperty(&#39;pp:photo-width&#39;, metadata[&#39;Image Width&#39;].split(&#39; &#39;)[0] as long )
+
+    log.info &#39;Applied mixin -&gt; {} :: {}&#39;, node.mixinNodeTypes.collect { it.name }.join(&#39;, &#39;), node.getProperty(&#39;pp:photo-width&#39;).string
+}
+</code></pre><p>For the metadata, I used the concept of "Mixin" node types. Every node has a primary node type, in this case it's an "nt:file" node, but nodes can have multiple mixin node types also applied to them so that they can have additional properties available. This works perfectly in my case, since I want a file that is a photo with extra metadata associated with it.</p><p>Also, the <code>dumpProps(Node)</code> method changed slightly to avoid errors during extraction, and to hide properties we don't care about seeing:</p>
+<pre><code class="groovy">private static void dumpProps( Node node ){
+    log.info &#39;Node ({}) of type ({}) with mixins ({})&#39;, node.name, node.getPrimaryNodeType().name, node.getMixinNodeTypes()
+
+    def iter = node.properties
+    while( iter.hasNext() ){
+        def prop = iter.nextProperty()
+        if( prop.type != PropertyType.BINARY ){
+            if( prop.name != &#39;jcr:mixinTypes&#39; ){
+                log.info &#39; - {} : {}&#39;, prop.name, prop.value.string
+            }
+        } else {
+            log.info &#39; - {} : &lt;binary-data&gt;&#39;, prop.name
+        }
+    }
+}
+</code></pre><p>If you run the code at this point, you will get an error about the node type not being defined, so we need to define the new node type. In the current version of Jackrabbit, they defer node type creation to the standard JCR 2.0 approach, which is pretty clean. The code is shown below:</p>
+<pre><code class="groovy">private static void registerNodeTypes(Session session ) throws Exception {
+    if( !session.namespacePrefixes.contains(&#39;pp&#39;) ){
+        session.workspace.namespaceRegistry.registerNamespace(&#39;pp&#39;, &#39;http://stehno.com/pp&#39;)
+    }
+
+    NodeTypeManager manager = session.getWorkspace().getNodeTypeManager()
+
+    if( !manager.hasNodeType(&#39;pp:photo&#39;) ){
+        NodeTypeTemplate nodeTypeTemplate = manager.createNodeTypeTemplate()
+        nodeTypeTemplate.name = &#39;pp:photo&#39;
+        nodeTypeTemplate.mixin = true
+
+        PropertyDefinitionTemplate propTemplate = manager.createPropertyDefinitionTemplate()
+        propTemplate.name = &#39;pp:photo-width&#39;
+        propTemplate.requiredType = PropertyType.LONG
+        propTemplate.multiple = false
+        propTemplate.mandatory = true
+
+        nodeTypeTemplate.propertyDefinitionTemplates &lt;&lt; propTemplate
+
+        manager.registerNodeType( nodeTypeTemplate, false )
+    }
+}
+</code></pre><p>Which is called just after logging in and getting a reference to a repository session. Basically, you use the <code>NodeTypeManager</code> to create a <code>NodeTypeTemplate</code> which you can use to specify the configuration settings of your new node type. There is a similar construct for node type properties, the <code>PropertyDefinitionTemplate</code>. Once you have your configuration done, you register the node type and you are ready to go.</p><p>When run, this code generates output similar to:</p>
+<pre><code>2014-08-23 16:43:02 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
+...
+2014-08-23 16:43:02 Rabbits [INFO]  : &lt;image-meta&gt; Image Width : 2448 pixels
+...
+2014-08-23 16:43:02 Rabbits [INFO] Applied mixin -&gt; pp:photo :: 2448
+2014-08-23 16:43:02 Rabbits [INFO] Stored image file data into node (2014-08-19 20.49.40.jpg)...
+2014-08-23 16:43:02 Rabbits [INFO] Node (2014-08-19 20.49.40.jpg) of type (nt:file) with mixins ([org.apache.jackrabbit.core.nodetype.NodeTypeImpl@5b3bb1f7])
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:createdBy : admin
+2014-08-23 16:43:02 Rabbits [INFO]  - pp:photo-width : 2448
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:file
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:created : 2014-08-23T16:43:02.531-05:00
+2014-08-23 16:43:02 Rabbits [INFO] Node (jcr:content) of type (nt:resource) with mixins ([])
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModified : 2014-08-19T20:49:44.000-05:00
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:data : &lt;binary-data&gt;
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModifiedBy : admin
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:uuid : a699fbd6-4493-4dc7-9f7a-b87b84cb1ef9
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:resource
+</code></pre><p>(I omitted a bunch of the metadata output lines to clean up the output)</p><p>You can see that the new node type data is populated from the metadata and the mixin is properly applied.</p><p>Call me crazy, but this approach seems a lot cleaner than the old text-based approach. There are some rules around node types and ensuring that they are not created if they already exist, though this only seems to be a problem in certain use cases - need to investigate that a bit more, but be aware of it.</p><p>Now, you can stop here and create new node types all day long, but let's take this experiment a little farther down the rabbit hole. The programmatic approach to node type configuration seems to lend itself nicely to a Groovy-based DSL approach, something like:</p>
+<pre><code class="groovy">private static void registerNodeTypes( Session session ) throws Exception {
+    definitions( session.workspace ){
+        namespace &#39;pp&#39;, &#39;http://stehno.com/pp&#39;
+
+        nodeType {
+            name &#39;pp:photo&#39;
+            mixin true
+
+            propertyDefinition {
+                name &#39;pp:photo-width&#39;
+                requiredType PropertyType.LONG
+                multiple false
+                mandatory true
+            }
+
+            propertyDefinition {
+                name &#39;pp:photo-height&#39;
+                requiredType PropertyType.LONG
+                multiple false
+                mandatory true
+            }
+        }
+    }
+}
+</code></pre><p>Seems like a nice clean way to create new node types and their properties with little fuss and muss. So, using a little Groovy DSL closure delegation we can do this without too much pain:</p>
+<pre><code class="groovy">class NodeTypeDefiner {
+
+    private final NodeTypeManager manager
+    private final Workspace workspace
+
+    private NodeTypeDefiner( final Workspace workspace ){
+        this.workspace = workspace
+        this.manager = workspace.nodeTypeManager
+    }
+
+    void namespace( String name, String uri ){
+        if( !workspace.namespaceRegistry.prefixes.contains(name) ){
+            workspace.namespaceRegistry .registerNamespace(name, uri)
+        }
+    }
+
+    static void definitions( final Workspace workspace, Closure closure ){
+        NodeTypeDefiner definer = new NodeTypeDefiner( workspace )
+        closure.delegate = definer
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+    }
+
+    void nodeType( Closure closure ){
+        def nodeTypeTemplate = new DelegatingNodeTypeTemplate( manager )
+
+        closure.delegate = nodeTypeTemplate
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+
+        manager.registerNodeType( nodeTypeTemplate, true )
+    }
+}
+</code></pre><p>The key pain point I found here was that with the nested closure structures, I needed to change the <code>resolveStrategy</code> so that you get the delegate only rather than the owner - took a little debugging to trace that one down.</p><p>The other useful point here was the "Delegating" extensions of the two "template" classes:</p>
+<pre><code class="groovy">class DelegatingNodeTypeTemplate implements NodeTypeDefinition {
+
+    @Delegate NodeTypeTemplate template
+    private final NodeTypeManager manager
+
+    DelegatingNodeTypeTemplate( final NodeTypeManager manager ){
+        this.manager = manager
+        this.template = manager.createNodeTypeTemplate()
+    }
+
+    void name( String name ){
+        template.setName( name )
+    }
+
+    void mixin( boolean mix ){
+        template.mixin = mix
+    }
+
+    void propertyDefinition( Closure closure ){
+        def propertyTemplate = new DelegatingPropertyDefinitionTemplate( manager )
+        closure.delegate = propertyTemplate
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+        propertyDefinitionTemplates &lt;&lt; propertyTemplate
+    }
+}
+
+class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
+
+    @Delegate PropertyDefinitionTemplate template
+    private final NodeTypeManager manager
+
+    DelegatingPropertyDefinitionTemplate( final NodeTypeManager manager ){
+        this.manager = manager
+        this.template = manager.createPropertyDefinitionTemplate()
+    }
+
+    void name( String name ){
+        template.setName( name )
+    }
+
+    void requiredType( int propertyType ){
+        template.setRequiredType( propertyType )
+    }
+
+    void multiple( boolean value ){
+        template.multiple = value
+    }
+
+    void mandatory( boolean value ){
+        template.mandatory = value
+    }
+}
+</code></pre><p>They provide the helper methods to allow a nice clean DSL. Without them you have only setters, which did not work out cleanly. You just end up with some small delegate classes.</p><p>This code takes care of adding in the property definitions, registering namespaces and node types. It does not currently support all the configuration properties; however, that would be simple to add - there are not very many available.</p><p>As you can see from the DSL example code, you can now add new node types in a very simple manner. This kind of thing is why I love Groovy so much.</p>
+<blockquote><p>If there is any interest in this DSL code, I will be using it in one of my own projects, so I could extract it into a library for more public use - let me know if you are interested.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

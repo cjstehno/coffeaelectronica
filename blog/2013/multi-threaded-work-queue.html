@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Multi-threaded Work Queue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Multi-threaded Work Queue</h1>
+	</div>
+
+	<p><em>27 January 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><p>I finally had some time to play with the DataFlow functionality in GPars, and as you would expect, it's both simple and<br/>powerful. I needed a simple means of processing data from a queue in a multi-threaded manner. I considered something like<br/>JMS, but for what I am working on that was too complex and too heavy. I really just needed to toss a message on a queue<br/>and let it get processed at some future time, hopefully by a couple threads. The DataFlowQueue came through perfectly.</p><p>Below is a simple demo:</p>
+<pre><code class="groovy">def pool = new DefaultPool(false, 3)
+def queue = new DataflowQueue&lt;String&gt;()
+
+def latch = new CountDownLatch(100)
+
+queue.wheneverBound(new DataCallbackWithPool(pool,{msg-&gt;
+    println &quot;[${Thread.currentThread().name}] ${System.currentTimeMillis()} $msg&quot;
+    latch.countDown()
+}))
+
+100.times { n-&gt;
+    queue.bind(&quot;Message-$n&quot;)
+}
+
+latch.await()
+</code></pre><p>The <code>DataFlowQueue</code> accepts messages that it will hand off to bound handlers. The <code>wheneverBound()</code> method will bind the<br/>handler permanently (rather than for just a single message) so that you can use the <code>DataCallbackWithPool</code> message stream<br/>as a handler. Configure the <code>DataCallbackWithPool</code> object with a pool and your actual message handler then you are done.</p><p>When you run the demo code you will see that the bind call returns immediately and that each message is handled on one<br/>of the three threads configured.</p><p>Nothing Earth-shattering, but it will come in handy. Also, since the above example was written in Groovy, you could also<br/>do this with GPars in Java, with just a few changes:</p>
+<pre><code class="java">Pool pool = new DefaultPool( false, 3 );
+DataflowQueue&lt;String&gt; queue = new DataflowQueue&lt;&gt;();
+
+final CountDownLatch latch = new CountDownLatch( 100 );
+
+queue.wheneverBound( new DataCallbackWithPool( pool, new MessagingRunnable&lt;String&gt;(){
+    @Override
+    protected void doRun( final String msg ){
+        System.out.printf( &quot;[%s] %d%n&quot;, Thread.currentThread().getName(), System.currentTimeMillis() );
+        latch.countDown();
+    }
+}));
+
+for( int i=0; i&lt;100; i++){
+    queue.bind( &quot;Message-&quot; + i );
+}
+
+latch.await();
+</code></pre><p>The main difference being the introduction of the MessageRunnable, since Java does not have closures yet.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

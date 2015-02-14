@@ -1,79 +1,1446 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Coffeaelectronica : My technical blog." />
+    <meta charset="utf-8"/>
+    <title>CoffeaElectronica.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
 
-    <title>Coffeaelectronica</title>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
   </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
 
-  <body>
-
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/cjstehno/coffeaelectronica">View on GitHub</a>
-
-          <h1 id="project_title">Coffeaelectronica</h1>
-          <h2 id="project_tagline">My technical blog.</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/cjstehno/coffeaelectronica/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/cjstehno/coffeaelectronica/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
     </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Coffeaelectronica maintained by <a href="https://github.com/cjstehno">cjstehno</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
+    <div class="container">
     
 
+
+	
+		<a href="blog/2014/gradle-and-codenarc.html"><h1>Gradle and CodeNarc</h1></a>
+		<p><em>07 November 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/testing.html'>testing</a>, <a href='/tags/gradle.html'>gradle</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>The subject of "code quality tools" has lead to many developer holy wars over the years, so I'm not really going to touch the subject of their value or level of importance here, suffice to say that they are tools in your toolbox for helping to maintain a base level of "tedious quality", meaning style rules and general coding conventions enforced by your organization - it should never take the ultimate decision making from the developers.</p><p>That being said, let's talk about <a href="http://codenarc.sourceforge.net/">CodeNarc</a>. CodeNarc is a rule-based code quality analysis tool for Groovy-based projects. Groovy does not always play nice with other code analysis tools, so it's nice that there is one specially designed for it and <a href="http://gradle.org">Gradle</a> provides access to it out of the box.</p><p>Using the <a href="http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.quality.CodeNarc.html">Gradle CodeNarc plugin</a> is easy, apply the plugin to your build</p>
+<pre><code>apply plugin: &#39;codenarc&#39;
+</code></pre><p>and then do a bit of rule configuration based on the needs of your code base. </p>
+<pre><code class="groovy">codenarcMain {
+    ignoreFailures false
+    configFile file(&#39;config/codenarc/codenarc-main.rules&#39;)
+
+    maxPriority1Violations 0
+    maxPriority2Violations 10
+    maxPriority3Violations 20
+}
+
+codenarcTest {
+    ignoreFailures true
+    configFile file(&#39;config/codenarc/codenarc-test.rules&#39;)
+
+    maxPriority1Violations 0
+    maxPriority2Violations 10
+    maxPriority3Violations 20
+}
+</code></pre><p>The plugin allows you to have different configurations for your main code and your test code, and I recommend using that functionality since generally you may care about slightly different things in your production code versus your test code. Also, there are JUnit-specific rules that you can ignore in your production code scan.</p><p>Notice that in my example, I have ignored failures in the test code. This is handy when you are doing a lot of active development and don't really want to fail your build every time your test code quality drops slightly. You can also set the thresholds for allowed violations of the three priority levels - when the counts exceed one of the given thresholds, the build will fail, unless it's ignored. You will always get a report for both main and test code in your build reports directory, even if there are no violations. The threshold numbers are something you will need to determine based on your code base, your team and your needs.</p><p>The <code>.rules</code> files are really Groovy DSL files, but the extension is unimportant so I like to keep them out of the Groovy namespace. The CodeNarc web site has a sample "<a href="http://codenarc.sourceforge.net/StarterRuleSet-AllRulesByCategory.groovy.txt">kitchen sink</a>" rule set to get things started - though it has a few rules that cause errors, you can comment those out or remove them from the file. Basically the file is a list of all the active rules, so removing one disables it. You can also configure some of them. LineLength is one I like to change:</p>
+<pre><code>LineLength { length = 150 }
+</code></pre><p>This will keep the rule active, but will allow line lengths of 150 rather than the default 120 characters. You will need to check the JavaDocs for configurable rule properties; for the most part, they seem to be on or off. </p><p>Running the analysis is simple, the <code>check</code> task may be run by itself, or it will be run along with the <code>build</code> task.</p>
+<pre><code>gradle check
+</code></pre><p>The reports (main and test) will be available in the <code>build/reports/codenarc</code> directory as two html files. They are not the prettiest reports, but they are functional.</p><p>If you are starting to use CodeNarc on an existing project, you may want to take a phased approach to applying and customizing rules so that you are not instantly bogged down with rule violations - do a few passes with the trimmed down rule set, fix what you can fix quickly and configure or disable the others and set your thresholds to a sensible level then make a goal to drop the numbers with each sprint or release so that progress is made.</p></p>
+  	
+		<a href="blog/2014/hello-again-slick2d.html"><h1>Hello Again Slick2D</h1></a>
+		<p><em>11 October 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>I am finally getting back around to working on my little game programming project and I realized that somewhere along the<br/>way, my project stopped working. I am using the <a href="http://slick.ninjacave.com/">Slick2D</a> library, which seems to have little<br/>in the way of formal release or distribution so it didn't surprise me. I think I had something hacked together making it<br/>work last time. I decided to try and put some more concrete and repeatable steps around basic setup, at least for how I use it - I'm no<br/>game programmer. </p><p>I'm using Groovy as my development language and Gradle for building. In the interest of time and clarity, I am going to use a<br/>dump-and-describe approach here; there are only two files, so it should not be a big deal.</p><p>The <code>build.gradle</code> file is as follows:</p>
+<pre><code class="groovy">group = &#39;com.stehno.demo&#39;
+version = &#39;0.1&#39;
+
+buildscript {
+    repositories {
+        jcenter()
+
+        maven {
+            url &#39;http://dl.bintray.com/cjstehno/public/&#39;
+        }
+    }
+
+    dependencies {
+        classpath &#39;com.stehno:gradle-natives:0.2&#39;
+    }
+}
+
+apply plugin:&#39;groovy&#39;
+apply plugin:&#39;application&#39;
+apply plugin:&#39;com.stehno.natives&#39;
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+mainClassName = &#39;helloslick.HelloSlick&#39;
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile &#39;org.codehaus.groovy:groovy-all:2.3.6&#39;
+
+    compile &#39;org.slick2d:slick2d-core:1.0.1&#39;
+}
+
+test {
+    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
+}
+
+run {
+    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
+}
+
+natives {
+    jars = [
+        &#39;lwjgl-platform-2.9.1-natives-windows.jar&#39;,
+        &#39;jinput-platform-2.0.5-natives-windows.jar&#39;
+    ]
+    platforms = &#39;windows&#39;
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = &#39;2.1&#39;
+}
+</code></pre><p>The first point of note, is that I am using my <a href="http://cjstehno.github.io/gradle-natives/">Gradle Natives plugin</a>, not as<br/>a self-promotion, but since this is the reason I wrote it. This plugin takes care of extracting all the little native<br/>libraries and putting them in your build so that they are easily accessible by your code. The configuration is found near<br/>the bottom of the file, in the <code>natives</code> block - we want to extract the native libraries from the lwjgl and jinput libraries<br/>for this project and in my case, I only care about the Windows versions (leave off <code>platforms</code> to get all platforms).</p><p>There was one interesting development during my time away from this project, a 3rd-party jar version of Slick2D has been pushed to maven central, which makes it a lot easier - I think I had to build it myself and fiddle with pushing it to my local maven repo or something. Now it's just another remote library (hopefully it works as expected - I have not played with it yet).</p><p>The last point of interest here is the use of the <code>application</code> plugin. This plugin provides an easy way to run your game<br/>while specifying the <code>java.library.path</code> which is the painful part of running applications with native libraries. With the<br/><code>application</code> plugin and the <code>run</code> configuration in place, you can run the game from Gradle - admittedly not ideal, but this<br/>is just development; I actually have a configuration set for the IzPack installer that I will write about later.</p><p>Now, we need some code to run, and the Slick2D wiki provides a simple Hello world sample that I have tweaked a bit for my<br/>use - mostly just cosmetic changes:</p>
+<pre><code class="groovy">package helloslick
+
+import groovy.util.logging.Log
+import org.newdawn.slick.*
+
+import java.util.logging.Level
+
+@Log
+class HelloSlick extends BasicGame {
+
+    HelloSlick(String gamename){
+        super(gamename)
+    }
+
+    @Override
+    public void init(GameContainer gc) throws SlickException {}
+
+    @Override
+    public void update(GameContainer gc, int i) throws SlickException {}
+
+    @Override
+    public void render(GameContainer gc, Graphics g) throws SlickException {
+        g.drawString &#39;Hello Slick!&#39;, 50, 50
+    }
+
+    public static void main(String[] args){
+        try {
+            AppGameContainer appgc = new AppGameContainer(new HelloSlick(&#39;Simple Slick Game&#39;))
+            appgc.setDisplayMode(640, 480, false)
+            appgc.start()
+
+        } catch (SlickException ex) {
+            log.log(Level.SEVERE, null, ex)
+        }
+    }
+}
+</code></pre><p>This just opens a game window and writes "Hello Slick!" in it, but if you have that working, you should be ready for playtime<br/>with Slick2D.</p><p>Once you have the project setup (<code>build.gradle</code> in the root, and <code>HelloSlick.groovy</code> in <code>/src/main/groovy/helloslick</code>), you<br/>are ready to go. Run the following to run the project.</p><p><code>gradle unpackNatives run</code></p><p>And if all is well, you will see the game window and message.</p><p>Like I said, this is mostly just for getting my development environment up and running as a sanity check, but maybe it is useful to others.</p>
+<blockquote><p>Yes, the explicit <code>unpackNatives</code> calls are annoying, it's something I am working on.</p>
+</blockquote></p>
+  	
+		<a href="blog/2014/spring-boot-embedded-server-api.html"><h1>Spring Boot Embedded Server API</h1></a>
+		<p><em>15 September 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/spring.html'>spring</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/gradle.html'>gradle</a></p>
+		<p><p>I have been investigating <a href="http://projects.spring.io/spring-boot/">Spring-Boot</a> for both work and personal projects and while it seems very all-encompassing and useful, I have found that its "opinionated" approach to development was a bit too aggressive for the project conversion I was doing at work; however, I did come to the realization that you don't have to use Spring-Boot as your projects core - you can use it and most of its features in your own project, just like any other java library.</p><p>The project I was working on had a customized embedded Jetty solution with a lot of tightly-coupled Jetty-specific configuration code with configuration being pulled from a Spring Application context. I did a little digging around in the Spring-Boot documentation and found that their API provides direct access to the embedded server abstraction used by a Boot project. On top of that, it's actually a very sane and friendly API to use. During my exploration and experimentation I was able to build up a simple demo application, which seemed like good fodder for a blog post - we're not going to solve any problems here, just a little playtime with the Spring-Boot embedded server API.</p><p>To start off, we need a project to work with; I called mine "spring-shoe" (not big enough for the whole boot, right?). I used Java 8, Groovy 2.3.2 and Gradle 2.0, but slightly older versions should also work fine - the build file looks like:</p>
+<pre><code class="groovy">apply plugin: &#39;groovy&#39;
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+compileGroovy {
+    groovyOptions.optimizationOptions.indy = false
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile &#39;org.codehaus.groovy:groovy-all:2.3.2&#39;
+
+    compile &#39;javax.servlet:javax.servlet-api:3.0.1&#39;
+    compile &#39;org.eclipse.jetty:jetty-webapp:8.1.15.v20140411&#39;
+
+    compile &#39;org.springframework.boot:spring-boot:1.1.5.RELEASE&#39;
+    compile &#39;org.springframework:spring-web:4.0.6.RELEASE&#39;
+    compile &#39;org.springframework:spring-webmvc:4.0.6.RELEASE&#39;
+}
+</code></pre><p>Notice, that I am using the spring-boot library, not the Gradle plugin or "starter" dependencies - this also means that you have to bring in other libraries yourself (e.g. the web and webmvc libraries above).</p><p>Next, we need an application starter, which just instantiates a specialized Application context, the <code>AnnotationConfigEmbeddedWebApplicationContext</code>:</p>
+<pre><code class="groovy">package shoe
+
+import org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext
+
+class Shoe {
+    static void main( args ){
+        EmbeddedWebApplicationContext context = new AnnotationConfigEmbeddedWebApplicationContext(&#39;shoe.config&#39;)
+        println &quot;Started context on ${new Date(context.startupDate)}&quot;
+    }
+}
+</code></pre><p>Where the package <code>shoe.config</code> is where my configuration class lives - the package will be auto-scanned. When this class' main method is run, it instantiates the context and just prints out the context start date. Internally this context will search for the embedded server configuration beans as well as any servlets and filters to be loaded on the server - but I am jumping ahead; we need a configuration class:</p>
+<pre><code class="groovy">package shoe.config
+
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
+import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.servlet.config.annotation.EnableWebMvc
+
+@Configuration
+@EnableWebMvc
+class ShoeConfig {
+
+    @Bean EmbeddedServletContainerFactory embeddedServletContainerFactory(){
+        new JettyEmbeddedServletContainerFactory( 10101 )
+    }
+}
+</code></pre><p>As you can see, it's just a simple Java-based configuration class. The <code>EmbeddedServletContainerFactory</code> class is the crucial part here. The context loader searches for a configured bean of that type and then loads it to create the embedded servlet container - a Jetty container in this case, running on port 10101.</p><p>Now, if you run <code>Shoe.main()</code> you will see some logging similar to what is shown below:</p>
+<pre><code>...
+INFO: Jetty started on port: 10101
+Started context on Thu Sep 04 18:59:24 CDT 2014
+</code></pre><p>You have a running server, though its pretty boring since you have nothing useful configured. Let's start make it say hello using a simple servlet named <code>HelloServlet</code>:</p>
+<pre><code class="groovy">package shoe.servlet
+
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
+class HelloServlet extends HttpServlet {
+
+    @Override
+    protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException{
+        resp.writer.withPrintWriter { w-&gt;
+            w.println &quot;Hello, ${req.getParameter(&#39;name&#39;)}&quot;
+        }
+    }
+}
+</code></pre><p>It's just a simple <code>HttpServlet</code> extension that says "hello" with the input value from the "name" parameter. Nothing really special here. We could have just as easily used an extension of Spring's <code>HttpServletBean</code> here instead. Moving back to the <code>ShoeConfig</code> class, the modifications are minimal, you just create the servlet and register it as a bean.</p>
+<pre><code class="groovy">@Bean HttpServlet helloServlet(){
+    new HelloServlet()
+}
+</code></pre><p>Now fire the server up again, and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> and you will get a response of:</p>
+<pre><code>Hello, Chris
+</code></pre><p>Actually, any path will resolve to that servlet since it's the only one configured. I will come back to configuration of multiple servlets and how to specify the url-mappings in a little bit, but let's take the next step and setup a <code>Filter</code> implementation. Let's create a Filter that counts requests as they come in and then passes the current count along with the continuing request.</p>
+<pre><code class="groovy">package shoe.servlet
+
+import org.springframework.web.filter.GenericFilterBean
+
+import javax.servlet.FilterChain
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import java.util.concurrent.atomic.AtomicInteger
+
+class RequestCountFilter extends GenericFilterBean {
+
+    private final AtomicInteger count = new AtomicInteger(0)
+
+    @Override
+    void doFilter( ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException, ServletException{
+        request.setAttribute(&#39;request-count&#39;, count.incrementAndGet())
+
+        chain.doFilter( request, response )
+    }
+}
+</code></pre><p>In this case, I am using the Spring helper, <code>GenericFilterBean</code> simply so I only have one method to implement, rather than three. I could have used a simple <code>Filter</code> implementation.</p><p>In order to make use of this new count information, we can tweak the <code>HelloServlet</code> so that it prints out the current count with the response - just change the <code>println</code> statement to:</p>
+<pre><code class="groovy">w.println &quot;&lt;${req.getAttribute(&#39;request-count&#39;)}&gt; Hello, ${req.getParameter(&#39;name&#39;)}&quot;
+</code></pre><p>Lastly for this case, we need to register the filter as a bean in the <code>ShoeConfig</code> class:</p>
+<pre><code class="groovy">@Bean Filter countingFilter(){
+    new RequestCountFilter()
+}
+</code></pre><p>Now, run the application again and hit the hello servlet a few times and you will see something like:</p>
+<pre><code>&lt;10&gt; Hello, Chris
+</code></pre><p>The default url-mapping for the filter is "/*" (all requests). While, this may be useful for some quick demo cases, it would be much more useful to be able to define the servlet and filter configuration similar to what you would do in the web container configuration - well, that's where the <code>RegistrationBeans</code> come into play.</p><p>Revisiting the servlet and filter configuration in <code>ShoeConfig</code> we can now provide a more detailed configuration with the help of the <code>ServletRegistrationBean</code> and the <code>FilterRegistrationBean</code> classes, as follows:</p>
+<pre><code class="groovy">@Bean ServletRegistrationBean helloServlet(){
+    new ServletRegistrationBean(
+        urlMappings:[ &#39;/hello&#39; ],
+        servlet: new HelloServlet()
+    )
+}
+
+@Bean FilterRegistrationBean countingFilter(){
+    new FilterRegistrationBean(
+        urlPatterns:[ &#39;/*&#39; ],
+        filter: new RequestCountFilter()
+    )
+}
+</code></pre><p>We still leave the filter mapped to all requests, but you now have access to any of the filter mapping configuration parameters. For instance, we can add a simple init-param to the <code>RequestCountingFilter</code>, such as:</p>
+<pre><code class="groovy">int startValue = 0
+
+private AtomicInteger count
+
+@Override
+protected void initFilterBean() throws ServletException {
+    count = new AtomicInteger(startValue)
+}
+</code></pre><p>This will allow the starting value of the count to be specified as a filter init-parameter, which can be easily configured in the filter configuration:</p>
+<pre><code class="groovy">@Bean FilterRegistrationBean countingFilter(){
+    new FilterRegistrationBean(
+        urlPatterns:[ &#39;/*&#39; ],
+        filter: new RequestCountFilter(),
+        initParameters:[ &#39;startValue&#39;: &#39;1000&#39; ]
+    )
+}
+</code></pre><p>Nice and simple. Now, when you run the application again and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> you get a 404 error. Why? Well, now you have specified a url-mapping for the servlet, try <a href="http://localhost:10101/hello?name=Chris">http://localhost:10101/hello?name=Chris</a> and you will see the expected result, something like:</p>
+<pre><code>&lt;1004&gt; Hello, Chris
+</code></pre><p>You can also register <code>ServletContextListeners</code> in a similar manner. Let's create a simple one:</p>
+<pre><code class="groovy">package shoe.servlet
+
+import javax.servlet.ServletContextEvent
+import javax.servlet.ServletContextListener
+
+class LoggingListener implements ServletContextListener {
+
+    @Override
+    void contextInitialized(ServletContextEvent sce) {
+        println &quot;Initialized: $sce&quot;
+    }
+
+    @Override
+    void contextDestroyed(ServletContextEvent sce) {
+        println &quot;Destroyed: $sce&quot;
+    }
+}
+</code></pre><p>And then configure it in <code>ShoeConfig</code>:</p>
+<pre><code class="groovy">@Bean ServletListenerRegistrationBean listener(){
+    new ServletListenerRegistrationBean(
+        listener: new LoggingListener()
+    )
+}
+</code></pre><p>Then, when you run the application, you will get a message in the server output like:</p>
+<pre><code>Initialized: javax.servlet.ServletContextEvent[source=ServletContext@o.s.b.c.e.j.JettyEmbeddedWebAppContext{/,null}]
+</code></pre><p>Now, let's do something a bit more interesting - let's setup a Spring-MVC configuration inside our embedded server.</p><p>The first thing you need for a minimal Spring-MVC configuration is a <code>DispatcherServlet</code> which, at its heart, is just an <code>HttpServlet</code> so we can just configure it as a bean in <code>ShoeConfig</code>:</p>
+<pre><code class="groovy">@Bean HttpServlet dispatcherServlet(){
+    new DispatcherServlet()
+}
+</code></pre><p>Then, we need a controller to make sure this configuration works - how about a simple controller that responds with the current time; we will also dump the request count to show that the filter is still in play. The controller looks like:</p>
+<pre><code class="groovy">package shoe.controller
+
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletRequest
+
+@RestController
+class TimeController {
+
+    @RequestMapping(&#39;/time&#39;)
+    String time( HttpServletRequest request ){
+        &quot;&lt;${request.getAttribute(&#39;request-count&#39;)}&gt; Current-time: ${new Date()}&quot;
+    }
+}
+</code></pre><p>Lastly for this example, we need to load the controller into the configuration; just add a <code>@ComponentScan</code> annotation to the <code>ShoeConfig</code> as:</p>
+<pre><code class="groovy">@ComponentScan(basePackages=[&#39;shoe.controller&#39;])
+</code></pre><p>Fire up the server and hit the <a href="http://localhost:10101/time">http://localhost:10101/time</a> controller and you see something similar to:</p>
+<pre><code>&lt;1002&gt; Current-time: Fri Sep 05 07:02:36 CDT 2014
+</code></pre><p>Now you have the ability to do any of your Spring-MVC work with this configuration, while the standard filter and servlet still work as before.</p>
+<blockquote><p>As a best-practice, I would suggest keeping this server configuration code separate from other configuration code for anything more than a trivial application (i.e. you wouldn't do your security and database config in this same file).</p>
+</blockquote><p>For my last discussion point, I want to point out that the embedded server configuration also allows you to do additional customization to the actual server instance during startup. To handle this additional configuration, Spring provides the <code>JettyServerCustomizer</code> interface. You simply implement this interface and add it to your sever configuration factory bean. Let's do a little customization:</p>
+<pre><code class="groovy">class ShoeCustomizer implements JettyServerCustomizer {
+
+    @Override
+    void customize( Server server ){
+        SelectChannelConnector myConn = server.getConnectors().find { Connector conn -&gt;
+            conn.port == 10101
+        }
+
+        myConn.maxIdleTime = 1000 * 60 * 60
+        myConn.soLingerTime = -1
+
+        server.setSendDateHeader(true)
+    }
+}
+</code></pre><p>Basically just a tweak of the main connector and also telling the server to send an additional response header with the date value. This needs to be wired into the factory configuration, so that bean definition becomes:</p>
+<pre><code class="groovy">@Bean EmbeddedServletContainerFactory embeddedServletContainerFactory(){
+    def factory = new JettyEmbeddedServletContainerFactory( 10101 )
+    factory.addServerCustomizers( new ShoeCustomizer() )
+    return factory
+}
+</code></pre><p>Now when you start the server and hit the time controller you will see an additional header in the response:</p>
+<pre><code>Date:Fri, 05 Sep 2014 12:15:27 GMT
+</code></pre><p>As you can see from this long discussion, the Spring-Boot embedded server API is quite useful all on its own. It's nice to see that Spring has exposed this functionality as part of its public API rather than hiding it under the covers somewhere.</p>
+<blockquote><p>The code I used for this article can be found in the main repository for this project, under the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/spring-shoe">spring-shoe</a> directory.</p>
+</blockquote></p>
+  	
+		<a href="blog/2014/nodetypes-rabbit-hole.html"><h1>NodeTypes - Deeper Down the Rabbit Hole</h1></a>
+		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>In my last post about <a href="http://jackrabbit.apache.org">Jackrabbit</a>, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.</p><p>In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.</p><p>For this post, you will want to refer to the code presented in the other post, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>" as a starting point (especially the last version of the code, which the code here will be based on).</p><p>For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since <a href="http://tika.apache.org">Apache Tika</a> is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your <code>build.gradle</code> file to update the version:</p>
+<pre><code class="groovy">compile &#39;org.apache.tika:tika-parsers:1.5&#39;
+</code></pre><p>Tika provides metadata extractors for a wide range of file formats, one of which is JPEG images, which is what we are playing with here.</p><p>First, we need to extract the metadata from the image file. I did this just after the main method's file reference statement:</p>
+<pre><code class="groovy">def metadata = extractMetadata( file )
+</code></pre><p>The code for the <code>extractMetadata(File)</code> method is as follows:</p>
+<pre><code class="groovy">private static Map&lt;String,String&gt; extractMetadata( File imageFile ){
+    def meta = new Metadata()
+    def extractor = new ImageMetadataExtractor( meta )
+
+    log.info &#39;Extracting metadata from {}&#39;, imageFile
+
+    extractor.parseJpeg(imageFile)
+
+    def props = [:]
+    meta.names().sort().each { name-&gt;
+        props[name] = meta.get(name)
+        log.info &quot; : &lt;image-meta&gt; $name : ${meta.get(name)}&quot;
+    }
+
+    return props
+}
+</code></pre><p>It's just a simple straight-forward use of the Tika <code>ImageMetadataExtractor</code>, which pulls out all the data and stores it into a Map for use later.</p><p>Then, after we create the main file node, we want to apply the metadata properties to it:</p>
+<pre><code class="groovy">applyMetadata( fileNode, metadata )
+</code></pre><p>The <code>applyMetadata(Node,Map)</code> method applies the metadata from the map as properties on the node. The code is as shown below:</p>
+<pre><code class="groovy">private static void applyMetadata( Node node, Map&lt;String,String&gt; metadata ){
+    node.addMixin(&#39;pp:photo&#39;)
+    node.setProperty(&#39;pp:photo-width&#39;, metadata[&#39;Image Width&#39;].split(&#39; &#39;)[0] as long )
+
+    log.info &#39;Applied mixin -&gt; {} :: {}&#39;, node.mixinNodeTypes.collect { it.name }.join(&#39;, &#39;), node.getProperty(&#39;pp:photo-width&#39;).string
+}
+</code></pre><p>For the metadata, I used the concept of "Mixin" node types. Every node has a primary node type, in this case it's an "nt:file" node, but nodes can have multiple mixin node types also applied to them so that they can have additional properties available. This works perfectly in my case, since I want a file that is a photo with extra metadata associated with it.</p><p>Also, the <code>dumpProps(Node)</code> method changed slightly to avoid errors during extraction, and to hide properties we don't care about seeing:</p>
+<pre><code class="groovy">private static void dumpProps( Node node ){
+    log.info &#39;Node ({}) of type ({}) with mixins ({})&#39;, node.name, node.getPrimaryNodeType().name, node.getMixinNodeTypes()
+
+    def iter = node.properties
+    while( iter.hasNext() ){
+        def prop = iter.nextProperty()
+        if( prop.type != PropertyType.BINARY ){
+            if( prop.name != &#39;jcr:mixinTypes&#39; ){
+                log.info &#39; - {} : {}&#39;, prop.name, prop.value.string
+            }
+        } else {
+            log.info &#39; - {} : &lt;binary-data&gt;&#39;, prop.name
+        }
+    }
+}
+</code></pre><p>If you run the code at this point, you will get an error about the node type not being defined, so we need to define the new node type. In the current version of Jackrabbit, they defer node type creation to the standard JCR 2.0 approach, which is pretty clean. The code is shown below:</p>
+<pre><code class="groovy">private static void registerNodeTypes(Session session ) throws Exception {
+    if( !session.namespacePrefixes.contains(&#39;pp&#39;) ){
+        session.workspace.namespaceRegistry.registerNamespace(&#39;pp&#39;, &#39;http://stehno.com/pp&#39;)
+    }
+
+    NodeTypeManager manager = session.getWorkspace().getNodeTypeManager()
+
+    if( !manager.hasNodeType(&#39;pp:photo&#39;) ){
+        NodeTypeTemplate nodeTypeTemplate = manager.createNodeTypeTemplate()
+        nodeTypeTemplate.name = &#39;pp:photo&#39;
+        nodeTypeTemplate.mixin = true
+
+        PropertyDefinitionTemplate propTemplate = manager.createPropertyDefinitionTemplate()
+        propTemplate.name = &#39;pp:photo-width&#39;
+        propTemplate.requiredType = PropertyType.LONG
+        propTemplate.multiple = false
+        propTemplate.mandatory = true
+
+        nodeTypeTemplate.propertyDefinitionTemplates &lt;&lt; propTemplate
+
+        manager.registerNodeType( nodeTypeTemplate, false )
+    }
+}
+</code></pre><p>Which is called just after logging in and getting a reference to a repository session. Basically, you use the <code>NodeTypeManager</code> to create a <code>NodeTypeTemplate</code> which you can use to specify the configuration settings of your new node type. There is a similar construct for node type properties, the <code>PropertyDefinitionTemplate</code>. Once you have your configuration done, you register the node type and you are ready to go.</p><p>When run, this code generates output similar to:</p>
+<pre><code>2014-08-23 16:43:02 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
+...
+2014-08-23 16:43:02 Rabbits [INFO]  : &lt;image-meta&gt; Image Width : 2448 pixels
+...
+2014-08-23 16:43:02 Rabbits [INFO] Applied mixin -&gt; pp:photo :: 2448
+2014-08-23 16:43:02 Rabbits [INFO] Stored image file data into node (2014-08-19 20.49.40.jpg)...
+2014-08-23 16:43:02 Rabbits [INFO] Node (2014-08-19 20.49.40.jpg) of type (nt:file) with mixins ([org.apache.jackrabbit.core.nodetype.NodeTypeImpl@5b3bb1f7])
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:createdBy : admin
+2014-08-23 16:43:02 Rabbits [INFO]  - pp:photo-width : 2448
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:file
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:created : 2014-08-23T16:43:02.531-05:00
+2014-08-23 16:43:02 Rabbits [INFO] Node (jcr:content) of type (nt:resource) with mixins ([])
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModified : 2014-08-19T20:49:44.000-05:00
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:data : &lt;binary-data&gt;
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModifiedBy : admin
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:uuid : a699fbd6-4493-4dc7-9f7a-b87b84cb1ef9
+2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:resource
+</code></pre><p>(I omitted a bunch of the metadata output lines to clean up the output)</p><p>You can see that the new node type data is populated from the metadata and the mixin is properly applied.</p><p>Call me crazy, but this approach seems a lot cleaner than the old text-based approach. There are some rules around node types and ensuring that they are not created if they already exist, though this only seems to be a problem in certain use cases - need to investigate that a bit more, but be aware of it.</p><p>Now, you can stop here and create new node types all day long, but let's take this experiment a little farther down the rabbit hole. The programmatic approach to node type configuration seems to lend itself nicely to a Groovy-based DSL approach, something like:</p>
+<pre><code class="groovy">private static void registerNodeTypes( Session session ) throws Exception {
+    definitions( session.workspace ){
+        namespace &#39;pp&#39;, &#39;http://stehno.com/pp&#39;
+
+        nodeType {
+            name &#39;pp:photo&#39;
+            mixin true
+
+            propertyDefinition {
+                name &#39;pp:photo-width&#39;
+                requiredType PropertyType.LONG
+                multiple false
+                mandatory true
+            }
+
+            propertyDefinition {
+                name &#39;pp:photo-height&#39;
+                requiredType PropertyType.LONG
+                multiple false
+                mandatory true
+            }
+        }
+    }
+}
+</code></pre><p>Seems like a nice clean way to create new node types and their properties with little fuss and muss. So, using a little Groovy DSL closure delegation we can do this without too much pain:</p>
+<pre><code class="groovy">class NodeTypeDefiner {
+
+    private final NodeTypeManager manager
+    private final Workspace workspace
+
+    private NodeTypeDefiner( final Workspace workspace ){
+        this.workspace = workspace
+        this.manager = workspace.nodeTypeManager
+    }
+
+    void namespace( String name, String uri ){
+        if( !workspace.namespaceRegistry.prefixes.contains(name) ){
+            workspace.namespaceRegistry .registerNamespace(name, uri)
+        }
+    }
+
+    static void definitions( final Workspace workspace, Closure closure ){
+        NodeTypeDefiner definer = new NodeTypeDefiner( workspace )
+        closure.delegate = definer
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+    }
+
+    void nodeType( Closure closure ){
+        def nodeTypeTemplate = new DelegatingNodeTypeTemplate( manager )
+
+        closure.delegate = nodeTypeTemplate
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+
+        manager.registerNodeType( nodeTypeTemplate, true )
+    }
+}
+</code></pre><p>The key pain point I found here was that with the nested closure structures, I needed to change the <code>resolveStrategy</code> so that you get the delegate only rather than the owner - took a little debugging to trace that one down.</p><p>The other useful point here was the "Delegating" extensions of the two "template" classes:</p>
+<pre><code class="groovy">class DelegatingNodeTypeTemplate implements NodeTypeDefinition {
+
+    @Delegate NodeTypeTemplate template
+    private final NodeTypeManager manager
+
+    DelegatingNodeTypeTemplate( final NodeTypeManager manager ){
+        this.manager = manager
+        this.template = manager.createNodeTypeTemplate()
+    }
+
+    void name( String name ){
+        template.setName( name )
+    }
+
+    void mixin( boolean mix ){
+        template.mixin = mix
+    }
+
+    void propertyDefinition( Closure closure ){
+        def propertyTemplate = new DelegatingPropertyDefinitionTemplate( manager )
+        closure.delegate = propertyTemplate
+        closure.resolveStrategy = Closure.DELEGATE_ONLY
+        closure()
+        propertyDefinitionTemplates &lt;&lt; propertyTemplate
+    }
+}
+
+class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
+
+    @Delegate PropertyDefinitionTemplate template
+    private final NodeTypeManager manager
+
+    DelegatingPropertyDefinitionTemplate( final NodeTypeManager manager ){
+        this.manager = manager
+        this.template = manager.createPropertyDefinitionTemplate()
+    }
+
+    void name( String name ){
+        template.setName( name )
+    }
+
+    void requiredType( int propertyType ){
+        template.setRequiredType( propertyType )
+    }
+
+    void multiple( boolean value ){
+        template.multiple = value
+    }
+
+    void mandatory( boolean value ){
+        template.mandatory = value
+    }
+}
+</code></pre><p>They provide the helper methods to allow a nice clean DSL. Without them you have only setters, which did not work out cleanly. You just end up with some small delegate classes.</p><p>This code takes care of adding in the property definitions, registering namespaces and node types. It does not currently support all the configuration properties; however, that would be simple to add - there are not very many available.</p><p>As you can see from the DSL example code, you can now add new node types in a very simple manner. This kind of thing is why I love Groovy so much.</p>
+<blockquote><p>If there is any interest in this DSL code, I will be using it in one of my own projects, so I could extract it into a library for more public use - let me know if you are interested.</p>
+</blockquote></p>
+  	
+		<a href="blog/2014/wabbit-season-with-jackrabbit.html"><h1>Wabbit Season with Jackrabbit</h1></a>
+		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><h2>Getting Started</h2><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
+<pre><code class="groovy">apply plugin: &#39;groovy&#39;
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile &#39;org.codehaus.groovy:groovy-all:2.3.6&#39;
+
+    compile &#39;javax.jcr:jcr:2.0&#39;
+    compile &#39;org.apache.jackrabbit:jackrabbit-core:2.8.0&#39;
+    compile &#39;org.slf4j:slf4j-log4j12:1.7.7&#39;
+}
+</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><h2>Logging in to Jackrabbit</h2><p>In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
+<pre><code class="groovy">import groovy.util.logging.Slf4j
+import org.apache.jackrabbit.core.TransientRepository
+
+import javax.jcr.Repository
+import javax.jcr.Session
+
+@Slf4j
+class Rabbits {
+
+    static void main(args) throws Exception {
+        Repository repository = new TransientRepository(
+            new File(&#39;./build/repository&#39;)
+        )
+
+        Session session = repository.login()
+        try {
+            String user = session.getUserID()
+            String name = repository.getDescriptor(Repository.REP_NAME_DESC)
+
+            log.info &#39;Logged in as {} to a {} repository.&#39;, user, name
+
+        } finally {
+            session.logout()
+        }
+    }
+}
+</code></pre><p>The important part here is the <code>TransientRepository</code> code, which allows you to use/reuse a repository for testing. I found that specifying a repository directory in my build directory was useful since by default it will put a bunch of files and directories in the root of your project when you run the project - it's just a little cleaner when you can run <code>gradle clean</code> to wipe out your development repository when needed. The downside of specifying the directory seems to be that your repository is not completely transient. I was not clear whether or not this was always the case or just when I set the directory, hence the need to wipe it out sometimes.</p><p>The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:</p>
+<pre><code class="2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.```"><br/>The `finally` block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.
+
+Lastly, to round out the first version of the project, create a `log4j.properties` file in `src/main/resources` so that your logger has some configuration. I used:
+
+</code></pre><p>log4j.rootCategory=INFO, Cons</p><h1>log4j.logger.com.something=ERROR</h1><p>log4j.logger.org.apache.jackrabbit=WARN</p><p>log4j.appender.Cons = org.apache.log4j.ConsoleAppender<br/>log4j.appender.Cons.layout = org.apache.log4j.PatternLayout<br/>log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n<br/>```</p>
+<blockquote><p>If you want to see more about what Jackrabbit is doing, set the logging level for <code>log4j.logger.org.apache.jackrabbit</code> to <code>INFO</code> - it gets a little verbose, so I turned it down to WARN.</p>
+</blockquote><h2>Working with Content</h2><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
+<pre><code class="groovy">Repository repository = new TransientRepository(
+    new File(&#39;./build/repository&#39;)
+)
+
+Session session = repository.login(
+    new SimpleCredentials(&#39;admin&#39;,&#39;admin&#39;.toCharArray())
+)
+
+try {
+    String username = session.userID
+    String name = repository.getDescriptor(Repository.REP_NAME_DESC)
+    log.info &#39;User ({}) logged into repository ({})&#39;, username, name
+
+    Node root = session.rootNode
+
+    // Store content
+    Node hello = root.addNode(&#39;hello&#39;)
+    Node world = hello.addNode(&#39;world&#39;)
+    world.setProperty(&#39;message&#39;, &#39;Hello, World!&#39;)
+    session.save()
+
+    // Retrieve content
+    Node node = root.getNode(&#39;hello/world&#39;)
+    log.info &#39;Found node ({}) with property: {}&#39;, node.path, node.getProperty(&#39;message&#39;).string
+
+    // Remove content
+    root.getNode(&#39;hello&#39;).remove()
+    log.info &#39;Removed node.&#39;
+
+    session.save()
+
+} finally {
+    session.logout()
+}
+</code></pre><p>Notice, that the login code now contains credentials so that we can login with a writable session rather than the read-only default session (previous example).</p><p>First, we need to store some content in the repository. Since Jackrabbit is a hierarchical data store, you need to get a reference to the root node, and then add a child node to it with some content:</p>
+<pre><code class="groovy">Node root = session.rootNode
+
+// Store content
+Node hello = root.addNode(&#39;hello&#39;)
+Node world = hello.addNode(&#39;world&#39;)
+world.setProperty(&#39;message&#39;, &#39;Hello, World!&#39;)
+session.save()
+</code></pre><p>We create a node named "hello", the add a child named "world" to that node, and give the child node a "message" property. Notice that we save the session to persist the changes to the underlying data store.</p><p>Next, we want to read the data back out:</p>
+<pre><code class="groovy">Node node = root.getNode(&#39;hello/world&#39;)
+log.info &#39;Found node ({}) with property: {}&#39;, node.path, node.getProperty(&#39;message&#39;).string
+</code></pre><p>You just get the node by it's relative path, in this case from the root, and then retrieve its data.</p><p>Lastly, for this example, we want to remove the nodes we just added:</p>
+<pre><code class="groovy">root.getNode(&#39;hello&#39;).remove()
+session.save()
+log.info &#39;Removed node.&#39;
+</code></pre><p>Removing the "hello" node removes it and it's children (i.e. the "world" node). We then save the session to commit the node removal.</p><p>When you run this version of the code, you should see something like this:</p>
+<pre><code>2014-08-23 15:45:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
+2014-08-23 15:45:18 Rabbits [INFO] Found node (/hello/world) with property: Hello, World!
+2014-08-23 15:45:18 Rabbits [INFO] Removed node.
+</code></pre><h2>Working with Binary Content</h2><p>This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
+<pre><code class="groovy">String username = session.userID
+String name = repository.getDescriptor(Repository.REP_NAME_DESC)
+log.info &#39;User ({}) logged into repository ({})&#39;, username, name
+
+Node root = session.rootNode
+
+// Assume that we have a file that exists and can be read ...
+File file = IMAGE_FILE
+
+// Determine the last-modified by value of the file (if important) ...
+Calendar lastModified = Calendar.instance
+lastModified.setTimeInMillis(file.lastModified())
+
+// Create an &#39;nt:file&#39; node at the supplied path ...
+Node fileNode = root.addNode(file.name, &#39;nt:file&#39;)
+
+// Upload the file to that node ...
+Node contentNode = fileNode.addNode(&#39;jcr:content&#39;, &#39;nt:resource&#39;)
+Binary binary = session.valueFactory.createBinary(file.newInputStream())
+contentNode.setProperty(&#39;jcr:data&#39;, binary)
+contentNode.setProperty(&#39;jcr:lastModified&#39;,lastModified)
+
+// Save the session (and auto-created the properties) ...
+session.save()
+
+log.info &#39;Stored image file data into node ({})...&#39;, file.name
+
+// now get the image node data back out
+
+def node = root.getNode(file.name)
+dumpProps node
+
+dumpProps node.getNode(&#39;jcr:content&#39;)
+</code></pre><p>Where <code>IMAGE_FILE</code> is a <code>File</code> object pointing to a JPEG image file.</p><p>The first thing we do is create the file node:</p>
+<pre><code class="groovy">Node fileNode = root.addNode(file.name, &#39;nt:file&#39;)
+</code></pre><p>Notice, it's of type <code>nt:file</code> to designate that it's a file node - you will want to brush up on NodeTypes in the Jackrabbit or JCR documentation if you don't already have a basic understanding; I won't do much more than use them in these examples. For the name of the node, we just use the file name.</p><p>Second, we create the file content node as a child of the file node:</p>
+<pre><code class="groovy">Node contentNode = fileNode.addNode(&#39;jcr:content&#39;, &#39;nt:resource&#39;)
+Binary binary = session.valueFactory.createBinary(file.newInputStream())
+contentNode.setProperty(&#39;jcr:data&#39;, binary)
+contentNode.setProperty(&#39;jcr:lastModified&#39;,lastModified)
+
+// Save the session (and auto-created the properties) ...
+session.save()
+</code></pre><p>Notice that the child node is named "jcr:content" and is of type "nt:resource" and that it has a property named "jcr:data" containing the binary data content for the file. Of course, the session is saved to persist the changes.</p><p>Once we have the file data stored, we want to pull it back out to see that we stored everything as intended:</p>
+<pre><code class="groovy">def node = root.getNode(file.name)
+dumpProps node
+
+dumpProps node.getNode(&#39;jcr:content&#39;)
+</code></pre><p>The <code>dumpProps</code> method just iterates the properties of a given node and writes them to the log file:</p>
+<pre><code class="groovy">private static void dumpProps( Node node ){
+    log.info &#39;Node: ({})&#39;, node.name
+
+    def iter = node.properties
+    while( iter.hasNext() ){
+        def prop = iter.nextProperty()
+        if( prop.type != PropertyType.BINARY ){
+            log.info &#39; - {} : {}&#39;, prop.name, prop.value.string
+        } else {
+            log.info &#39; - {} : &lt;binary-data&gt;&#39;, prop.name
+        }
+    }
+}
+</code></pre><p>When you run this version of the code, you will have output similar to:</p>
+<pre><code>2014-08-23 16:09:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
+2014-08-23 16:09:18 Rabbits [INFO] Stored image file data into node (2014-08-19 20.49.40.jpg)...
+2014-08-23 16:09:18 Rabbits [INFO] Node: (2014-08-19 20.49.40.jpg)
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:createdBy : admin
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:created : 2014-08-23T15:59:26.155-05:00
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:file
+2014-08-23 16:09:18 Rabbits [INFO] Node: (jcr:content)
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModified : 2014-08-19T20:49:44.000-05:00
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:data : &lt;binary-data&gt;
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModifiedBy : admin
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
+2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
+</code></pre><h2>Conclusion</h2><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
+  	
+		<a href="blog/2014/simple-configuration-dsl-using-groovy.html"><h1>Simple Configuration DSL using Groovy</h1></a>
+		<p><em>19 July 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the <code>missingMethod()</code> calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.</p><p>To start out with, we need a configuration holder class, which we'll just call <code>Configuration</code>:</p>
+<pre><code class="groovy">class Configuration {
+    String hostName
+    String protocol
+    int port
+    Headers headers
+}
+</code></pre><p>Say we are collecting configuration information for some sort of HTTP request util or something, it's a contrived example, but shows the concept nicely. The <code>Headers</code> class is a simple delegated builder in itself, and looks like:</p>
+<pre><code class="groovy">@ToString(includeNames=true)
+class Headers {
+    Map&lt;String,Object&gt; values = [:]
+
+    static Headers headers( Closure closure ){
+        Headers h = new Headers()
+        closure.delegate = h
+        closure()
+        return h
+    }
+    
+    void header( String name, value ){
+        values[name] = value
+    }
+}
+</code></pre><p>I won't explain much about the <code>Headers</code> class, other than it takes a closure and delegates the method calls of it onto a <code>Headers</code> instance to populate it. For our purposes it just makes a nice simple way to show closure usage in the example.</p><p>Now, we need a configuration file to load. It's just a simple text file:</p>
+<pre><code class="text">hostname &#39;localhost&#39;
+protocol = &#39;https&#39;
+port 2468
+
+headers {
+    header &#39;Content-type&#39;,&#39;text/html&#39;
+    header &#39;Content-length&#39;,10101
+}
+</code></pre><p>The script-based configuration is similar to the delegated builder, in that the method calls of the "script" (text configuration file) will be delegated to an instance of the <code>Configuration</code> class. For that to work, we could override the <code>missingMethod()</code> method and handle each desired operation, or if we have a good idea of the configuration (as we do in our case), we could just add the missing methods, as follows:</p>
+<pre><code class="groovy">@ToString(includeNames=true)
+class Configuration {
+
+    String hostName
+    int port
+    Headers headers
+   
+    void hostname( final String name ){
+        this.hostName = name
+    }
+
+    void port( final int port ){
+        this.port = port
+    }
+    
+    void headers( final Closure closure ){
+        this.headers = Headers.headers( closure )
+    }
+}
+</code></pre><p>Basically, they are just setters in our case; however, you could do whatever conversion or validation you need, they're just method calls. Also, notice that the <code>protocol</code> property in the configuration file is actually setting the property directly with an equals <code>=</code> rather than using a method call - this is also valid, though personally I like the way it looks without all the equals signs.</p><p>The final part needed to make this work, is the Groovy magic. We need to load the text as a script in a <code>GroovyShell</code>, parse it and run it. The whole code for the <code>Configuration</code> object is shown below:</p>
+<pre><code class="groovy">@ToString(includeNames=true)
+class Configuration {
+
+    String hostName
+    String protocol
+    int port
+    Headers headers
+   
+    void hostname( final String name ){
+        this.hostName = name
+    }
+
+    void port( final int port ){
+        this.port = port
+    }
+    
+    void headers( final Closure closure ){
+        this.headers = Headers.headers( closure )
+    }
+
+    static Configuration configure( final File file ){
+        def script = new GroovyShell(
+            new CompilerConfiguration(
+                scriptBaseClass:DelegatingScript.class.name 
+            )
+        ).parse(file)
+
+        def configuration = new Configuration()
+        script.setDelegate( configuration )
+        script.run()
+
+        return configuration
+    }
+}
+</code></pre><p>The important parts are the use of the <code>DelegatingScript</code> as the <code>scriptBaseClass</code> and then setting the <code>Configuration</code> instance as the delegate for the script. Now if you run the following:</p>
+<pre><code>def conf = Configuration.configure( new File(&#39;conf.txt&#39;) )
+println conf
+</code></pre><p>You get something like the following output: </p>
+<pre><code>Configuration(protocol:https, hostName:localhost, port:2468, headers:Headers(values:[Content-type:text/html, Content-length:10101]))
+</code></pre>
+<blockquote><p>Notice, that in the example we didn't define a method for <code>protocol</code>, which means that the only way you can set it in the configuration is as a property; however, we could use the property format to set the value of the other fields, such as <code>port</code> since there is a setter method available along with the helper method (options are nice).</p>
+</blockquote><p>Groovy makes simple DSLs, well... simple.</p></p>
+  	
+		<a href="blog/2014/going-native-with-gradle.html"><h1>Going Native with Gradle</h1></a>
+		<p><em>16 March 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+		<p><p>With my recent foray into Java game programming, I found the support for managing the native sub-dependencies of jar files to be a bit lacking in Gradle. I did find a few blog posts about the general ways of adding it to your build; however, I did not find any specific plugin or built-in support. Since I am planning on doing a handful of simple games as a tutorial for game programming it made sense for me to pull out my native library handling functionality into a Gradle plugin... and thus the <a href="https://github.com/cjstehno/gradle-natives">Gradle Natives Plugin</a> was born.</p><p>First, we need a project to play with. I found a simple <a href="http://philphilphil.wordpress.com/2009/05/28/helloworld-using-lwjgl/">LWJGL Hello World</a> application that works nicely for our starting point. So, create the standard Gradle project structure with the following files:</p>
+<pre><code class="java">// hello/src/main/java/hello/HelloWorld.java
+package hello;
+
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
+ 
+public class HelloWorld {
+    public static void main (String args[]){
+        try {
+            Display.setTitle(&quot;Hello World&quot;);
+            Display.create();
+			
+			while(!Display.isCloseRequested()){
+				Thread.sleep(100);      
+			}
+		
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+			Display.destroy();
+		}
+    }
+}
+</code></pre><p>with a standard Gradle build file as a starting point: </p>
+<pre><code class="groovy">// hello/build.gradle
+
+apply plugin:&#39;java&#39;
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile &#39;org.lwjgl.lwjgl:lwjgl:2.9.1&#39;
+}
+</code></pre><p>At this point, the project will build, but will not run without jumping through some extra hoops. Let's do some of that hoop-jumping in Gradle with the <code>application</code> plugin. Add the following to the <code>build.gradle</code> file:</p>
+<pre><code class="groovy">apply plugin:&#39;application&#39;
+
+mainClassName = &#39;hello.HelloWorld&#39;
+</code></pre><p>This adds the <code>run</code> task to the build which will run the <code>HelloWorld</code> main class; however, this still won't work since it does not know how to deal with the LWJGL native libraries. That's where the <code>natives</code> plugin comes in. At this time there is no official release of the plugin on Bintray (coming soon), so you will need to clone the repo and build the plugin, then install it into your local maven repo:</p>
+<pre><code>git clone git@github.com:cjstehno/gradle-natives.git
+
+cd gradle-natives
+
+gradle build install
+</code></pre><p>Once that is done, you will need to add the natives plugin to your build:</p>
+<pre><code class="groovy">buildscript {
+    repositories {
+        mavenLocal()
+    }
+
+    dependencies {
+        classpath &#39;gradle-natives:gradle-natives:0.1&#39;
+    }
+}
+
+apply plugin:&#39;natives&#39;
+</code></pre><p>And then you will need to apply the custom configuration for your specific native libraries. You will need to add an entry in the jars list for each dependency jar containing native libraries. These are the jars that will be searched on the classpath for native libraries by platform.</p>
+<pre><code class="groovy">natives {
+	jars = [
+		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
+	]
+}
+</code></pre><p>This will allow the associated native libraries to be unpacked into the build directory with:</p><p><code>gradle unpackNatives</code></p><p>Which will copy the libraries into a directory for each platform under <code>build/natives/PLATFORM</code>. Then we need one more step to allow it to be run. The <code>java.library.path</code> needs to be set before the run:</p>
+<pre><code class="groovy">run {
+    systemProperty &#39;java.library.path&#39;, file( &#39;build/natives/windows&#39; )
+}
+</code></pre><p>Then you can run the application using:</p><p><code>gradle run</code></p><p>Granted, there are still issues to be resolved with the plugin. Currently, it is a little picky about when it is run. If you have tests that use the native libraries you will need to build without tests and then run the tests:</p>
+<pre><code>gradle clean build unpackNatives -x test
+
+gradle test
+</code></pre><p>Lastly, you can also specify the platforms whose library files are to be copied over using the <code>platforms</code> configuration property, for example:</p>
+<pre><code class="groovy">natives {
+	jars = [
+		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
+	]
+	platforms = &#39;windows&#39;
+}
+</code></pre><p>Will only copy the windows libraries into the build.</p><p>Feel free to create an issue for any bugs you find or features you would like to see. Also, I am open to bug fixes and pull requests from others.</p></p>
+  	
+		<a href="blog/2013/mapping-large-data-sets.html"><h1>Mapping Large Data Sets</h1></a>
+		<p><em>09 June 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/javascript.html'>javascript</a></p>
+		<p><p>Recently, I was tasked to resolve some performance issues related to displaying a large set of geo-location data on a map. Basically, the existing implementation was taking the simple approach of fetching all the location data from the server and rendering it on the map. While, there is nothing inherently wrong with this approach, it does not scale well as the number of data points increases, which was the problem at hand. </p><p>The map needed to be able to render equally well whether there were 100 data points or a million. With this direct approach, the browser started to bog down at just over a thousand points, and failed completely at 100-thousand. A million was out of the question. So, what can be done?</p><p>I have created a small demo application to help present the concepts and techniques I used in solving this problem. I intend to focus mostly on the concepts and keep the discussion of the code to a minimum. This will not really be much of an OpenLayers tutorial unless you are faced with a similar task. See the sidebar for more information about how to setup and run the application - it's only necessary if you want to run the demo yourself.</p>
+<blockquote><p>The demo application is available on <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/mapping-large-data">GitHub</a> and its README file contains the information you need to build and run it.</p>
+</blockquote><p>First, let's look at the problem itself. If you fire up the demo "V1" with a data set of 10k or less, you will see something like the following:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v1_view.png" alt="V1 View""/></p><p>You can see that even with only ten thousand data points it is visually cluttered and a bit sluggish to navigate. If you build a larger data set of 100k or better yet, a million data points and try to run the demo, at best it will take a long time, most likely it will crash your browser. This approach is just not practical for this volume of data.</p><p>The code for this version simply makes an ajax request to the data service to retrieve all the data points:</p>
+<pre><code class="javascript">$.ajax(&#39;poi/v1/fetch&#39;, { contentType:&#39;application/json&#39; }).done(function(data){
+	updateMarkers(map, data);
+});
+</code></pre><p>and then renders the markers for each data point on the map:</p>
+<pre><code class="javascript">function updateMarkers( map, data ){
+	var layer = map.getLayersByName(&#39;Data&#39;)[0];
+
+	var markers = $.map(data, function(item){
+		return new OpenLayers.Feature.Vector(
+			new OpenLayers.Geometry.Point(
+				item.longitude, item.latitude
+			).transform(PROJECTION_EXTERNAL, PROJECTION_INTERNAL),
+			{ 
+				item:item 
+			},
+			OpenLayers.Util.applyDefaults(
+				{ fillColor:&#39;#0000ff&#39; }, 
+				OpenLayers.Feature.Vector.style[&#39;default&#39;]
+			)
+		);
+	});
+
+	layer.addFeatures(markers);
+}
+</code></pre><p>What we really need to do is reduce the amount of data being processed without losing any visual information? The key is to consider the scope of your view. Other than at the lowest zoom levels (whole Earth view) you are only viewing a relatively limited part of the whole map, which means that only a sub-set of the data is visible at any given time. So why fetch it all from the server when it just adds unnecessary load on the JavaScript mapping library?</p><p>The answer is that you don't have to. If you listen to map view change events and fetch the data for only your current view by passing the view bounding box to your query, you can limit the data down to only what you currently see. The "V2" demo uses this approach to limit the volume of data.</p>
+<pre><code class="javascript">eventListeners:{
+	moveend:function(){
+		var bounds = map.getExtent().transform(PROJECTION_INTERNAL, PROJECTION_EXTERNAL).toString();
+
+		$.ajax(&#39;poi/v2/fetch/&#39; + bounds, { contentType:&#39;application/json&#39; }).done(function(data){
+			updateMarkers(map, data);
+		});
+	}
+}
+</code></pre><p>The <code>updateMarkers()</code> function remains unchanged in this version.</p><p>Visually, this version of the application is the same; however, it will handle larger data sets with less pain. This approach increases the number of requests for data but will reduce the amount of data retrieved as the user zooms into their target area of interest.</p><p>This approach is still a bit flawed; this method works fine for cases where the user is zoomed in on a state or small country; however, it is still possible to view the whole large data set when your view is at the lower zoom levels (whole Earth). There is still more work to be done.</p><p>In order to reduce the number of data points when viewing the lower zoom levels, we need to consider how useful all this data really is. Considering the image from V1, which is still valid for V2, is there any use in rendering all of those data points? This is just random distributed data, but even real data would probably be as dense or even more so in areas around population centers which would only compound the problem. How can you clean up this display mess while also reducing the amount of data being sent, oh, and without any lose of useful information?</p><p>The first part of the answer is clustering (see <a href="http://en.wikipedia.org/wiki/Cluster_analysis">Cluster Analysis</a>). We needed to group the data together in a meaningful way such that we present a representative point for a nearby group of points, otherwise known as a cluster. After some research and peer discussion, it was decided that the <a href="http://en.wikipedia.org/wiki/K-means_clustering">K-Means Clustering Algorithm</a> was the approach for our needs, and the <a href="http://commons.apache.org/proper/commons-math/">Apache Commons - Math</a> library provided a stable and generic implementation that would work well for our requirements. It is also what I have used here for this demo.</p><p>The clustering provides a means of generating a fixed-size data set representing the whole around a common center point. With this, you can limit your clustered data set down to something like 200, which can easily be displayed on the map, and will still provide an accurate representation of the location data.</p><p>Notice, though, I said that clustering was the first part of the answer... what is the second? Consider the effect of clustering on your data set as you zoom in from whole Earth view down to city street level. Clustering combined with view-bounds limiting will cause your overall data set to change. When the data points used in the cluster calculation change, the results change, which causes the location points to jump. I called this "jitter". Even just panning the map at a constant zoom level would cause map markers to move around like they were doing some sort of annoying square dance. To overcome the jittery cluster markers, you need to keep the data set used in the cluster calculation constant.</p><p>A hybrid approach is required. Basically, add the zoom level to the fetch request.</p>
+<pre><code class="javascript">eventListeners:{
+	moveend:function(){
+		var bounds = map.getExtent().transform(PROJECTION_INTERNAL, PROJECTION_EXTERNAL).toString();
+		var zoom = map.getZoom();
+
+		$.ajax(&#39;poi/v3/fetch/&#39; + bounds + &#39;/&#39; + zoom, { contentType:&#39;application/json&#39; }).done(function(data){
+			updateMarkers(map, data);
+		});
+	}
+}
+</code></pre><p>At the lower zoom levels, up to a configured threshold, you calculate the clusters across the whole data set (not bound by view) and cache this cluster data so that the calculation will only be done on the first call. Since zoom is not a function of this calculation, there can be one cached data set for all of the zoom levels below the specified threshold. Then, when the user zooms into the higher zoom levels (over the threshold), the actual data points (filtered by the view bounds) are returned by the fetch.</p><p>If you look at demo V3, you can see this in action, for 10-thousand points:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v3_10k.png" alt="V3 10k View""/></p><p>And if you run the demo with a one-million point data set, you will see the same view. The initial load will take a bit longer but once loaded, it should perform nicely. What you may notice, though is that once you cross the clustered threshold you may suddenly get a large data set again... not overly so, but just more than you might expect. This is an area that you would want to tune to your specific needs so that you have a balance of when this change occurs to get the best perceived results.</p><p>You could stop here and be done with it, but depending on how your data is distributed you could still run into some overly-dense visual areas. Consider the case where you generate a million data points, but only in the Western Hemisphere.</p><p>If you build a one-million point data set for only the Americas, you can see that there are still some overly-dense areas even with the clustering. Since I am using <a href="http://openlayers.org/">OpenLayers</a> as the mapping API, I can use their client-side clustering mechanism to help resolve this. With the client-side clustering enabled, the mapping API will groups markers together by distance to help de-clutter the view. If you look at V3 again, you can see the cluster clutter problem:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v3_west.png" alt="V3 West""/></p><p>You can see that there are still some areas of high marker density. The client-side clustering strategy in OpenLayers can help relieve the clutter a bit:</p>
+<pre><code class="javascript">new OpenLayers.Layer.Vector(&#39;Data&#39;,{
+	style: OpenLayers.Util.applyDefaults(
+		{
+			fillColor:&#39;#00ff00&#39;
+		},
+		OpenLayers.Feature.Vector.style[&#39;default&#39;]
+	),
+	strategies:[
+		new OpenLayers.Strategy.Cluster({
+			distance:50,
+			threshold:3
+		})
+	]
+})
+</code></pre><p>as can be seen in V4:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west.png" alt="V4 West""/></p><p>But, it is more apparent when you zoom in:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west_zoom.png" alt="V4 West Zoom""/></p><p>You can see now that the green markers are client-side clusters and the blue markers are server-side points (clusters or single locations).</p><p>At the end of all that you have a map with client-side clustering to handle visual density at the local level. You have server-side clustering at more-global zoom levels, with caching to remove jitter and reduce calculation time and you have actual location points being served filtered by bounds. It seems like a lot of effort, but overall the code itself is fairly simple and straight-forward... and now we can support a million data points with no real issues or loss of information.</p><p>One thing I have not mentioned here is the use of GIS databases or extensions. My goal here was more conceptual, but should you be faced with this kind of problem, you should look into the GIS support for your data storage solution since being able to run queries directly on the bounding shape can be more efficient with GIS solutions in place.</p></p>
+  	
+		<a href="blog/2013/javasisst-mind-blown.html"><h1>Javassist - Mind Blown</h1></a>
+		<p><em>25 May 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+		<p><p>I have been doing a lot with Java reflection recently in one of my personal projects and while doing some research I came across the <a href="http://www.javassist.org">Javassist</a> bytecode manipulation API.</p><p>Javassist allows you to create new classes and/or manipulate existing classes at runtime... at the bytecode level, and it does it without you having to understand all the deep down details of classfiles.</p><p>Let's take an example and say that I have an interface:</p>
+<pre><code class="java">package jsist;
+
+public interface Greeter {
+
+	String sayHello( String name );
+	
+	String sayGoodbye( String name );
+}
+</code></pre><p>It's very easy to dynamically implement that interface at runtime, but first we need a little demo application:</p>
+<pre><code class="java">package jsist;
+
+public class Demo {
+
+    private static final ClassPool CLASS_POOL = ClassPool.getDefault();
+    private static CtClass STRING_CLASS;
+
+    static {
+        try{
+            STRING_CLASS = CLASS_POOL.get( &quot;java.lang.String&quot; );
+        } catch( NotFoundException e ){
+            e.printStackTrace();
+        }
+    }
+
+    public static void main( final String[] args ) throws Exception {
+		useIt( implementIt() );
+	}
+	
+	private static Class implementIt() throws Exception {
+		// will contain our javassist code
+	}
+	
+	private static void useIt( Class clazz ) throws  Exception {
+        System.out.println( clazz );
+
+        Greeter greeter = (Greeter)clazz.newInstance();
+
+        System.out.println(&quot;Hi : &quot; + greeter.sayHello(&quot;Bytecode&quot;));
+        System.out.println(&quot;Bye: &quot; + greeter.sayGoodbye( &quot;Java&quot; ));
+    }
+}
+</code></pre><p>This will give us a simple test bed for the various dynamic implementations of the Greeter interface. Basically, it builds an implementation of the interface, prints out the class and the result of executing the two methods. Now for the fun part.</p><p>Our first example will be a simple implementation of the interface:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
+	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
+
+	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayGoodbyeMethod );
+	sayGoodbyeMethod.setBody( &quot;return \\&quot;Goodbye, \\&quot; + $1;&quot; );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>We start off by creating a new class called <code>jsist.gen.Greeter</code> where the package name does not need to exist; it will be created. We then need to add the interface we want to implement, the <code>jsist.Greeter</code> interface. Next we have to provide method implementations.</p><p>It feels a bit odd to create a <code>CtMethod</code> object with the <code>greeterClass</code> instance and then add the method to the instance, but this is the pattern that is used. I am sure there must be some internal reason for doing so.</p><p>The <code>setBody(String)</code> method is the key worker here. It allows you to provide source code as a template using the Javassist source template language. With what I have done above it it equivalent to:</p>
+<pre><code class="java">return &quot;Hello, &quot; + arg0;
+</code></pre><p>for the <code>sayHello(String)</code> method, and similar for the other. The important thing to note here is that your provided source is compiled down to Java bytecode, this is not some embedded scripting language.</p><p>Next we need to change the modifiers of the class to remove "abstract", and then with a call to the <code>toClass()</code> method we have a standard Java <code>Class</code> object representing our newly created implementation.</p><p>If you run the demo with this, you will get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : Hello, Bytecode
+Bye: Goodbye, Java
+</code></pre><p>Ok, that was fun, but how about an abstract class? Let's say we have an abstract implemenation of the <code>Greeter</code> interface:</p>
+<pre><code class="java">public abstract class AbstractGreeter implements Greeter {
+
+    @Override
+    public String sayGoodbye( String name ){
+        return &quot;(Abstract) Goodbye, &quot; + name;
+    }
+}
+</code></pre><p>Note, I have implemented the <code>sayGoodbye(String)</code> method but not the <code>sayHello(String)</code> to make things more interesting. Our implementation of the <code>implementIt()</code> method now becomes:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
+	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>The first difference to note is that now we are setting the superclass rather than the interface, since our superclass already implements the interface. Also, notice that since we already have an implementation of the <code>sayGoodbye(String)</code> method, we only need to implement <code>sayHello(String)</code>. Other than that, there is little difference. When you run with this implementation you get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : Hello, Bytecode
+Bye: (Abstract) Goodbye, Java
+</code></pre><p>As expected, our dynamic implementation plays nicely with the concrete implementation.</p><p>Now, what if you already have objects that implement the functionality of the two interface methods, but that do not implement the <code>Greeter</code> interface? Say, we have:</p>
+<pre><code class="java">public class Hello {
+
+    public String say( String name ){
+        return &quot;(Delegate) Hello, &quot; + name;
+    }
+}
+
+public class Goodbye {
+
+    public String say( String name ){
+        return &quot;(Delegate) Goodbye, &quot; + name;
+    }
+}
+</code></pre><p>You can easily implement the interface by copying the methods from these classes:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
+	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
+
+	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
+	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( helloSay, null );
+
+
+	CtClass gbClass = CLASS_POOL.get( &quot;jsist.Goodbye&quot; );
+	CtMethod gbSay = gbClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayGoodbyeMethod );
+	sayGoodbyeMethod.setBody( gbSay, null );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>This version is similar to the original interface implementation, except that now rather than providing source code for the method bodies, we provide a method object. You first find the <code>Hello</code> class in the <code>ClassPool</code> and then find it's <code>say(String)</code> method - the description string is the formal JVM parameter format, but I found it simple to dump out the methods and just copy it as a shortcut.</p><p>If you run this version, you get:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : (Delegate) Hello, Bytecode
+Bye: (Delegate) Goodbye, Java
+</code></pre><p>Showing that both methods were from the delegate classes.</p><p>For our final example, to round things out, let's go back to the abstract class and provide a delegate for the abstract method rather than source:</p>
+<pre><code class="java">private static Class implementIt() throws Exception {
+	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
+	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
+
+	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
+	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
+
+	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
+	greeterClass.addMethod( sayHelloMethod );
+	sayHelloMethod.setBody( helloSay, null );
+
+	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
+
+	return greeterClass.toClass();
+}
+</code></pre><p>There is not really anything here, you have not already seen, but when you run it you see:</p>
+<pre><code>class jsist.gen.GreeterImpl
+Hi : (Delegate) Hello, Bytecode
+Bye: (Abstract) Goodbye, Java
+</code></pre><p>As expected, one method provided by the delegate and one by the abstract class' implementation.</p><p>There are other bytecode manipulation libraries, but most of the ones I looked at seemed to be very abstract or probably closer to the actual class file format, whereas Javassist is a lot more familar when coming from a Java reflection background.</p><p>It seems very powerful and full of interesting potential. I am by no means an expert with it, but I wanted to share what I had found since the documentation is reasonably good, but not very rich with examples.</p></p>
+  	
+		<a href="blog/2013/junit-rules.html"><h1>JUnit Rules</h1></a>
+		<p><em>28 March 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><p>No, the title is not simply an expression of my love of <a href="http://junit.org/">JUnit</a>, but rather specifies that I will be talking<br/>about the <code>@Rule</code> annotations provided by JUnit... and yes, they do "rule".</p><p>Out of the box, JUnit has a <a href="https://github.com/junit-team/junit/wiki/Rules">handful of useful rules</a> defined for things like<br/>temporary folder and test timeouts. With this post I am going to focus on writing my own rules using extensions of the<br/><a href="https://github.com/junit-team/junit/wiki/Rules#externalresource-rules">ExternalResource</a> rule class.</p><p>Suppose we are doing some unit testing of database access code using JDBC. Mocking direct JDBC calls is tedious and not very<br/>productive so we will be using a real database for testing. To keep this post a simple and straight-forward as possible<br/>without forsaking useful content, I am going to use Groovy for the examples and assume that we are using the Spring JDBC<br/>framework and some random database.<br /><br />We have a PersonDao for storing the name and email address of people in<br/>the database.</p>
+<pre><code class="groovy">class PersonDao {
+    JdbcTemplate jdbcTemplate
+
+    void createPerson( person ){
+        jdbcTemplate.update(&#39;insert into people (name,email) values (?,?)&#39;, person.name, person.email )
+    }
+}
+</code></pre><p>We are only going to worry about a simple create operation since we are discussing the rules, not the testing itself.<br/>We first need to have a test case to work with:</p>
+<pre><code class="groovy">class PersonDaoTest {
+    private PersonDao personDao
+
+    @Before void before(){
+        personDao = new PersonDao(
+            jdbcTemplate: null // ?
+        )
+    }
+}
+</code></pre><p>Right out of the gate we run into our first hurdle... we need a <code>JdbcTempate</code> to inject. We could just connect to a<br/>database or fire up an embedded database right here and move on, but we can assume that if there is one of these<br/>tests, there will be many so a reusable solution would be best. Enter the JUnit rules. Basically, the rules are just<br/>reusable code that implements a simple interface to provide operations before and after test classes or methodes<br/>(depending on the rule annotation).</p><p>For our first rule, we want to setup a database environment to test with.</p>
+<pre><code class="groovy">class DatabaseEnvironment extends ExternalResource {
+    DataSource dataSource
+
+    JdbcTemplate getJdbcTemplate(){
+        new JdbcTemplate(dataSource: dataSource)
+    }
+
+    @Override
+    protected void before() throws Throwable {
+        Connection conn
+        try {
+            conn = getDataSource().getConnection()
+            final Liquibase liquibase = new Liquibase(
+                &quot;src/main/resources/changelog.xml&quot;,
+                new FileSystemResourceAccessor(),
+                new JdbcConnection( conn )
+            )
+            liquibase.dropAll()
+            liquibase.update( &quot;test&quot; )
+        } catch( ex ){
+            fail(ex.message)
+        } finally {
+            conn?.close()
+        }
+    }
+}
+</code></pre><p>Remember, we are assuming that you have some <code>DataSource</code> that you are using for testing. When the <code>before()</code> method is<br/>called, our database is destroyed if it exists and is then recreated to the fresh empty state. I am using liquibase for<br/>database management, but any means of creating and destroying your database would work here.</p>
+<blockquote><p>Note: that I do not destroy the database in the <code>after()</code> method. This is intentional; it allows you to investigate the data conditions of a failed test.</p>
+</blockquote><p>We can now integrate this into the test case and move forward:</p>
+<pre><code class="groovy">class PersonDaoTest {
+
+    @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
+        dataSource: myTestDataSource // you must define somewhere
+    )
+
+    private PersonDao personDao
+
+    @Before void before(){
+        personDao = new PersonDao(
+            jdbcTemplate: dbEnvironment.jdbcTemplate
+        )
+    }
+}
+</code></pre><p>I defined the DatabaseEnvironment as a <code>@ClassRule</code> so that the database is created once for each test class, rather than<br/>for every test method. Now we can add an actual test method.</p>
+<pre><code class="groovy">class PersonDaoTest {
+
+    @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
+        dataSource: myTestDataSource // you must define somewhere
+    )
+
+    private PersonDao personDao
+
+    @Before void before(){
+        personDao = new PersonDao(
+            jdbcTemplate: dbEnvironment.jdbcTemplate
+        )
+    }
+
+    @Test void &#39;createPerson: simple&#39;(){
+        personDao.createPerson([ name:&#39;Chris&#39;, email:&#39;chris@stehno.com&#39; ])
+
+        assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, &#39;people&#39;)
+    }
+}
+</code></pre><p>The test runs and passes with a fresh database every time. There is still a hidden problem here though, let's add another<br/>test method. This is a bit arbitrary but let's test the case when you add a person with no email address (successfully);<br/>we add the following test method:</p>
+<pre><code class="groovy">@Test void &#39;createPerson: simple&#39;(){
+    personDao.createPerson([ name:&#39;Chris&#39; ])
+
+    assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, &#39;people&#39;)
+}
+</code></pre><p>Now, if you run all the tests (not just the one you added), the test will fail with a value of 2 where 1 was expected.<br/>Why? The database is created and destroyed per-class, not per-test so you are working with a database that already has<br/>data in it. To get around this we could make the database work per-test, but depending on how large your schema is,<br/>this could be time consuming and greatly increase your test runtime. What we want is to clean up the existing database<br/>in-place after each test. Another <code>ExternalResource</code> rule to the rescue!</p>
+<pre><code class="groovy">class DatabaseCleaner extends ExternalResource {
+    JdbcTemplate jdbcTemplate
+
+    def tables = []
+
+    @Override
+    protected void before() throws Throwable {
+        tables.each { table-&gt;
+            jdbcTemplate.execute(&quot;truncate table $table cascade&quot;)
+        }
+    }
+}
+</code></pre><p>Here we have defined an <code>ExternalResource</code> rule which will truncate a specified collection of tables each time the <code>before()</code><br/>method is called. We want to use this as an instance rule, and again, we do nothing in the <code>after()</code> method so that our<br/>data is in a known-failed state for a failed test. Our test case becomes:</p>
+<pre><code class="groovy">class PersonDaoTest {
+
+    @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
+        dataSource: myTestDataSource // you must define somewhere
+    )
+
+    @Rule public DatabaseCleaner dbCleaner = new DatabaseCleaner(
+        jdbcTemplate: dbEnvironment.jdbcTemplate,
+        tables:[&#39;people&#39;]
+    )
+
+    private PersonDao personDao
+
+    @Before void before(){
+        personDao = new PersonDao(
+            jdbcTemplate: dbEnvironment.jdbcTemplate
+        )
+    }
+
+    @Test void &#39;createPerson: simple&#39;(){
+        personDao.createPerson([ name:&#39;Chris&#39;, email:&#39;chris@stehno.com&#39; ])
+
+        assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, &#39;people&#39;)
+    }
+
+    @Test void &#39;createPerson: simple&#39;(){
+        personDao.createPerson([ name:&#39;Chris&#39; ])
+
+        assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, &#39;people&#39;)
+    }
+}
+</code></pre><p>Now when we run the whole test case, we have both tests passing because before each test method, the database is cleaned<br/>in-place.</p><p>With just these two rules we have created a stable and flexible means of testing database code. With configuration you<br/>can point your tests at an in-memory database, locally running database or shared database server. For normal unit<br/>testing I would recommend either an embedded database, or when that is not possible a database running local to the<br/>testing machine, but those strategies will have to be discussed another time.</p></p>
+  	
+		<a href="blog/2013/integration-testing-with-junit-and-maven.html"><h1>Integration Testing with JUnit and Maven</h1></a>
+		<p><em>09 February 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/maven.html'>maven</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><p>When I talk about unit testing, I generally mean small quick and mocked tests of individual chunks of functionality,<br/>traditional unit testing. In some cases I will be testing slightly larger chunks, such as the interaction of a<br/>controller and a service, with everything else mocked out; however, when you start using a real database (especially<br/>not an embedded one) or needing to connect to other services in order to get a good solid test, you cross over into the<br/>realm of integration testing.</p><p>Recently on one of my projects I had DAO integration tests that require a real database to test against, and it is not<br/>embeddable (PostgreSQL using some non-standard features). I used a system property check to ensure that these integration<br/>tests only ran when I wanted them to so that I could ensure that there was a database ready to test against. You would<br/>have something like the following in your unit test:</p>
+<pre><code class="java">assumeTrue( &quot;true&quot;.equalsIgnoreCase(System.getProperty(&quot;integration&quot;)) );
+</code></pre><p>which would only continue with the test if the assumption was true, otherwise it stops without failing the test. With<br/>this, when I wanted to run the integration tests I would just run them with that property, e.g.:</p>
+<pre><code>mvn test -Dintegration=true
+</code></pre><p>This works, and it's not a horrible solution, but it does get annoying when testing from an IDE since you have to keep<br/>setting that property on any new test runners, which can slow things down.</p><p>A better way would be to have the test be no different than any other test so that if you want to run it, you run it,<br/>if not, you don't. I figured that there had to be a solution to this problem out there so a little research was in order.<br/>I found out that maven has an "integration-test" phase (since Maven 3) and that there is a fork of the<br/><a href="http://maven.apache.org/surefire/maven-surefire-plugin/">surefire</a> testing plugin called<br/><a href="http://maven.apache.org/surefire/maven-failsafe-plugin/">failsafe</a><br/>to take advantage of this build phase.</p><p>Surefire is the unit test running plugin used by maven. You usually don't even realize it's there; Unless you have some<br/>special configuration needs it just runs your tests for you. The failsafe fork of the plugin does the same functionality<br/>but with slightly different configuration. Failsafe looks for tests ending in "IT" for "integration test" rather than<br/>"Test" as a normal JUnit test. Also, failsafe runs in the integration-test phase rather rather than the test phase.</p><p>Now what I needed was a simple way to take advantage of this build phase. I could have used the naming patterns, but I<br/>prefer the "Test" suffix and wanted another option. I found an interesting alternative, the experimental categories<br/>feature in <a href="http://junit.org/">JUnit</a> (4.9+).</p><p>To get this running, you need to have something like the following config in your maven build plugins:</p>
+<pre><code class="xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.13&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;excludedGroups&gt;com.coffeaelectronica.Integration&lt;/excludedGroups&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.13&lt;/version&gt;
+        &lt;executions&gt;
+            &lt;execution&gt;
+                &lt;goals&gt;
+                    &lt;goal&gt;integration-test&lt;/goal&gt;
+                    &lt;goal&gt;verify&lt;/goal&gt;
+                &lt;/goals&gt;
+            &lt;/execution&gt;
+        &lt;/executions&gt;
+    &lt;configuration&gt;
+        &lt;groups&gt;com.coffeaelectronica.Integration&lt;/groups&gt;
+        &lt;includes&gt;
+            &lt;include&gt;**/*Test.*&lt;/include&gt;
+        &lt;/includes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre><p>This tells surefire to ignore any JUnit tests annotated with the Integration annotation and then configures failsafe to only consider classes ending in "Test" and having the Integration annotation. Remember, by default failsafe looks for "**/*IT.*".</p><p>With this, your tests either have no Category annotation, for a normal test, or something like the example shown below for Integration tests:</p>
+<pre><code class="java">@Category(Integration.class)
+public class SomeDaoTest {
+    // your integration test methods...
+}
+</code></pre><p>Now, when you run:</p>
+<pre><code>mvn test
+</code></pre><p>You get only your normal unit tests being run, while running</p>
+<pre><code>mvn integration-test
+</code></pre><p>will run only your integration tests.</p><p>Along with this, you retain the ability to run any single test in your IDE without having to do any extra configuration.</p></p>
+  	
+	
+	<hr />
+	
+	<p>Older posts are available in the <a href="/archive.html">archive</a>.</p>
+
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/prettify.js"></script>
+    
   </body>
 </html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>JavaScript Link Decoration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>JavaScript Link Decoration</h1>
+	</div>
+
+	<p><em>20 June 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/javascript.html'>javascript</a></p>
+
+	<p><p>No, not decorating with pretty colors, decorating with additional functionality... specifically click-tracking and<br/>confirmation. With a little bit of JavaScript and a little help from <a href="http://prototypejs.org/">Prototype</a> you<br/>can add functionality to link clicks.</p><p>If you have the following links</p>
+<pre><code class="html">&lt;p&gt;&lt;a href=&quot;http://dzone.com&quot; class=&quot;track&quot;&gt;DZone&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://cnn.com&quot;&gt;CNN&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://thinkgeek.com&quot; class=&quot;confirm track&quot;&gt;Geek Porn&lt;/a&gt;&lt;/p&gt;
+</code></pre><p>noting that they are annotated with CSS classes. These classes are the key. You can use the following JavaScript:</p>
+<pre><code class="javascript">Event.observe(window,&#39;load&#39;,function(evt){
+    $$(&#39;a&#39;).each(function(it){
+        it.observe(&#39;click&#39;,handleLinkClick);
+    });
+});
+
+function handleLinkClick(evt){
+    var elt = evt.element();
+    var cont = true;
+    if(elt.hasClassName(&#39;confirm&#39;)){
+        cont = confirm(&quot;Are you sure?&quot;);
+        if(!cont){
+            Event.stop(evt);
+        }
+    }
+
+    if(cont &amp;&amp; elt.hasClassName(&#39;track&#39;)){
+        var url = elt.readAttribute(&#39;href&#39;);
+        new Ajax.Request(&#39;recorder.jsp?url=&#39; + url,{method:&#39;get&#39;});
+    }
+}
+</code></pre><p>The script will catch clicks on the appropriate link and add functionality to it. In the case of a links with the<br/>"track" class it will fire off an Ajax request to a request tracking service, while the "confirm" class adds a<br/>confirmation dialog which will stop the click event if confirmation is canceled. You can put a simple dummy link tracker<br/>at "recorder.jsp":</p>
+<pre><code class="html">&lt;% System.out.println( request.getParameter(&quot;url&quot;) ); %&gt;
+</code></pre><p>This decorating works in IE 6+ and in FireFox; however, it will not catch link following events generated by a<br/>right-click and "Open in New Tab" selection from the pop-up menu. This seems to be a browser issue that I was unable to<br/>find a work-around for. Personally, I tend to open external links that way to preserve the original page... meaning that<br/>this procedure will not track clicks from someone like me. Since external links are most likely the ones you want to<br/>track, this procedure is mostly useless. I will have to play around with it and see if there is another way. If you do<br/>want to use it you could refactor this a bit and make it use a more object-oriented decorator pattern approach, but this<br/>is just to get the general idea out there as an alternative to the old link-modification way of click tracking.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

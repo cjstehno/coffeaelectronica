@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Tour de Mock 2 - JMock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Tour de Mock 2 - JMock</h1>
+	</div>
+
+	<p><em>21 July 2009</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/testing.html'>testing</a></p>
+
+	<p><p>The next mocking API to consider is one that I have used for years, <a href="http://jmock.org/">JMock</a>, specifically JMock 2 (for a discussion of JMock 1 usage, please see my older posting "<a href="Are-You-Mocking-Me%3F">Are You Mocking Me?</a>").</p><p>JMock uses a more Domain Specific Language approach to mocking that is very flexible and very expressive, though it can be a bit daunting to someone who's never used it before. One of the first things you will notice about the test in the <code>EmailListServlet_JMockTest</code> is that it uses the <code>@RunWith</code> annotation provided by <a href="http://junit.org/">JUnit</a>. This annotation tells JUnit to use a test runner other than the default. In this case, JMock provides a test runner to simplify use of its Mockery construct (you will see it as one of the instance variables). The Mockery is used to create and manage the mocking system. Using the JMock runner allows JUnit to handle the mockery verification step after each test so that you don't have to do it yourself. You may also notice that I have defined a constructor for this test to set the "imposteriser" (mock creator) used. Since we have both interfaces and classes to mock, the "legacy" imposteriser must be used.</p>
+<pre><code class="java">@RunWith(JMock.class)
+public class EmailListServlet_JMockTest {
+    private Mockery mockery = new JUnit4Mockery();
+
+    public EmailListServlet_JMockTest(){
+        mockery.setImposteriser(ClassImposteriser.INSTANCE);
+    }
+}
+</code></pre><p>The <code>@Before</code> method in this example is a bit more complex than that of the Spring mocking example, since you have to do a bit more of the binding work yourself:</p>
+<pre><code class="java">@Before
+public void before() throws ServletException {
+    this.emailListService = mockery.mock(EmailListService.class);
+    final ServletConfig servletConfig = mockery.mock(ServletConfig.class);
+    mockery.checking(new Expectations(){
+        {
+            final ServletContext servletContext = mockery.mock(ServletContext.class);
+            one(servletConfig).getServletContext(); will(returnValue(servletContext));
+            one(servletContext).getAttribute(EmailListService.KEY); will(returnValue(emailListService));
+        }
+    });
+
+    this.servlet = new EmailListServlet();
+    servlet.init(servletConfig);
+
+    this.request = mockery.mock(HttpServletRequest.class);
+    this.response = mockery.mock(HttpServletResponse.class);
+}
+</code></pre><p>The <code>mockery.checking()</code> method is one of the most used constructs in mocking with JMock. It allows you to provide your test expectations. In this case you can see that we are expecting one call to <code>servletConfig.getServletContext()</code>, which will return the mock <code>ServletContext</code> we have created. We are also expecting one call to the <code>getAttribute()</code> method of the mocked servlet context with the email service key, which will return our mocked <code>EmailListService</code> (note, in this test we don't actually implement the service interface, we just mock it like everything else). The "no list name" exception-checking test is also a bit more complicated than the previous example:</p>
+<pre><code class="java">@Test(expected=IOException.class)
+public void doGet_without_list() throws Exception {
+    mockery.checking(new Expectations(){
+        {
+            one(request).getParameter(&quot;listName&quot;); will(returnValue(null));
+            one(emailListService).getListByName(null); will(throwException(new IOException()));
+        }
+    });
+
+    servlet.doGet(request, response);
+}
+</code></pre><p>We actually need to code the behavior for a null return of the "listName" parameter and cause the exception to be thrown by the service. The other test, the "with list name" test is the more interesting of the two now:</p>
+<pre><code class="java">@Test
+public void doGet_with_list() throws Exception {
+    final PrintWriter writer = mockery.mock(PrintWriter.class);
+    final Sequence printSequence = mockery.sequence(&quot;printSequence&quot;);
+    mockery.checking(new Expectations(){
+        {
+            one(request).getParameter(&quot;listName&quot;); will(returnValue(&quot;foolist&quot;));
+            final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
+            one(emailListService).getListByName(&quot;foolist&quot;); will(returnValue( list ));
+            one(response).getWriter(); will(returnValue(writer));
+            one(writer).println(&quot;larry@stooge.com&quot;); inSequence(printSequence);
+            one(writer).println(&quot;moe@stooge.com&quot;); inSequence(printSequence);
+            one(writer).println(&quot;curley@stooge.com&quot;); inSequence(printSequence);
+            one(writer).close(); inSequence(printSequence);
+        }
+    });
+
+    servlet.doGet(request, response);
+}
+</code></pre><p>You will see again, that the basic call behavior is specified as is the service return value, but here, also we actually see some of the benefit of all this extra code. Notice the sequence behavior. You can define a sequence of calls which must be performed in the order specified or the test will fail. This is useful in cases like this where, if nothing else, you want to ensure that the <code>close()</code> method is called after all of the <code>println()</code> calls on the writer. The whole test case is as follows:</p>
+<pre><code class="java">@RunWith(JMock.class)
+public class EmailListServlet_JMockTest {
+    private Mockery mockery = new JUnit4Mockery();
+    private EmailListServlet servlet;
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+    private EmailListService emailListService;
+
+    public EmailListServlet_JMockTest(){
+        mockery.setImposteriser(ClassImposteriser.INSTANCE);
+    }
+
+    @Before
+    public void before() throws ServletException {
+        this.emailListService = mockery.mock(EmailListService.class);
+        final ServletConfig servletConfig = mockery.mock(ServletConfig.class);
+        mockery.checking(new Expectations(){
+            {
+                final ServletContext servletContext = mockery.mock(ServletContext.class);
+                one(servletConfig).getServletContext(); will(returnValue(servletContext));
+                one(servletContext).getAttribute(EmailListService.KEY); will(returnValue(emailListService));
+            }
+        });
+
+        this.servlet = new EmailListServlet();
+        servlet.init(servletConfig);
+
+        this.request = mockery.mock(HttpServletRequest.class);
+        this.response = mockery.mock(HttpServletResponse.class);
+    }
+
+    @Test(expected=IOException.class)
+    public void doGet_without_list() throws Exception {
+        mockery.checking(new Expectations(){
+            {
+                one(request).getParameter(&quot;listName&quot;); will(returnValue(null));
+                one(emailListService).getListByName(null); will(throwException(new IOException()));
+            }
+        });
+
+        servlet.doGet(request, response);
+    }
+
+    @Test
+    public void doGet_with_list() throws Exception {
+        final PrintWriter writer = mockery.mock(PrintWriter.class);
+        final Sequence printSequence = mockery.sequence(&quot;printSequence&quot;);
+        mockery.checking(new Expectations(){
+            {
+                one(request).getParameter(&quot;listName&quot;); will(returnValue(&quot;foolist&quot;));
+                final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
+                one(emailListService).getListByName(&quot;foolist&quot;); will(returnValue( list ));
+                one(response).getWriter(); will(returnValue(writer));
+                one(writer).println(&quot;larry@stooge.com&quot;); inSequence(printSequence);
+                one(writer).println(&quot;moe@stooge.com&quot;); inSequence(printSequence);
+                one(writer).println(&quot;curley@stooge.com&quot;); inSequence(printSequence);
+                one(writer).close(); inSequence(printSequence);
+            }
+        });
+
+        servlet.doGet(request, response);
+    }
+}
+</code></pre><p>JMock has a good amount of development time under its belt so it is pretty well documented and tested itself. It's got a great API for writing your own parameter matchers, method matchers and expectations. It can be a bit cumbersome at times when the test cases get large and full of a lot of mock plumbing. I tend to try and treat test code with the same refactoring attention that I do normal code... pulling out shared expectations, and creating useful shared assertions, etc, then it's not so bad. There is definitely more code involved with this approach than with something like spring mock; however, you do have quite a wide range of mock-ability that you don't really get with predefined mock implementations.</p>
+<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

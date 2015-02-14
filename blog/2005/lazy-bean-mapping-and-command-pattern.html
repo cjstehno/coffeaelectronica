@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Lazy Bean Mapping and the Command Pattern</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Lazy Bean Mapping and the Command Pattern</h1>
+	</div>
+
+	<p><em>26 October 2005</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><p>In doing some refactoring recently, I came up with a useful base class for my command pattern managers (manager<br/>beans that have a bunch of commands associated with them), here I will call it the <code>LazyBeanManager</code>.</p><p>Consider a case where you have a manger that manages a bunch of actions, and that you want the whole setup to be very<br/>lazy -- only load the manager when it is used AND only load a command action when it is requested. This is very simple to<br/>accomplish. First assume you have the following spring config:</p>
+<pre><code class="xml">&lt;bean id=&quot;manager&quot; class=&quot;example.MyManager&quot; lazy-init=&quot;true&quot;&gt;
+    &lt;property name=&quot;commands&quot;&gt;
+        &lt;map&gt;
+            &lt;entry key=&quot;cmdA&quot; value=&quot;commandA&quot; /&gt;
+            &lt;entry key=&quot;cmdB&quot; value=&quot;commandB&quot; /&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id=&quot;commandA&quot; class=&quot;example.CommandA&quot; lazy-init=&quot;true&quot; /&gt;
+
+&lt;bean id=&quot;commandB&quot; class=&quot;example.CommandB&quot; lazy-init=&quot;true&quot; /&gt;
+</code></pre><p>You see that we have a simple command pattern configured. There is a manager which somehow routes control to a<br/>command bean. The first bit of laziness you should notice is the <code>lazy-init=&quot;true&quot;</code> set on all three beans. This<br/>tells Spring not to load these beans until something else references them. The second bit of laziness is that the<br/>command beans are referenced by value (their bean id) rather than reference, which prevents the command beans from<br/>loading when the manager bean loads. At this point, Spring does not know how to do anything with the map of command<br/>beanIds. The following simple class will take care of that:</p>
+<pre><code class="java">public class MyManager implements ApplicationContextAware {
+    private Map commands;
+    private ApplicationContext context;
+
+    public setApplicationContext(ApplicationContext context) throws BeansException {
+        this.context = context;
+    }
+
+    public void setCommands(Map commands){ this.commands = commands; }
+
+    public void execute(String commandId){
+        Command cmd = findCommand(commandId);
+        if(cmd != null){ cmd.execute(); }
+    }
+
+    protected Command findCommand(String cmdId){
+        Command obj = null;
+        String beanId = MapUtils.getString(mappings,cmdId);
+        if(StringUtils.isNotEmpty(beanId)){
+            obj = (Command)context.getBean(beanId,Command.class);
+        }
+        return(obj);
+    }
+}
+</code></pre>
+<blockquote><p><em>Note:</em> Some un-important classes are not shown here. This is just to give you the general idea of the manager.</p>
+</blockquote><p>You will notice that the <code>ApplicationContext</code> is injected into the manager by Spring through the implementation<br/>of the <code>ApplicationContextAware</code> interface. Now, when your application needs to execute one of these commands,<br/>you simply pull the manager bean out of spring (which will load only the manager), call the execute(String) method with<br/>the desired command id. Then, only the desired command bean will be loaded and executed. This has come in very handy<br/>recently for handling front end interface actions. This laziness allows the system to start up faster, be more stable,<br/>and more memory efficient. Sometimes being lazy is a good thing.</p><p>In my development, I have created an abstract lazy mapping manager using this strategy... it works great. What I would like<br/>to come up with is a version of this that not only does lazy loading, but then unloads the bean after a period of idle<br/>time - I am not sure whether Spring currently supports this or not. Something to look into.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

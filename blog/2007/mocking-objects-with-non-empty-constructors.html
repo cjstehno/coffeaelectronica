@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Mocking Objects with Non-empty Constructors</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Mocking Objects with Non-empty Constructors</h1>
+	</div>
+
+	<p><em>20 September 2007</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/testing.html'>testing</a></p>
+
+	<p><p>While writing mock objects with <a href="http://jmock.org/">JMock</a>, I have run into a reoccurring issue, you<br/>cannot mock concrete classes that do not have an empty constructor (this has been addressed by the JMock development<br/>team; however, the specific code line has not yet been released). Sometimes, for one reason or another, you have neither<br/>an interface nor empty constructor to mock an object with.</p><p>The way JMock creates its proxied mock objects is "on creation", meaning that when you create the mock, the proxy<br/>object is created and stored, thereby not allowing you any way to specify constructor arguments. With a little extension<br/>to the mocking API you can still mock those classes. The solution is a simple extension of the<br/><a href="http://cglib.sourceforge.net/">CGLIB</a>-based functionality that is already there such that the proxy is<br/>created only when the <code>proxy()</code> method is called. The code of the two classes needed is shown below:</p>
+<pre><code class="java">public class CGLIBCoreLazyMock extends AbstractDynamicMock implements MethodInterceptor {
+    private Enhancer enhancer;
+    private Class[] argTypes;
+    private Object[] args;
+    private Object proxy;
+
+    public CGLIBCoreLazyMock(Class mockedType,Class[] argTypes,Object[] args){
+        super(
+            mockedType,
+            mockNameFromClass(mockedType),
+            new LIFOInvocationDispatcher()
+        );
+        this.argTypes = argTypes;
+        this.args = args;
+        this.enhancer = new Enhancer();
+        enhancer.setSuperclass(mockedType);
+        enhancer.setCallback(this);
+    }
+
+    public Object proxy() {
+        if(proxy == null){
+            this.proxy = enhancer.create(argTypes,args);
+        }
+        return(proxy);
+    }
+
+    public Object intercept(Object thisProxy, Method method, Object[] args, MethodProxy superProxy ) throws Throwable {
+        return mockInvocation(new Invocation(proxy,method,args));
+    }
+}
+</code></pre><p>and then a Mock extension.</p>
+<pre><code class="java">public class LazyMock extends org.jmock.Mock {
+    public LazyMock(Class mockedType,Class[] argTypes,Object[] args){
+        super(new CGLIBCoreLazyMock(mockedType,argTypes,args));
+    }
+}
+</code></pre><p>By adding this functionality to JMock, you can mock these classes and still use all of the stub and expectation<br/>features that JMock provides. My first resolution to this problem was a quick custom hack using CGLIB. As it threatened<br/>to get more complex, I took a peek at the JMock source and found that it would not be hard to implement. I guess I could<br/>have gotten the source and added it directly to their code base, and I even looked at doing that right off, but their<br/>project was Ant-based and seemed to be missing some of the pieces required for the build. I just made a little extension<br/>jar and it seems to work well enough.</p>
+<blockquote><p><em>Update:</em> <a href="http://jmock.org/">JMock 2</a> fixes this issue internally and has a lot of other improvements. See<br/><a href="Are-You-Still-Mocking-Me%3F">Are You Still Mocking Me?</a> for updated information.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

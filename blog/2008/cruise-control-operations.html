@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Cruise Control Project Operations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Cruise Control Project Operations</h1>
+	</div>
+
+	<p><em>08 February 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
+
+	<p><p>One of the developers I work with figured out the URL for firing the various<br/><a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> build operations (resume,<br/>pause, build, etc) and it was jokingly noted that now all we need is a <a href="http://ruby-lang.org/">Ruby</a> script to fire them.</p><p>And so, viola! Here is a simple ruby script that will do just that. It will run the specified operation command on one<br/>project (or all if no project is specified). You do have to configure the script with your CruiseControl url and your<br/>project names, but it's well worth it.</p>
+<pre><code class="ruby">#
+# exec_in_cc.rb
+#
+# Used to perform actions on the projects managed by CruiseControl.
+# If no project is specified, the given operation will be run on all projects (internal array of them).
+#
+# ruby exec_in_cc.rb operation [project]
+#
+# Christopher J. Stehno (2/7/2008)
+#
+require &#39;net/http&#39;
+require &#39;uri&#39;
+
+# customize these to fit your pojects
+cruise_url = &#39;http://builder:8000&#39;
+projects = [&#39;nightly-build&#39;,&#39;releases&#39;,&#39;site-build&#39;]
+
+# require the operation param
+if ARGV[0] == nil
+    puts &quot;You must specify an operation!&quot;
+    exit
+else
+    operation = ARGV[0]
+end
+
+# check for specified project, if none use all of them
+unless ARGV[1] == nil then projects = [ARGV[1]] end
+
+projects.each {|project|
+    url = URI.parse(cruise_url)
+    res = Net::HTTP.start(url.host, url.port) {|http|
+        http.get(&quot;/invoke?operation=#{operation}&amp;amp;objectname=CruiseControl+Project%3Aname%3D#{project}&quot;)
+    }
+    success = res.body.index(&#39;Invocation successful&#39;) != nil ? &#39;Success&#39; : &#39;Failed&#39;&lt;
+    puts &quot;#{project}.#{operation}: #{success}&quot;
+}
+</code></pre><p>This took about 30 minutes to write and will save at least that much time over the life of its use. Ruby is<br/>excellent for this kind of scripting. Something I have tried to do more often is to script tasks like this. You may feel<br/>that you are wasting time when you should be doing other things, but usually with a repetitive task like this you really<br/>notice the value. If you find it useful or come up with some good improvements to it, I would love to hear about them.</p><p>After some additional thought, I figured a Groovy implementation would be interesting and easy.</p>
+<pre><code class="groovy">package cc
+
+class CruiseExec {
+    private static cruiseUrl = &#39;http://builder:8000&#39;
+    private static projects = [&#39;nightly-build&#39;,&#39;releases&#39;,&#39;site-build&#39;]
+
+    static void main(args) {
+        def operation = null
+        if(args.length == 0 || args[0] == null){
+            println &#39;No operation specified!&#39;
+            System.exit(0)
+        } else {
+            operation = args[0]
+        }
+
+        if(args.length == 2 &amp;&amp; args[1] != null) projects = [args[1]]
+
+        projects.each { project -&gt;
+            def url = new URL(&quot;${cruiseUrl}/invoke?operation=${operation}&amp;objectname=CruiseControl+Project%3Aname%3D${project}&quot;)
+            def success = url.text.contains(&#39;Invocation successful&#39;)
+            println &quot;${project}.${operation}: ${success}&quot;
+        }
+    }
+}
+</code></pre><p>It was very easy, easier than Ruby in fact since I work primarily in Java so I did not have to go looking up odd<br/>syntax questions as I did when writing the Ruby version. It is interesting to note that in this version I took the more<br/>Object oriented approach and wrote a class rather than a naked script. You could pull the meat out of the main method<br/>and make an even shorter script version if you are so inclined. It's always interesting to compare the same<br/>functionality across different languages, so I thought I'd share.</p><p>Also, it does perform the exact same functionality, so you are welcome to use this version as a replacement for the Ruby version.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>

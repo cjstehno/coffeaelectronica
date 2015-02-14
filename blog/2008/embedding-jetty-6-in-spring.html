@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Embedding Jetty 6 in Spring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Embedding Jetty 6 in Spring</h1>
+	</div>
+
+	<p><em>05 August 2008</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/spring.html'>spring</a></p>
+
+	<p><p>A few years ago, I wrote a blog entry about <a href="Embedding-Jetty-in-Spring">Embedding Jetty in Spring</a>.<br/>It became quite popular, at least in relation to other pages on my site. Unfortunately, as I noted in the header of that posting, it has<br/>become a bit out-dated as newer versions of Jetty have been released. Well, with a little prodding via emails and a handful of free time,<br/>I have come up with an updated version for <a href="http://jetty.mortbay.com/">Jetty 6.1.11</a> and <a href="http://springframework.org/">Spring 2.5.5</a> that<br/>requires no additional helper-classes.</p><p>For simplicity I came up with a spring context for embedding Jetty based on the example included with Jetty which replicates the default<br/>full configuration, <a href="http://jetty.mortbay.org/jetty-6/xref/org/mortbay/jetty/example/LikeJettyXml.html">LikeJettyXml.java</a>. This seemed a<br/>good place to start since you will either need all of that, or slightly less... and removing stuff is simple.</p><p>For the most part the spring context configuration mirrors the java source from the example; the only real deviation comes form the life-cycle<br/>addition method calls <code>addLifeCycle()</code>, which spring does not directly support. To perform that one missing dependency injection, you<br/>can use the spring <code>MethodInvokingFactoryBean</code> to create a bean and then call a method to inject it into the target bean.</p>
+<pre><code class="xml">&lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
+    &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
+    &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
+    &lt;property name=&quot;arguments&quot;&gt;
+        &lt;list&gt;&lt;ref local=&quot;server.ContextDeployer&quot; /&gt;&lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</code></pre><p>which simply calls the <code>addLifeCycle()</code> method on the server instance to add the two deployer instances. The whole context file reads as follows:</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+    &lt;bean id=&quot;server.Server&quot; class=&quot;org.mortbay.jetty.Server&quot; destroy-method=&quot;stop&quot;&gt;
+        &lt;property name=&quot;threadPool&quot;&gt;
+            &lt;bean class=&quot;org.mortbay.thread.QueuedThreadPool&quot;&gt;
+                &lt;property name=&quot;maxThreads&quot; value=&quot;100&quot; /&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;connectors&quot;&gt;
+            &lt;list&gt;
+                &lt;bean class=&quot;org.mortbay.jetty.nio.SelectChannelConnector&quot;&gt;
+                    &lt;property name=&quot;port&quot; value=&quot;8080&quot; /&gt;
+                    &lt;property name=&quot;maxIdleTime&quot; value=&quot;30000&quot; /&gt;
+                &lt;/bean&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;handler&quot;&gt;
+            &lt;bean class=&quot;org.mortbay.jetty.handler.HandlerCollection&quot;&gt;
+                &lt;property name=&quot;handlers&quot;&gt;
+                    &lt;list&gt;
+                        &lt;ref local=&quot;server.ContextHandlerCollection&quot; /&gt;
+                        &lt;bean class=&quot;org.mortbay.jetty.handler.DefaultHandler&quot; /&gt;
+                        &lt;bean class=&quot;org.mortbay.jetty.handler.RequestLogHandler&quot;&gt;
+                            &lt;property name=&quot;requestLog&quot;&gt;
+                                &lt;bean class=&quot;org.mortbay.jetty.NCSARequestLog&quot;&gt;
+                                    &lt;constructor-arg value=&quot;cfg/logs/jetty-yyyy_mm_dd.log&quot; /&gt;
+                                    &lt;property name=&quot;extended&quot; value=&quot;false&quot;/&gt;
+                                &lt;/bean&gt;
+                            &lt;/property&gt;
+                        &lt;/bean&gt;
+                    &lt;/list&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;userRealms&quot;&gt;
+            &lt;list&gt;
+                &lt;bean class=&quot;org.mortbay.jetty.security.HashUserRealm&quot;&gt;
+                    &lt;property name=&quot;name&quot; value=&quot;Test Realm&quot; /&gt;
+                    &lt;property name=&quot;config&quot; value=&quot;cfg/etc/realm.properties&quot; /&gt;
+                &lt;/bean&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;stopAtShutdown&quot; value=&quot;true&quot; /&gt;
+        &lt;property name=&quot;sendServerVersion&quot; value=&quot;true&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
+        &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
+        &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
+        &lt;property name=&quot;arguments&quot;&gt;
+            &lt;list&gt;&lt;ref local=&quot;server.ContextDeployer&quot; /&gt;&lt;/list&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
+        &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
+        &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
+        &lt;property name=&quot;arguments&quot;&gt;
+            &lt;list&gt;&lt;ref local=&quot;server.WebAppDeployer&quot; /&gt;&lt;/list&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id=&quot;server.ContextHandlerCollection&quot; class=&quot;org.mortbay.jetty.handler.ContextHandlerCollection&quot; /&gt;
+
+    &lt;bean id=&quot;server.ContextDeployer&quot; class=&quot;org.mortbay.jetty.deployer.ContextDeployer&quot;&gt;
+        &lt;property name=&quot;contexts&quot; ref=&quot;server.ContextHandlerCollection&quot; /&gt;
+        &lt;property name=&quot;configurationDir&quot;&gt;
+            &lt;bean class=&quot;org.mortbay.resource.FileResource&quot;&gt;
+                &lt;constructor-arg value=&quot;file://./cfg/contexts&quot; /&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;scanInterval&quot; value=&quot;1&quot; /&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id=&quot;server.WebAppDeployer&quot; class=&quot;org.mortbay.jetty.deployer.WebAppDeployer&quot;&gt;
+        &lt;property name=&quot;contexts&quot; ref=&quot;server.ContextHandlerCollection&quot; /&gt;
+        &lt;property name=&quot;webAppDir&quot; value=&quot;cfg/webapps&quot; /&gt;
+        &lt;property name=&quot;parentLoaderPriority&quot; value=&quot;false&quot; /&gt;
+        &lt;property name=&quot;extract&quot; value=&quot;true&quot; /&gt;
+        &lt;property name=&quot;allowDuplicates&quot; value=&quot;false&quot; /&gt;
+        &lt;property name=&quot;defaultsDescriptor&quot; value=&quot;cfg/etc/webdefault.xml&quot; /&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;
+</code></pre><p>In order to start the server you need to be sure that the <code>MethodInvokingFactoryBeans</code> have been fired before the server has been started;<br/>the easiest way is to start the server with an external class once the context has loaded.</p>
+<pre><code class="java">public class Main {
+    public static void main(String[] args) throws Exception {&lt;
+        ApplicationContext context = new FileSystemXmlApplicationContext(&quot;cfg/server-context.xml&quot;);
+
+        Server server = (Server)context.getBean(&quot;server.Server&quot;);
+        server.start();
+        server.join();
+    }
+}
+</code></pre><p>This should be a good starting point and general template for anything you need... just inject or modify whatever configuration setup you<br/>need for your application. I have attached the zipped up Eclipse project I used to create and run this test. You will need the following<br/>jars somewhere on your classpath: ant-1.6.5.jar, commons-el-1.0.jar, commons-logging.jar, jasper-compiler-5.5.15.jar,<br/>jasper-runtime-5.5.1.5.jar, jetty-6.1.11.jar, jetty-util-6.1.11.jar, jsp-api-2.0.jar, servlet-api-2.5-6.1.11.jar, and spring.jar...<br/>all of which can be found in the lib directories of the Spring and Jetty distributions uses.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+  </body>
+</html>
