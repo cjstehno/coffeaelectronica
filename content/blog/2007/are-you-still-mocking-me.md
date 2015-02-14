@@ -1,7 +1,7 @@
 title=Are Still You Mocking Me?
 date=2007-09-20
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,testing
 status=published
 ~~~~~~
 [JMock 2](http://jmock.org/) came out not too long ago and after some initial worry about backwards compatibility I decided to

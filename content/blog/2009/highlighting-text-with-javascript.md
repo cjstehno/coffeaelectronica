@@ -1,7 +1,7 @@
 title=Highlighting Text with JavaScript
 date=2009-09-15
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 A question arose recently about how to highlight a word or words in the text of a `div` element. It turns out that it's actually pretty easy using [Prototype](http://prototypejs.org/).

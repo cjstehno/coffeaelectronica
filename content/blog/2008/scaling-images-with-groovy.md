@@ -1,7 +1,7 @@
 title=Scaling Images with Groovy
 date=2008-03-03
 type=post
-tags=blog,java
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I had the need to scale some large JPG images from my camera so I whipped up a quick little

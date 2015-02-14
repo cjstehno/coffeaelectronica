@@ -1,7 +1,7 @@
 title=Calling Parent Code from an IFrame
 date=2008-10-15
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 Every now and then I have needed to access the parent page enclosing an `IFrame` and I have never really found a good

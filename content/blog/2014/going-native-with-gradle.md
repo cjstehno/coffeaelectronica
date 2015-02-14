@@ -1,7 +1,7 @@
 title=Going Native with Gradle
 date=2014-03-16
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,groovy,gradle
 status=published
 ~~~~~~
 With my recent foray into Java game programming, I found the support for managing the native sub-dependencies of jar files to be a bit lacking in Gradle. I did find a few blog posts about the general ways of adding it to your build; however, I did not find any specific plugin or built-in support. Since I am planning on doing a handful of simple games as a tutorial for game programming it made sense for me to pull out my native library handling functionality into a Gradle plugin... and thus the [Gradle Natives Plugin](https://github.com/cjstehno/gradle-natives) was born.

@@ -1,7 +1,7 @@
 title=Custom Spring Editors
 date=2007-11-01
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 I had the need recently to inject an array of strings into a bean property and I was curious about whether or not I could

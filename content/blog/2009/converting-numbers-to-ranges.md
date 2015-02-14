@@ -1,7 +1,7 @@
 title=Converting Numbers to Ranges
 date=2009-11-21
 type=post
-tags=blog,java
+tags=blog,java,python,groovy
 status=published
 ~~~~~~
 ## Python

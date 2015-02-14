@@ -1,7 +1,7 @@
 title=JavaScript Link Decoration
 date=2009-06-20
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 No, not decorating with pretty colors, decorating with additional functionality... specifically click-tracking and

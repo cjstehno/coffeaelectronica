@@ -1,7 +1,7 @@
 title=Collapsible Divs with JQuery
 date=2009-12-23
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 I coded up a nice little collapsible-group side bar thingy using [JQuery](http://jquery.com/) and it was surprisingly

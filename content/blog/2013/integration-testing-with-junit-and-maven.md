@@ -1,7 +1,7 @@
 title=Integration Testing with JUnit and Maven
 date=2013-02-09
 type=post
-tags=blog,javascript
+tags=blog,java,maven,testing
 status=published
 ~~~~~~
 When I talk about unit testing, I generally mean small quick and mocked tests of individual chunks of functionality,

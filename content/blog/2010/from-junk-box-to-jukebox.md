@@ -1,7 +1,7 @@
 title=From Junk Box to Jukebox in a Couple Hours
 date=2010-10-17
 type=post
-tags=blog,java,testing,mocking
+tags=blog
 status=published
 ~~~~~~
 I finally got tired of griping about not having enough space on my phone to store all of my music, and not wanting to

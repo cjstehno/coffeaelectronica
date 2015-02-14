@@ -1,7 +1,7 @@
 title=Call Screening Tip
 date=2012-09-28
 type=post
-tags=blog,javascript
+tags=blog
 status=published
 ~~~~~~
 Yes, I am one of those people who likes to screen my phone calls. Basically, I don't want my phone to ring unless it's important... there is only one caller that I want my phone to ring for and that is my wife. Everything else can go to voice mail.

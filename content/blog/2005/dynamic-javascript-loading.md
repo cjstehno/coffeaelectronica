@@ -1,7 +1,7 @@
 title=Dynamic JavaScript Loading
 date=2005-06-15
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 I figured out a way to dynamically load JavaScript files at runtime. There are times when you may not always need

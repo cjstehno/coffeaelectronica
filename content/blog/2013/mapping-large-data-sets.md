@@ -1,7 +1,7 @@
 title=Mapping Large Data Sets
 date=2013-06-09
 type=post
-tags=blog,javascript
+tags=blog,java,javascript
 status=published
 ~~~~~~
 Recently, I was tasked to resolve some performance issues related to displaying a large set of geo-location data on a map. Basically, the existing implementation was taking the simple approach of fetching all the location data from the server and rendering it on the map. While, there is nothing inherently wrong with this approach, it does not scale well as the number of data points increases, which was the problem at hand. 

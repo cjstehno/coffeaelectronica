@@ -1,7 +1,7 @@
 title=Lazy Bean Mapping and the Command Pattern
 date=2005-10-26
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 In doing some refactoring recently, I came up with a useful base class for my command pattern managers (manager

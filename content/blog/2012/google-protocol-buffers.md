@@ -1,7 +1,7 @@
 title=Google Protocol Buffers
 date=2012-05-13
 type=post
-tags=blog,javascript
+tags=blog,java
 status=published
 ~~~~~~
 [Google Protocol Buffers](https://developers.google.com/protocol-buffers/) have been around for a while; however, I have

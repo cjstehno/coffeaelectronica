@@ -1,7 +1,7 @@
 title=Gradle and CodeNarc
 date=2014-11-07
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,testing,gradle,groovy
 status=published
 ~~~~~~
 The subject of "code quality tools"  has lead to many developer holy wars over the years, so I'm not really going to touch the subject of their value or level of importance here, suffice to say that they are tools in your toolbox for helping to maintain a base level of "tedious quality", meaning style rules and general coding conventions enforced by your organization - it should never take the ultimate decision making from the developers.

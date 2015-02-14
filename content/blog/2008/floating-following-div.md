@@ -1,7 +1,7 @@
 title=Floating and Following Div
 date=2008-10-28
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 I needed one of those `DIV`s that appears on call and then stays in view even when you scroll, until you

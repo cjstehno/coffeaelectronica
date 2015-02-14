@@ -1,7 +1,7 @@
 title=Embedding Jetty 6 in Spring
 date=2008-08-05
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 A few years ago, I wrote a blog entry about [Embedding Jetty in Spring](Embedding-Jetty-in-Spring).

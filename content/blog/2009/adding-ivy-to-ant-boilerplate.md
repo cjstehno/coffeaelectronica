@@ -1,7 +1,7 @@
 title=Adding Ivy to Ant Boilerplate
 date=2009-04-16
 type=post
-tags=blog,java
+tags=blog,java,ant
 status=published
 ~~~~~~
 I have wanted to delve deeper into [Ivy](http://ant.apache.org/ivy) for a while now, but something always pulled me away

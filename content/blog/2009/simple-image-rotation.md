@@ -1,7 +1,7 @@
 title=Simple Image Rotation
 date=2009-01-08
 type=post
-tags=blog,java
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I did a little image rotation today so I figured I'd save my prototype code for future use.

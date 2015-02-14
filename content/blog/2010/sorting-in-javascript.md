@@ -1,7 +1,7 @@
 title=Sorting in JavaScript
 date=2010-04-12
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 Every now and then you need to sort something in JavaScript and though, it's not all that hard to do, it is not the best-documented feature. Here is a quick little summary of how to do it.

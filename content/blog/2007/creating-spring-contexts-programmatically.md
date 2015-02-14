@@ -1,7 +1,7 @@
 title=Creating Spring Contexts Programmatically
 date=2007-11-01
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 If you are familiar with the [Spring Framework](http://springframework.org/) I am sure that you know how to create a

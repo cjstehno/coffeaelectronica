@@ -1,7 +1,7 @@
 title=Mocking those Stubborn Loggers
 date=2007-11-24
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 I have run into a couple instances where I would benefit from being able to mock logging, such as when the result

@@ -1,7 +1,7 @@
 title=Tour de Mock 4 - Easymock
 date=2009-07-23
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 [EasyMock](http://easymock.org/) is a bit of a different breed. The latest version (2.5.x) seems more expressive than the previous version but it has an odd, and in my opinion cumbersome, need to call a replay method, while most of the other mocking APIs seemingly either negate the need for this or do it under the covers so you don't have to worry about it.

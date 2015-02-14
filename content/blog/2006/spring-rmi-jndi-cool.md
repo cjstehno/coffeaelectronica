@@ -1,7 +1,7 @@
 title=Spring & RMI & JNDI -> Cool
 date=2006-09-10
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,spring
 status=published
 ~~~~~~
 I started looking into RMI again; it's been a while since I have used it directly and as often happens, I got sidetracked.

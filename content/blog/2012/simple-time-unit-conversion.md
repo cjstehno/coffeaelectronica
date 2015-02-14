@@ -1,7 +1,7 @@
 title=Simple Time Unit Conversion
 date=2012-04-11
 type=post
-tags=blog,javascript
+tags=blog,java,groovy
 status=published
 ~~~~~~
 Here's a quick tip I found recently. I am sure we have all done this or run into this while coding time duration values, most of which end up being milliseconds.

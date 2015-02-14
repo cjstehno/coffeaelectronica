@@ -1,7 +1,7 @@
 title=JUnit Rules
 date=2013-03-28
 type=post
-tags=blog,javascript
+tags=blog,java,groovy,testing
 status=published
 ~~~~~~
 No, the title is not simply an expression of my love of [JUnit](http://junit.org/), but rather specifies that I will be talking

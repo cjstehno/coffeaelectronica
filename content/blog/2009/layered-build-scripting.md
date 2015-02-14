@@ -1,7 +1,7 @@
 title=Layered Build Scripting
 date=2009-02-17
 type=post
-tags=blog,java
+tags=blog,java,ant
 status=published
 ~~~~~~
 In a recent posting, [Boilerplate Ant Build](boilerplate-ant-build.html), I

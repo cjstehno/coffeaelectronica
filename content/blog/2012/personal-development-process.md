@@ -1,7 +1,7 @@
 title=Personal Development Process
 date=2012-05-06
 type=post
-tags=blog,javascript
+tags=blog
 status=published
 ~~~~~~
 Lately my duties have started drifting more into the realm of team leader and mentor, and with that I am often quite surprised by the lack of understanding around best practices. I try not to take it for granted that everyone places the same value on these topics as I do, but there are some basic concepts that (at least to me) feel like basic "rules of development".

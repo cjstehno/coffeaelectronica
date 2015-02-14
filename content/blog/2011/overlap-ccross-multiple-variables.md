@@ -1,7 +1,7 @@
 title=Determining Overlap Across Multiple Variables
 date=2011-09-05
 type=post
-tags=blog,javascript
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I have run into two cases now where I have needed to validate that no overlap exists for data across three axes of

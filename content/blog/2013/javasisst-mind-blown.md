@@ -1,7 +1,7 @@
 title=Javassist - Mind Blown
 date=2013-05-25
 type=post
-tags=blog,javascript
+tags=blog,java
 status=published
 ~~~~~~
 I have been doing a lot with Java reflection recently in one of my personal projects and while doing some research I came across the [Javassist](http://www.javassist.org) bytecode manipulation API.

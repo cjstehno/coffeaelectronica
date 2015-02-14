@@ -1,7 +1,7 @@
 title=Simple Configuration DSL using Groovy
 date=2014-07-19
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,groovy
 status=published
 ~~~~~~
 Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the `missingMethod()` calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.

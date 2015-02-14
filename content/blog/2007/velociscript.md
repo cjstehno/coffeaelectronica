@@ -1,7 +1,7 @@
 title=Velociscript
 date=2007-07-06
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 I was toying with the idea of [velocity](http://velocity.apache.org/)-like expression evaluation and replacement on the

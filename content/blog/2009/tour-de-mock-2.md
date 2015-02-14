@@ -1,7 +1,7 @@
 title=Tour de Mock 2 - JMock
 date=2009-07-21
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 The next mocking API to consider is one that I have used for years, [JMock](http://jmock.org/), specifically JMock 2 (for a discussion of JMock 1 usage, please see my older posting "[Are You Mocking Me?](Are-You-Mocking-Me%3F)").

@@ -1,7 +1,7 @@
 title=Home Server v2
 date=2011-10-15
 type=post
-tags=blog,javascript
+tags=blog
 status=published
 ~~~~~~
 Since my [last home server](From-Junk-Box-to-Jukebox-in-a-Couple-Hours) was fried by a lightning storm a few months back,

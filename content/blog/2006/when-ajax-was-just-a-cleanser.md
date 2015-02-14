@@ -1,7 +1,7 @@
 title=When Ajax was just a Cleanser
 date=2006-11-14
 type=post
-tags=blog,java,testing,mocking
+tags=blog,javascript
 status=published
 ~~~~~~
 > Original Posting: 11/14/2006

@@ -1,7 +1,7 @@
 title=Spring Deserialized Object Factory
 date=2008-04-28
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 I recently had the idea that it would be interesting to have a [Spring](http://springframework.org/) factory bean that

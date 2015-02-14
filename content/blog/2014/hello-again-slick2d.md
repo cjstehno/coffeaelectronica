@@ -1,7 +1,7 @@
 title=Hello Again Slick2D
 date=2014-10-11
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I am finally getting back around to working on my little game programming project and I realized that somewhere along the

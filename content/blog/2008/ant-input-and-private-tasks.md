@@ -1,7 +1,7 @@
 title=Ant Input Prompting and Private Targets
 date=2008-10-21
 type=post
-tags=blog,java
+tags=blog,java,ant
 status=published
 ~~~~~~
 I have found the [Ant](http://ant.apache.org/) `input` tag useful lately for setting up runtime parameters of an Ant build.

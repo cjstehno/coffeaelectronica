@@ -1,7 +1,7 @@
 title=Spring Deserialized Object Factory
 date=2008-02-02
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 Okay, here is a little question I have taken to asking in the interviews we have been giving lately.

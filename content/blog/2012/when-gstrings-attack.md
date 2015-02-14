@@ -1,7 +1,7 @@
 title=When GStrings Attack
 date=2012-03-28
 type=post
-tags=blog,javascript
+tags=blog,groovy
 status=published
 ~~~~~~
 I have run into this behavior a few times now, so I decided to dig into it a bit. Basically, if you have a map using "string" keys in [Groovy](http://groovy.codehaus.org), they can provide unexpected (or at least non-intuitive results).

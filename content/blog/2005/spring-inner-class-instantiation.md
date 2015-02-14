@@ -1,7 +1,7 @@
 title=Spring Inner-Class Instantiation
 date=2005-07-13
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 The other day I ran into something I had never tried to do with [Spring](http://springframework.org/) before; define a

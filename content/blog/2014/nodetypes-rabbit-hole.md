@@ -1,7 +1,7 @@
 title=NodeTypes - Deeper Down the Rabbit Hole
 date=2014-08-23
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,groovy
 status=published
 ~~~~~~
 In my last post about [Jackrabbit](http://jackrabbit.apache.org), "[Wabbit Season with Jackrabbit](Wabbit-Season-with-Jackrabbit)", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.

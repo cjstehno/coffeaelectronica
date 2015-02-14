@@ -1,7 +1,7 @@
 title=Wabbit Season with Jackrabbit
 date=2014-08-23
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I have been playing with [Apache Jackrabbit](http://jackrabbit.apache.org) today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "[First Hops](http://jackrabbit.apache.org/first-hops.html)" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.

@@ -1,7 +1,7 @@
 title=Tour de Mock 5 - Groovy
 date=2010-10-29
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 I decided to add another post to my series of mocking comparisons. I have been working a lot with [Groovy](http://groovy.codehaus.org/)

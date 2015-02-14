@@ -1,7 +1,7 @@
 title=Tour de Mock 1 - Spring Mock
 date=2009-07-20
 type=post
-tags=blog,java
+tags=blog,java,testing,spring
 status=published
 ~~~~~~
 A common practice used in unit testing is the use of "[Mock Objects](http://en.wikipedia.org/wiki/Mock_object)", usually called "mocking". There are a handful of robust, mature mocking APIs available and it can be difficult to determine which approach works best for you and your project. With this series of posts I intend to compare some (if not all, over time) of the more well-known and seasoned mocking APIs to showcase their usage, benefits, and drawbacks. To accomplish this comparison I will be writing tests using each API to exercise a simple, yet not-too-trivial test case,

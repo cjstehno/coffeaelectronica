@@ -1,7 +1,7 @@
 title=Circular Arrays
 date=2008-01-25
 type=post
-tags=blog,java
+tags=blog,java,groovy
 status=published
 ~~~~~~
 Another one of those, "well, duh" moments... a very easy way to do wrap-around or circular array indexing.

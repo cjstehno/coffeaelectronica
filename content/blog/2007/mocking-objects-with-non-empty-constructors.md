@@ -1,7 +1,7 @@
 title=Mocking Objects with Non-empty Constructors
 date=2007-09-20
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 While writing mock objects with [JMock](http://jmock.org/), I have run into a reoccurring issue, you

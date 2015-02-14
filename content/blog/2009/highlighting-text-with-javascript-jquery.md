@@ -1,7 +1,7 @@
 title=Highlighting Text with JavaScript and JQuery
 date=2009-09-24
 type=post
-tags=blog,java
+tags=blog,javascript
 status=published
 ~~~~~~
 In my recent post about [Highlighting Text With JavaScript](Highlighting-Text-with-JavaScript) I suggested that I should try doing the same functionality with [JQuery](http://jquery.com/).

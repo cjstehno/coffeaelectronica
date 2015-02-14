@@ -1,7 +1,7 @@
 title=Embedding Jetty in Spring
 date=2006-02-01
 type=post
-tags=blog,java
+tags=blog,java,spring
 status=published
 ~~~~~~
 > The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, [Embedding Jetty 6 in Spring](Embedding-Jetty-6-in-Spring).

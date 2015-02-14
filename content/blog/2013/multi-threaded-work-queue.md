@@ -1,7 +1,7 @@
 title=Multi-threaded Work Queue
 date=2013-01-27
 type=post
-tags=blog,javascript
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I finally had some time to play with the DataFlow functionality in GPars, and as you would expect, it's both simple and

@@ -1,7 +1,7 @@
 title=Are You Mocking Me?
 date=2006-09-20
 type=post
-tags=blog,java,testing,mocking
+tags=blog,java,testing
 status=published
 ~~~~~~
 Most of us agree that unit testing is an important part of development and that unit tests should be isolated as

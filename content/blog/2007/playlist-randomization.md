@@ -1,7 +1,7 @@
 title=Playlist Randomization
 date=2007-12-21
 type=post
-tags=blog,java
+tags=blog,java,groovy
 status=published
 ~~~~~~
 I love [WinAmp](http://winamp.com/); however, I have always felt that it's playlist randomization was a little on the

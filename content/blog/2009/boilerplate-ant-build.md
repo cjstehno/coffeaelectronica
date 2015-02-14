@@ -1,7 +1,7 @@
 title=Boilerplate Ant Build
 date=2009-01-28
 type=post
-tags=blog,java
+tags=blog,java,ant
 status=published
 ~~~~~~
 I have found it very useful to create a reusable boiler plate [Ant](http://ant.apache.org/) `build.xml` file that I use

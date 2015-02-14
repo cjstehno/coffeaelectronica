@@ -1,7 +1,7 @@
 title=Tour de Mock 3 - Mockito
 date=2009-07-22
 type=post
-tags=blog,java
+tags=blog,java,testing
 status=published
 ~~~~~~
 [Mockito](http://mockito.org/) is a fairly new player in the mocking arena, but one that I have found particularly interesting. It's as expressive and flexible as [JMock](http://jmock.org/) (from what I have seen so far) but it's a bit more compact and concise, which is something I really like.
