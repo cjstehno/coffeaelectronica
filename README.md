@@ -1,5 +1,5 @@
 # CoffeaElectronica
 
-Live Site: http://cjstehno.github.io/coffeaelectronica/
+Live Site: http://coffeaelectronica.com
 
 This project contains the content and examples for my technical blog.
