@@ -1,0 +1,18 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'me.champeau.gradle:jbake-gradle-plugin:0.2'
+        classpath 'org.jbake:jbake-core:2.3.2'
+        classpath 'org.pegdown:pegdown:1.4.2'
+        classpath 'org.asciidoctor:asciidoctorj:1.5.2'
+    }
+}
+
+apply plugin: 'me.champeau.jbake'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
