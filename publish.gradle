@@ -8,7 +8,7 @@ buildscript {
   }
 }
 
-apply plugin: 'github-pages'                        
+apply plugin: 'org.ajoberstar.github-pages'                      
 
 githubPages {
   repoUri = 'git@github.com:cjstehno/coffeaelectronica.git'      
