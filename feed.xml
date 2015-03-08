@@ -6,9 +6,46 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 1 Mar 2015 07:48:30 -0600</pubDate>
-    <lastBuildDate>Sun, 1 Mar 2015 07:48:30 -0600</lastBuildDate>
+    <pubDate>Sun, 8 Mar 2015 09:52:48 -0500</pubDate>
+    <lastBuildDate>Sun, 8 Mar 2015 09:52:48 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Testing AST Transformations</title>
+      <link>http://coffeaelectronica.com/blog/2015/ast-testing.html</link>
+      <pubDate>Sun, 8 Mar 2015 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2015/ast-testing.html</guid>
+      <description>
+      &lt;p&gt;While working on my &lt;a href=&quot;https://github.com/cjstehno/effigy&quot;&gt;Effigy&lt;/a&gt; project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.&lt;/p&gt;&lt;p&gt;After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it&apos;s actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)&lt;/p&gt;&lt;p&gt;The key to making transforms testable is the &lt;code&gt;GroovyClassLoader&lt;/code&gt; which gives you the ability to compile Groovy code on the fly:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;def clazz = new GroovyClassLoader().parseClass(sourceCode)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;During that &lt;code&gt;parseClass&lt;/code&gt; method is when all the AST magic happens. This means you can not only easily test your code, but also debug into your transformations to get a better feel for what is going wrong when things break - and they often do.&lt;/p&gt;&lt;p&gt;For my testing, I have started building a &lt;code&gt;ClassBuilder&lt;/code&gt; code helper that is a shell for String-based source code. You provide a code template that acts as your class shell, and then you inject code for your specific test case. You end up with a reasonably clean means of building test code and instantiating it:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;private final ClassBuilder code = forCode(&amp;#39;&amp;#39;&amp;#39;
+    package testing
+
+    import com.stehno.ast.annotation.Counted
+
+    class CountingTester {
+        $code
+    }
+&amp;#39;&amp;#39;&amp;#39;)
+
+@Test void &amp;#39;single method&amp;#39;(){
+    def instance = code.inject(&amp;#39;&amp;#39;&amp;#39;
+        @Counted
+        String sayHello(String name){
+            &amp;quot;Hello, $name&amp;quot;
+        }
+    &amp;#39;&amp;#39;&amp;#39;).instantiate()
+
+    assert instance.sayHello(&amp;#39;AST&amp;#39;) == &amp;#39;Hello, AST&amp;#39;
+    assert instance.getSayHelloCount() == 1
+
+    assert instance.sayHello(&amp;#39;Counting&amp;#39;) == &amp;#39;Hello, Counting&amp;#39;
+    assert instance.getSayHelloCount() == 2
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;forCode&lt;/code&gt; method creates the builder and prepares the code shell. This construct may be reused for each of your tests.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;inject&lt;/code&gt; method adds in the actual code you care about, meaning your transformation code being tested.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;instantiate&lt;/code&gt; method uses the &lt;code&gt;GroovyClassLoader&lt;/code&gt; internally to load the class and then instantiate it for testing.&lt;/p&gt;&lt;p&gt;I am going to add a version of the &lt;code&gt;ClassBuilder&lt;/code&gt; to my &lt;a href=&quot;https://github.com/cjstehno/vanilla&quot;&gt;Vanilla&lt;/a&gt; project once it is more stable; however, I have a version of it and a simple AST testing demo project in the &lt;a href=&quot;https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing&quot;&gt;ast-testing&lt;/a&gt; CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Custom Domain for GitHub Pages</title>
