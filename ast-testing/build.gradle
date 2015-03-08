@@ -1,0 +1,42 @@
+
+version = "0.0.1"
+group = "com.stehno"
+
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+compileJava {
+    sourceCompatibility = 8
+    targetCompatibility = 8
+}
+
+compileGroovy {
+    groovyOptions.optimizationOptions.indy = false
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.4.0"
+
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.mockito:mockito-all:1.9.5'
+}
+
+test {
+    jvmArgs '-Xverify:none'
+}
+    
+publishing {
+	publications {
+	    mavenJava(MavenPublication) {
+            from components.java
+	    }
+	}
+}    
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.3"
+}
