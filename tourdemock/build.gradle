@@ -1,0 +1,25 @@
+
+apply plugin:'groovy'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.0'
+
+    compile 'javax.servlet:servlet-api:2.5'
+    compile 'junit:junit:4.12'
+
+    compile 'org.easymock:easymock:2.5.1'
+    testCompile 'org.easymock:easymockclassextension:2.4'
+
+    compile 'org.mockito:mockito-all:1.10.19'
+
+    testCompile 'org.springframework:spring-test:2.5.6.SEC01'
+    compile 'org.springframework:spring-core:2.5.6.SEC01'
+
+    compile 'org.jmock:jmock-junit4:2.6.0'
+    testCompile 'org.jmock:jmock:2.6.0'
+    compile 'org.jmock:jmock-legacy:2.6.0'
+}
