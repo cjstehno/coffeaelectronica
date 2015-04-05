@@ -50,3 +50,5 @@ The `inject` method adds in the actual code you care about, meaning your transfo
 The `instantiate` method uses the `GroovyClassLoader` internally to load the class and then instantiate it for testing.
 
 I am going to add a version of the `ClassBuilder` to my [Vanilla](https://github.com/cjstehno/vanilla) project once it is more stable; however, I have a version of it and a simple AST testing demo project in the [ast-testing](https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing) CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).
+
+> Note: I have recently discovered the [groovy.tools.ast.TransformTestHelper](http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html) class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.
