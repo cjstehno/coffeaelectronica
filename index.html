@@ -85,6 +85,104 @@
 
 
 	
+		<a href="blog/2015/tour-de-mock-6-spock.html"><h1>Tour de Mock 6: Spock</h1></a>
+		<p><em>09 April 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><p>My last entry in my "Tour de Mock" series was focused on basic <a href="http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html">Groovy mocking</a>. In this post, I am going to take a look at the <a href="https://code.google.com/p/spock/">Spock Framework</a>, which is an alternative testing framework with a lot of features, including its own mocking API.</p><p>Since it's been a while, let's refer back to the <a href="http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html">original posting</a> as a refresher of what is being tested. We have a <code>Servlet</code>, the <code>EmailListServlet</code> </p>
+<pre><code class="groovy">public class EmailListServlet extends HttpServlet {
+
+    private EmailListService emailListService;
+
+    public void init() throws ServletException {
+        final ServletContext servletContext = getServletContext();
+        this.emailListService = (EmailListService)servletContext.getAttribute(EmailListService.KEY);
+
+        if(emailListService == null) throw new ServletException(&quot;No ListService available!&quot;);
+    }
+
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
+        final String listName = req.getParameter(&quot;listName&quot;);
+        final List&lt;String&gt; list = emailListService.getListByName(listName);
+        PrintWriter writer = null;
+        try {
+            writer = res.getWriter();
+            for(final String email : list){
+                writer.println(email);
+            }
+        } finally {
+            if(writer != null) writer.close();
+        }
+    }
+}
+</code></pre><p>which uses an <code>EmailListService</code></p>
+<pre><code class="groovy">public interface EmailListService {
+
+    public static final String KEY = &quot;com.stehno.mockery.service.EmailListService&quot;;
+
+    /**
+     * Retrieves the list of email addresses with the specified name. If no list
+     * exists with that name an IOException is thrown.
+     */
+    List&lt;String&gt; getListByName(String listName) throws IOException;
+}
+</code></pre><p>to retrieve lists of email addresses, because that's what you do, right? It's just an example. :-)</p><p>First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the <code>build.gradle</code> file:</p>
+<pre><code>testCompile &quot;org.spockframework:spock-core:1.0-groovy-2.4&quot;
+</code></pre><p>Next, we need a test class. Spock uses the concept of a test "Specification" so we create a simple test class as:</p>
+<pre><code class="groovy">class EmailListServlet_SpockSpec extends Specification {
+    // test stuff here...
+}
+</code></pre><p>Not all that different from a JUnit test; conceptually they are very similar.</p><p>Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:</p>
+<pre><code class="groovy">def setup() {
+    def emailListService = Mock(EmailListService) {
+        _ * getListByName(null) &gt;&gt; { throw new IOException() }
+        _ * getListByName(&#39;foolist&#39;) &gt;&gt; LIST
+    }
+
+    def servletContext = Mock(ServletContext) {
+        1 * getAttribute(EmailListService.KEY) &gt;&gt; emailListService
+    }
+
+    def servletConfig = Mock(ServletConfig) {
+        1 * getServletContext() &gt;&gt; servletContext
+    }
+
+    emailListServlet = new EmailListServlet()
+    emailListServlet.init servletConfig
+
+    request = Mock(HttpServletRequest)
+    response = Mock(HttpServletResponse)
+}
+</code></pre><p>Spock provides a <code>setup</code> method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.</p><p>The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it's actually pretty expressive. In the code above for the <code>EmailListService</code>, I am mocking the <code>getListByName(String)</code> method such that it will accept any number of calls with a <code>null</code> parameter and throw an exception, as well as any number of calls with a <code>foolist</code> parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the <a href="http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html">Interaction-based Testing</a> section of the Spock documentation.</p><p>Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected <code>Exception</code> thrown:</p>
+<pre><code class="groovy">def &#39;doGet: without list&#39;() {
+    setup:
+    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; null
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    thrown(IOException)
+}
+</code></pre><p>One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the <code>setup</code> block is where we do any additional mocking or setup specific to this test method. The <code>when</code> block is where the actual operations being tested are performed while the <code>then</code> block is where the results are verified and conditions examined.</p><p>In our case, we need to mock out the reuest parameter to return <code>null</code> and then we need to ensure that an <code>IOException</code> is thrown.</p><p>Our other test is the case when a valid list name is provided:</p>
+<pre><code class="groovy">def &#39;doGet: with list&#39;() {
+    setup:
+    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; &#39;foolist&#39;
+
+    def writer = Mock(PrintWriter)
+
+    1 * response.getWriter() &gt;&gt; writer
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    1 * writer.println(LIST[0])
+    1 * writer.println(LIST[1])
+    1 * writer.println(LIST[2])
+}
+</code></pre><p>In the <code>then</code> block here, we verify that the <code>println(String)</code> method of the mocked <code>PrintWriter</code> is called with the correct arguments in the correct order.</p><p>Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.</p>
+<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</blockquote></p>
+  	
 		<a href="blog/2015/ast-testing.html"><h1>Testing AST Transformations</h1></a>
 		<p><em>08 March 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
 		<p><p>While working on my <a href="https://github.com/cjstehno/effigy">Effigy</a> project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.</p><p>After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it's actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)</p><p>The key to making transforms testable is the <code>GroovyClassLoader</code> which gives you the ability to compile Groovy code on the fly:</p>
@@ -1117,162 +1215,6 @@ gradle test
 	]
 })
 </code></pre><p>as can be seen in V4:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west.png" alt="V4 West""/></p><p>But, it is more apparent when you zoom in:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west_zoom.png" alt="V4 West Zoom""/></p><p>You can see now that the green markers are client-side clusters and the blue markers are server-side points (clusters or single locations).</p><p>At the end of all that you have a map with client-side clustering to handle visual density at the local level. You have server-side clustering at more-global zoom levels, with caching to remove jitter and reduce calculation time and you have actual location points being served filtered by bounds. It seems like a lot of effort, but overall the code itself is fairly simple and straight-forward... and now we can support a million data points with no real issues or loss of information.</p><p>One thing I have not mentioned here is the use of GIS databases or extensions. My goal here was more conceptual, but should you be faced with this kind of problem, you should look into the GIS support for your data storage solution since being able to run queries directly on the bounding shape can be more efficient with GIS solutions in place.</p></p>
-  	
-		<a href="blog/2013/javasisst-mind-blown.html"><h1>Javassist - Mind Blown</h1></a>
-		<p><em>25 May 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a></p>
-		<p><p>I have been doing a lot with Java reflection recently in one of my personal projects and while doing some research I came across the <a href="http://www.javassist.org">Javassist</a> bytecode manipulation API.</p><p>Javassist allows you to create new classes and/or manipulate existing classes at runtime... at the bytecode level, and it does it without you having to understand all the deep down details of classfiles.</p><p>Let's take an example and say that I have an interface:</p>
-<pre><code class="java">package jsist;
-
-public interface Greeter {
-
-	String sayHello( String name );
-	
-	String sayGoodbye( String name );
-}
-</code></pre><p>It's very easy to dynamically implement that interface at runtime, but first we need a little demo application:</p>
-<pre><code class="java">package jsist;
-
-public class Demo {
-
-    private static final ClassPool CLASS_POOL = ClassPool.getDefault();
-    private static CtClass STRING_CLASS;
-
-    static {
-        try{
-            STRING_CLASS = CLASS_POOL.get( &quot;java.lang.String&quot; );
-        } catch( NotFoundException e ){
-            e.printStackTrace();
-        }
-    }
-
-    public static void main( final String[] args ) throws Exception {
-		useIt( implementIt() );
-	}
-	
-	private static Class implementIt() throws Exception {
-		// will contain our javassist code
-	}
-	
-	private static void useIt( Class clazz ) throws  Exception {
-        System.out.println( clazz );
-
-        Greeter greeter = (Greeter)clazz.newInstance();
-
-        System.out.println(&quot;Hi : &quot; + greeter.sayHello(&quot;Bytecode&quot;));
-        System.out.println(&quot;Bye: &quot; + greeter.sayGoodbye( &quot;Java&quot; ));
-    }
-}
-</code></pre><p>This will give us a simple test bed for the various dynamic implementations of the Greeter interface. Basically, it builds an implementation of the interface, prints out the class and the result of executing the two methods. Now for the fun part.</p><p>Our first example will be a simple implementation of the interface:</p>
-<pre><code class="java">private static Class implementIt() throws Exception {
-	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
-	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
-
-	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayHelloMethod );
-	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
-
-	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayGoodbyeMethod );
-	sayGoodbyeMethod.setBody( &quot;return \\&quot;Goodbye, \\&quot; + $1;&quot; );
-
-	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
-
-	return greeterClass.toClass();
-}
-</code></pre><p>We start off by creating a new class called <code>jsist.gen.Greeter</code> where the package name does not need to exist; it will be created. We then need to add the interface we want to implement, the <code>jsist.Greeter</code> interface. Next we have to provide method implementations.</p><p>It feels a bit odd to create a <code>CtMethod</code> object with the <code>greeterClass</code> instance and then add the method to the instance, but this is the pattern that is used. I am sure there must be some internal reason for doing so.</p><p>The <code>setBody(String)</code> method is the key worker here. It allows you to provide source code as a template using the Javassist source template language. With what I have done above it it equivalent to:</p>
-<pre><code class="java">return &quot;Hello, &quot; + arg0;
-</code></pre><p>for the <code>sayHello(String)</code> method, and similar for the other. The important thing to note here is that your provided source is compiled down to Java bytecode, this is not some embedded scripting language.</p><p>Next we need to change the modifiers of the class to remove "abstract", and then with a call to the <code>toClass()</code> method we have a standard Java <code>Class</code> object representing our newly created implementation.</p><p>If you run the demo with this, you will get:</p>
-<pre><code>class jsist.gen.GreeterImpl
-Hi : Hello, Bytecode
-Bye: Goodbye, Java
-</code></pre><p>Ok, that was fun, but how about an abstract class? Let's say we have an abstract implemenation of the <code>Greeter</code> interface:</p>
-<pre><code class="java">public abstract class AbstractGreeter implements Greeter {
-
-    @Override
-    public String sayGoodbye( String name ){
-        return &quot;(Abstract) Goodbye, &quot; + name;
-    }
-}
-</code></pre><p>Note, I have implemented the <code>sayGoodbye(String)</code> method but not the <code>sayHello(String)</code> to make things more interesting. Our implementation of the <code>implementIt()</code> method now becomes:</p>
-<pre><code class="java">private static Class implementIt() throws Exception {
-	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
-	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
-
-	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayHelloMethod );
-	sayHelloMethod.setBody( &quot;{return \\&quot;Hello, \\&quot; + $1;}&quot; );
-
-	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
-
-	return greeterClass.toClass();
-}
-</code></pre><p>The first difference to note is that now we are setting the superclass rather than the interface, since our superclass already implements the interface. Also, notice that since we already have an implementation of the <code>sayGoodbye(String)</code> method, we only need to implement <code>sayHello(String)</code>. Other than that, there is little difference. When you run with this implementation you get:</p>
-<pre><code>class jsist.gen.GreeterImpl
-Hi : Hello, Bytecode
-Bye: (Abstract) Goodbye, Java
-</code></pre><p>As expected, our dynamic implementation plays nicely with the concrete implementation.</p><p>Now, what if you already have objects that implement the functionality of the two interface methods, but that do not implement the <code>Greeter</code> interface? Say, we have:</p>
-<pre><code class="java">public class Hello {
-
-    public String say( String name ){
-        return &quot;(Delegate) Hello, &quot; + name;
-    }
-}
-
-public class Goodbye {
-
-    public String say( String name ){
-        return &quot;(Delegate) Goodbye, &quot; + name;
-    }
-}
-</code></pre><p>You can easily implement the interface by copying the methods from these classes:</p>
-<pre><code class="java">private static Class implementIt() throws Exception {
-	CtClass greeterClass = CLASS_POOL.makeClass(&quot;jsist.gen.GreeterImpl&quot;);
-	greeterClass.addInterface( CLASS_POOL.get(&quot;jsist.Greeter&quot;) );
-
-	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
-	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
-
-	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayHelloMethod );
-	sayHelloMethod.setBody( helloSay, null );
-
-
-	CtClass gbClass = CLASS_POOL.get( &quot;jsist.Goodbye&quot; );
-	CtMethod gbSay = gbClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
-
-	CtMethod sayGoodbyeMethod = new CtMethod( STRING_CLASS, &quot;sayGoodbye&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayGoodbyeMethod );
-	sayGoodbyeMethod.setBody( gbSay, null );
-
-	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
-
-	return greeterClass.toClass();
-}
-</code></pre><p>This version is similar to the original interface implementation, except that now rather than providing source code for the method bodies, we provide a method object. You first find the <code>Hello</code> class in the <code>ClassPool</code> and then find it's <code>say(String)</code> method - the description string is the formal JVM parameter format, but I found it simple to dump out the methods and just copy it as a shortcut.</p><p>If you run this version, you get:</p>
-<pre><code>class jsist.gen.GreeterImpl
-Hi : (Delegate) Hello, Bytecode
-Bye: (Delegate) Goodbye, Java
-</code></pre><p>Showing that both methods were from the delegate classes.</p><p>For our final example, to round things out, let's go back to the abstract class and provide a delegate for the abstract method rather than source:</p>
-<pre><code class="java">private static Class implementIt() throws Exception {
-	CtClass greeterClass = CLASS_POOL.makeClass( &quot;jsist.gen.GreeterImpl&quot; );
-	greeterClass.setSuperclass( CLASS_POOL.get(&quot;jsist.AbstractGreeter&quot;) );
-
-	CtClass helloClass = CLASS_POOL.get( &quot;jsist.Hello&quot; );
-	CtMethod helloSay = helloClass.getMethod( &quot;say&quot;, &quot;(Ljava/lang/String;)Ljava/lang/String;&quot; );
-
-	CtMethod sayHelloMethod = new CtMethod( STRING_CLASS, &quot;sayHello&quot;, new CtClass[]{STRING_CLASS}, greeterClass );
-	greeterClass.addMethod( sayHelloMethod );
-	sayHelloMethod.setBody( helloSay, null );
-
-	greeterClass.setModifiers(greeterClass.getModifiers() &amp; ~Modifier.ABSTRACT);
-
-	return greeterClass.toClass();
-}
-</code></pre><p>There is not really anything here, you have not already seen, but when you run it you see:</p>
-<pre><code>class jsist.gen.GreeterImpl
-Hi : (Delegate) Hello, Bytecode
-Bye: (Abstract) Goodbye, Java
-</code></pre><p>As expected, one method provided by the delegate and one by the abstract class' implementation.</p><p>There are other bytecode manipulation libraries, but most of the ones I looked at seemed to be very abstract or probably closer to the actual class file format, whereas Javassist is a lot more familar when coming from a Java reflection background.</p><p>It seems very powerful and full of interesting potential. I am by no means an expert with it, but I wanted to share what I had found since the documentation is reasonably good, but not very rich with examples.</p></p>
   	
 	
 	<hr />

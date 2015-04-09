@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Tour de Mock 6: Spock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Tour de Mock 6: Spock</h1>
+	</div>
+
+	<p><em>09 April 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+
+	<p><p>My last entry in my "Tour de Mock" series was focused on basic <a href="http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html">Groovy mocking</a>. In this post, I am going to take a look at the <a href="https://code.google.com/p/spock/">Spock Framework</a>, which is an alternative testing framework with a lot of features, including its own mocking API.</p><p>Since it's been a while, let's refer back to the <a href="http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html">original posting</a> as a refresher of what is being tested. We have a <code>Servlet</code>, the <code>EmailListServlet</code> </p>
+<pre><code class="groovy">public class EmailListServlet extends HttpServlet {
+
+    private EmailListService emailListService;
+
+    public void init() throws ServletException {
+        final ServletContext servletContext = getServletContext();
+        this.emailListService = (EmailListService)servletContext.getAttribute(EmailListService.KEY);
+
+        if(emailListService == null) throw new ServletException(&quot;No ListService available!&quot;);
+    }
+
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
+        final String listName = req.getParameter(&quot;listName&quot;);
+        final List&lt;String&gt; list = emailListService.getListByName(listName);
+        PrintWriter writer = null;
+        try {
+            writer = res.getWriter();
+            for(final String email : list){
+                writer.println(email);
+            }
+        } finally {
+            if(writer != null) writer.close();
+        }
+    }
+}
+</code></pre><p>which uses an <code>EmailListService</code></p>
+<pre><code class="groovy">public interface EmailListService {
+
+    public static final String KEY = &quot;com.stehno.mockery.service.EmailListService&quot;;
+
+    /**
+     * Retrieves the list of email addresses with the specified name. If no list
+     * exists with that name an IOException is thrown.
+     */
+    List&lt;String&gt; getListByName(String listName) throws IOException;
+}
+</code></pre><p>to retrieve lists of email addresses, because that's what you do, right? It's just an example. :-)</p><p>First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the <code>build.gradle</code> file:</p>
+<pre><code>testCompile &quot;org.spockframework:spock-core:1.0-groovy-2.4&quot;
+</code></pre><p>Next, we need a test class. Spock uses the concept of a test "Specification" so we create a simple test class as:</p>
+<pre><code class="groovy">class EmailListServlet_SpockSpec extends Specification {
+    // test stuff here...
+}
+</code></pre><p>Not all that different from a JUnit test; conceptually they are very similar.</p><p>Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:</p>
+<pre><code class="groovy">def setup() {
+    def emailListService = Mock(EmailListService) {
+        _ * getListByName(null) &gt;&gt; { throw new IOException() }
+        _ * getListByName(&#39;foolist&#39;) &gt;&gt; LIST
+    }
+
+    def servletContext = Mock(ServletContext) {
+        1 * getAttribute(EmailListService.KEY) &gt;&gt; emailListService
+    }
+
+    def servletConfig = Mock(ServletConfig) {
+        1 * getServletContext() &gt;&gt; servletContext
+    }
+
+    emailListServlet = new EmailListServlet()
+    emailListServlet.init servletConfig
+
+    request = Mock(HttpServletRequest)
+    response = Mock(HttpServletResponse)
+}
+</code></pre><p>Spock provides a <code>setup</code> method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.</p><p>The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it's actually pretty expressive. In the code above for the <code>EmailListService</code>, I am mocking the <code>getListByName(String)</code> method such that it will accept any number of calls with a <code>null</code> parameter and throw an exception, as well as any number of calls with a <code>foolist</code> parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the <a href="http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html">Interaction-based Testing</a> section of the Spock documentation.</p><p>Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected <code>Exception</code> thrown:</p>
+<pre><code class="groovy">def &#39;doGet: without list&#39;() {
+    setup:
+    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; null
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    thrown(IOException)
+}
+</code></pre><p>One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the <code>setup</code> block is where we do any additional mocking or setup specific to this test method. The <code>when</code> block is where the actual operations being tested are performed while the <code>then</code> block is where the results are verified and conditions examined.</p><p>In our case, we need to mock out the reuest parameter to return <code>null</code> and then we need to ensure that an <code>IOException</code> is thrown.</p><p>Our other test is the case when a valid list name is provided:</p>
+<pre><code class="groovy">def &#39;doGet: with list&#39;() {
+    setup:
+    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; &#39;foolist&#39;
+
+    def writer = Mock(PrintWriter)
+
+    1 * response.getWriter() &gt;&gt; writer
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    1 * writer.println(LIST[0])
+    1 * writer.println(LIST[1])
+    1 * writer.println(LIST[2])
+}
+</code></pre><p>In the <code>then</code> block here, we verify that the <code>println(String)</code> method of the mocked <code>PrintWriter</code> is called with the correct arguments in the correct order.</p><p>Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.</p>
+<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</blockquote></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>

@@ -6,9 +6,113 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 5 Apr 2015 09:27:17 -0500</pubDate>
-    <lastBuildDate>Sun, 5 Apr 2015 09:27:17 -0500</lastBuildDate>
+    <pubDate>Thu, 9 Apr 2015 09:30:24 -0500</pubDate>
+    <lastBuildDate>Thu, 9 Apr 2015 09:30:24 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Tour de Mock 6: Spock</title>
+      <link>http://coffeaelectronica.com/blog/2015/tour-de-mock-6-spock.html</link>
+      <pubDate>Thu, 9 Apr 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/tour-de-mock-6-spock.html</guid>
+      <description>
+      &lt;p&gt;My last entry in my &quot;Tour de Mock&quot; series was focused on basic &lt;a href=&quot;http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html&quot;&gt;Groovy mocking&lt;/a&gt;. In this post, I am going to take a look at the &lt;a href=&quot;https://code.google.com/p/spock/&quot;&gt;Spock Framework&lt;/a&gt;, which is an alternative testing framework with a lot of features, including its own mocking API.&lt;/p&gt;&lt;p&gt;Since it&apos;s been a while, let&apos;s refer back to the &lt;a href=&quot;http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html&quot;&gt;original posting&lt;/a&gt; as a refresher of what is being tested. We have a &lt;code&gt;Servlet&lt;/code&gt;, the &lt;code&gt;EmailListServlet&lt;/code&gt; &lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;public class EmailListServlet extends HttpServlet {
+
+    private EmailListService emailListService;
+
+    public void init() throws ServletException {
+        final ServletContext servletContext = getServletContext();
+        this.emailListService = (EmailListService)servletContext.getAttribute(EmailListService.KEY);
+
+        if(emailListService == null) throw new ServletException(&amp;quot;No ListService available!&amp;quot;);
+    }
+
+    protected void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
+        final String listName = req.getParameter(&amp;quot;listName&amp;quot;);
+        final List&amp;lt;String&amp;gt; list = emailListService.getListByName(listName);
+        PrintWriter writer = null;
+        try {
+            writer = res.getWriter();
+            for(final String email : list){
+                writer.println(email);
+            }
+        } finally {
+            if(writer != null) writer.close();
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which uses an &lt;code&gt;EmailListService&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;public interface EmailListService {
+
+    public static final String KEY = &amp;quot;com.stehno.mockery.service.EmailListService&amp;quot;;
+
+    /**
+     * Retrieves the list of email addresses with the specified name. If no list
+     * exists with that name an IOException is thrown.
+     */
+    List&amp;lt;String&amp;gt; getListByName(String listName) throws IOException;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;to retrieve lists of email addresses, because that&apos;s what you do, right? It&apos;s just an example. :-)&lt;/p&gt;&lt;p&gt;First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the &lt;code&gt;build.gradle&lt;/code&gt; file:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;testCompile &amp;quot;org.spockframework:spock-core:1.0-groovy-2.4&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, we need a test class. Spock uses the concept of a test &quot;Specification&quot; so we create a simple test class as:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class EmailListServlet_SpockSpec extends Specification {
+    // test stuff here...
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not all that different from a JUnit test; conceptually they are very similar.&lt;/p&gt;&lt;p&gt;Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def setup() {
+    def emailListService = Mock(EmailListService) {
+        _ * getListByName(null) &amp;gt;&amp;gt; { throw new IOException() }
+        _ * getListByName(&amp;#39;foolist&amp;#39;) &amp;gt;&amp;gt; LIST
+    }
+
+    def servletContext = Mock(ServletContext) {
+        1 * getAttribute(EmailListService.KEY) &amp;gt;&amp;gt; emailListService
+    }
+
+    def servletConfig = Mock(ServletConfig) {
+        1 * getServletContext() &amp;gt;&amp;gt; servletContext
+    }
+
+    emailListServlet = new EmailListServlet()
+    emailListServlet.init servletConfig
+
+    request = Mock(HttpServletRequest)
+    response = Mock(HttpServletResponse)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Spock provides a &lt;code&gt;setup&lt;/code&gt; method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.&lt;/p&gt;&lt;p&gt;The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it&apos;s actually pretty expressive. In the code above for the &lt;code&gt;EmailListService&lt;/code&gt;, I am mocking the &lt;code&gt;getListByName(String)&lt;/code&gt; method such that it will accept any number of calls with a &lt;code&gt;null&lt;/code&gt; parameter and throw an exception, as well as any number of calls with a &lt;code&gt;foolist&lt;/code&gt; parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the &lt;a href=&quot;http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html&quot;&gt;Interaction-based Testing&lt;/a&gt; section of the Spock documentation.&lt;/p&gt;&lt;p&gt;Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected &lt;code&gt;Exception&lt;/code&gt; thrown:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def &amp;#39;doGet: without list&amp;#39;() {
+    setup:
+    1 * request.getParameter(&amp;#39;listName&amp;#39;) &amp;gt;&amp;gt; null
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    thrown(IOException)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the &lt;code&gt;setup&lt;/code&gt; block is where we do any additional mocking or setup specific to this test method. The &lt;code&gt;when&lt;/code&gt; block is where the actual operations being tested are performed while the &lt;code&gt;then&lt;/code&gt; block is where the results are verified and conditions examined.&lt;/p&gt;&lt;p&gt;In our case, we need to mock out the reuest parameter to return &lt;code&gt;null&lt;/code&gt; and then we need to ensure that an &lt;code&gt;IOException&lt;/code&gt; is thrown.&lt;/p&gt;&lt;p&gt;Our other test is the case when a valid list name is provided:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def &amp;#39;doGet: with list&amp;#39;() {
+    setup:
+    1 * request.getParameter(&amp;#39;listName&amp;#39;) &amp;gt;&amp;gt; &amp;#39;foolist&amp;#39;
+
+    def writer = Mock(PrintWriter)
+
+    1 * response.getWriter() &amp;gt;&amp;gt; writer
+
+    when:
+    emailListServlet.doGet request, response
+
+    then:
+    1 * writer.println(LIST[0])
+    1 * writer.println(LIST[1])
+    1 * writer.println(LIST[2])
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the &lt;code&gt;then&lt;/code&gt; block here, we verify that the &lt;code&gt;println(String)&lt;/code&gt; method of the mocked &lt;code&gt;PrintWriter&lt;/code&gt; is called with the correct arguments in the correct order.&lt;/p&gt;&lt;p&gt;Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;You can find the source code used in this posting in my &lt;a href=&quot;http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock&quot;&gt;TourDeMock&lt;/a&gt; project.&lt;/p&gt;
+&lt;/blockquote&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Testing AST Transformations</title>
@@ -5357,7 +5461,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -5635,7 +5739,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -5647,7 +5751,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -5758,7 +5862,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6077,7 +6181,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
