@@ -1,40 +1,42 @@
 package com.stehno.mockery
 
+import com.stehno.mockery.service.EmailListService
 import spock.lang.*
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
+import javax.servlet.ServletConfig
+import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import com.stehno.mockery.service.EmailListService;
-
 class EmailListServlet_SpockSpec extends Specification {
 
-    private LIST = ['larry@stooge.com', 'moe@stooge.com', 'curley@stooge.com']
+    private static final LIST = ['larry@stooge.com', 'moe@stooge.com', 'curley@stooge.com']
+    private emailListServlet, request, response
 
-    def 'doGet: without list'() {
-        setup:
+    def setup() {
         def emailListService = Mock(EmailListService) {
-            1 * getListByName(_) >> { throw new IOException() }
+            _ * getListByName(null) >> { throw new IOException() }
+            _ * getListByName('foolist') >> LIST
         }
 
-        def servletContext = Mock(ServletContext){
+        def servletContext = Mock(ServletContext) {
             1 * getAttribute(EmailListService.KEY) >> emailListService
         }
 
-        def servletConfig = Mock(ServletConfig){
+        def servletConfig = Mock(ServletConfig) {
             1 * getServletContext() >> servletContext
         }
 
-        def emailListServlet = new EmailListServlet()
+        emailListServlet = new EmailListServlet()
         emailListServlet.init servletConfig
 
-        def request = Mock(HttpServletRequest){
-            1 * getParameter('listName') >> null
-        }
+        request = Mock(HttpServletRequest)
+        response = Mock(HttpServletResponse)
+    }
 
-        def response = Mock(HttpServletResponse)
+    def 'doGet: without list'() {
+        setup:
+        1 * request.getParameter('listName') >> null
 
         when:
         emailListServlet.doGet request, response
@@ -45,30 +47,11 @@ class EmailListServlet_SpockSpec extends Specification {
 
     def 'doGet: with list'() {
         setup:
-        def emailListService = Mock(EmailListService) {
-            1 * getListByName('foolist') >> LIST
-        }
-
-        def servletContext = Mock(ServletContext){
-            1 * getAttribute(EmailListService.KEY) >> emailListService
-        }
-
-        def servletConfig = Mock(ServletConfig){
-            1 * getServletContext() >> servletContext
-        }
-
-        def emailListServlet = new EmailListServlet()
-        emailListServlet.init servletConfig
-
-        def request = Mock(HttpServletRequest){
-            1 * getParameter('listName') >> 'foolist'
-        }
+        1 * request.getParameter('listName') >> 'foolist'
 
         def writer = Mock(PrintWriter)
 
-        def response = Mock(HttpServletResponse){
-            1 * getWriter() >> writer
-        }
+        1 * response.getWriter() >> writer
 
         when:
         emailListServlet.doGet request, response
