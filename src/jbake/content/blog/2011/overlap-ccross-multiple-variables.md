@@ -61,7 +61,7 @@ interface Lobe {
 
 Each lobe implementation defines what it means to overlap another Lobe of the same type. Using Groovy and some
 generic logic we can easily come up with a
-[ComparableLobe](http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/ComparableLobe.groovy)
+[ComparableLobe](https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/ComparableLobe.groovy)
 which is based on single values and ranges of Comparable objects such as numbers, strings and ranges. This allows us to
 do things like:
 
@@ -74,7 +74,7 @@ lobeA.overlaps( lobeB )
 
 which can make the overlap determination very flexible.
 
-> _Note:_ All of the source code from this article is available in my [GitHub](http://github.com/) repo called [Overlap](http://github.com/cjstehno/overlap).
+> _Note:_ All of the source code from this article is available in my [GitHub](http://github.com/) repo called [Overlap](https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap).
 
 Now we can create Lobes for each of the overlap-comparable parts of our People, using "People A" as an
 example:
@@ -86,7 +86,7 @@ def weightsLobe = new ComparableLobe( 200..300 )
 ```
 
 The next thing we need is a way of comparing these lobes in a simple and repeatable manner and that's where the
-[Overlappable](http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/Overlappable.groovy) interface
+[Overlappable](https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy) interface
 comes in:
 
 ```groovy
@@ -99,7 +99,7 @@ interface Overlappable {
 The Overlappable interface defines an object that can be compared for overlap. The required method is basically the
 same as that of the Lobe; however, this interface is for the parent object itself. By providing an abstract
 implementation of this interface we have a nice clean way of providing overlap detection functionality for an object
-type. The [AbstractOverlappable](http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/AbstractOverlappable.groovy)
+type. The [AbstractOverlappable](https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy)
 provides an implementation of the overlaps() method using the OverlapBuilder, which we will talk about in a minute. What
 the abstract class also provides is a simple way of emitting the Lobes for the given object in a simple manner, as an
 array. You can use this with our example above to create a simple Overlappable Person object:
@@ -121,7 +121,7 @@ class People extends AbstractOverlappable {
 ```
 
 The overlaps() method uses the provided Lobes to popualte an
-[OverlapBuilder](http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/OverlapBuilder.groovy),
+[OverlapBuilder](https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/OverlapBuilder.groovy),
 which is basically a helper class for performing the actual Lobe-to-Lobe comparison of a given set of Lobes. The
 OverlapBuilder is inspired by the builder in the Apache Commons - Lang API, such as EqualsBuilder and HashCodeBuilder.
 You create an instance and append your Lobes to it, then execute the overlap() method to perform the comparison.
@@ -166,3 +166,5 @@ a lot of grief, especially if the fields being compared are numerous and complex
 additional Lobe implementations but am also using the `ComparableLobe` quite a bit. This library has been a real
 time-saver. And, once broken down into component parts, the overlap determination becomes simple to implement and test,
 which makes it much more stable over time.
+
+> Update: I have updated the [Overlap code](https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap) and added it to my [Vanilla](http://stehno.com/vanilla/) library. There have a been a few changes, but the overall usage described here remains the same.
