@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Secure REST in Spring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Secure REST in Spring</h1>
+	</div>
+
+	<p><em>04 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><p>Getting HTTPS to play nice with REST and non-browser web clients in development (with a self-signed certificate) can be a frustrating effort. I struggled for a while down the path of using the Spring <code>RestTemplate</code> thinking that since I was using Spring MVC as my REST provider, it would make things easier; in this case, Spring did not come to the rescue, but Groovy did or rather the Groovy <a href="https://github.com/jgritman/httpbuilder">HTTPBuilder</a> did.</p><p>To keep this discussion simple, we need a simple REST project using HTTPS. I found the <a href="https://github.com/spring-guides/gs-rest-service">Spring REST Service Guide</a> project useful for this (with a few modifications to follow).</p><p>Go ahead and clone the project:</p>
+<pre><code>git clone git@github.com:spring-guides/gs-rest-service.git
+</code></pre><p>Since this is a tutorial project, it has a few versions of the code in it. We are going to work with the "complete" version, which is a Gradle project. Let's go ahead and do a build and run just to ensure everything works out of the box:</p>
+<pre><code>cd gs-rest-service/complete
+./gradlew bootRun
+</code></pre><p>After a bunch of downloading and startup logging you should see that the application has started. You can give it a test by opening <code>http://localhost:8080/greeting?name=Chris</code> in your browser, which should respond with:</p>
+<pre><code class="json">{
+    &quot;id&quot;: 2,
+    &quot;content&quot;: &quot;Hello, Chris!&quot;
+}
+</code></pre><p>Now that we have that running, we want a RESTful client to call it rather that hitting it using the browser. Let's get it working with the simple HTTP case first to ensure that we have everything working before we go into the HTTPS configuration. Create a groovy script, <code>rest-client.groovy</code> with the following content:</p>
+<pre><code class="groovy">@Grapes(
+    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+
+def http = new HTTPBuilder( &#39;http://localhost:8080/&#39; )
+
+http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
+    println &quot;Status: ${resp.status}&quot;
+    println &quot;Content: $json&quot;
+}
+</code></pre><p>Since this is not a discussion of HTTPBuilder itself, I will leave most of the details to your own research; however, it's pretty straight forward. We are making the same request we made in the browser, and after another initial batch of dependency downloads (grapes) it should yield:</p>
+<pre><code>Status: 200
+Content: [content:Hello, Chris!, id:6]
+</code></pre><p>Ok, our control group is working. Now, let's add in the HTTPS. For the Spring Boot project, it's pretty trivial. We need to add an <code>application.properties</code> file in <code>src/main/resources</code> with the following content:</p>
+<pre><code>server.port = 8443
+server.ssl.key-store = /home/cjstehno/.keystore
+server.ssl.key-store-password = tomcat
+server.ssl.key-password = tomcat
+</code></pre><p>Of course, update the key-store path to your home directory. For the server, we also need to install a certificate for our use. </p>
+<blockquote><p>I am not a security certificate expert, so from here on out I will state that this stuff works in development but I make no claims that this is suitable for production use. Proceed at your own risk!</p>
+</blockquote><p>From the <a href="http://tomcat.apache.org/tomcat-8.0-doc/ssl-howto.html">Tomcat 8 SSL How To</a>, run the <code>keytool -genkey -alias tomcat -keyalg RSA</code> and run through the questions answering everything with 'localhost' (there seems to be a reason for this).</p><p>At this point you should be able to restart the server and hit it via HTTPS (<a href="https://localhost:8443/greeting?name=Chris">https://localhost:8443/greeting?name=Chris</a>) to retrieve a successful response as before, though you will need to accept the self-signed certificate.</p><p>Now try the client. Update the URL to the new HTTPS version:</p>
+<pre><code>def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
+</code></pre><p>and give it a run. You should see something like:</p>
+<pre><code>Caught: javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+</code></pre><p>I will start with the simplest method of resolving this problem. HTTPBuilder provides a configuration method that will just ignore these types of SSL errors. If you add:</p>
+<pre><code>http.ignoreSSLIssues()
+</code></pre><p>before you make a request, it will succeed as normal. This should be used only as a development configuration, but there are times when you just want to get something workign for testing. If that's all you want here, you're done. From here on out I will show how to get the SSL configuration working for a more formal use case.</p><p>Still with me? Alright, let's have fun with certificates! The <a href="https://github.com/jgritman/httpbuilder/wiki/SSL">HTTPBuilder wiki page for SSL</a> gives us most of what we need. To summarize, we need to export our server certificate and then import it into a keyfile that our client can use. To export the server certificate, run:</p>
+<pre><code>keytool -exportcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore ~/.keystore -storepass tomcat
+</code></pre><p>which will export the "tomcat" certificate from the keystore at "~/.keystore" (the one we created earlier) and save it into "mytomcat.crt". Next, we need to import this certificate into the keystore that will be used by our client as follows:</p>
+<pre><code>keytool -importcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore clientstore.jks -storepass clientpass
+</code></pre><p>You will be asked to trust this certificate, which you should answer "yes" to continue.</p><p>Now that we have our certificate ready, we can update the client script to use it. The client script becomes:</p>
+<pre><code class="groovy">@Grapes(
+    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+import java.security.KeyStore
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+
+def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
+
+def keyStore = KeyStore.getInstance( KeyStore.defaultType )
+
+new File( args[0] ).withInputStream {
+   keyStore.load( it, args[1].toCharArray() )
+}
+
+http.client.connectionManager.schemeRegistry.register(new Scheme(&quot;https&quot;, new SSLSocketFactory(keyStore), 443) )
+
+http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
+    println &quot;Status: ${resp.status}&quot;
+    println &quot;Content: $json&quot;
+}
+</code></pre><p>The main changes from the previous version are the loading and use of the keystore by the connection manager. When you run this version of the script, with:</p>
+<pre><code>groovy rest-client.groovy clientstore.jks clientpass
+</code></pre><p>you get:</p>
+<pre><code>Status: 200
+Content: [content:Hello, Chris!, id:1]
+</code></pre><p>We are now using HTTPS on both the server and client for our rest service. It's not all that bad to setup once you figure out the steps, but in general the information seems to be tough to find.</p></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>

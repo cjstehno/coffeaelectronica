@@ -85,6 +85,85 @@
 
 
 	
+		<a href="blog/2015/secure-rest-spring.html"><h1>Secure REST in Spring</h1></a>
+		<p><em>04 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>Getting HTTPS to play nice with REST and non-browser web clients in development (with a self-signed certificate) can be a frustrating effort. I struggled for a while down the path of using the Spring <code>RestTemplate</code> thinking that since I was using Spring MVC as my REST provider, it would make things easier; in this case, Spring did not come to the rescue, but Groovy did or rather the Groovy <a href="https://github.com/jgritman/httpbuilder">HTTPBuilder</a> did.</p><p>To keep this discussion simple, we need a simple REST project using HTTPS. I found the <a href="https://github.com/spring-guides/gs-rest-service">Spring REST Service Guide</a> project useful for this (with a few modifications to follow).</p><p>Go ahead and clone the project:</p>
+<pre><code>git clone git@github.com:spring-guides/gs-rest-service.git
+</code></pre><p>Since this is a tutorial project, it has a few versions of the code in it. We are going to work with the "complete" version, which is a Gradle project. Let's go ahead and do a build and run just to ensure everything works out of the box:</p>
+<pre><code>cd gs-rest-service/complete
+./gradlew bootRun
+</code></pre><p>After a bunch of downloading and startup logging you should see that the application has started. You can give it a test by opening <code>http://localhost:8080/greeting?name=Chris</code> in your browser, which should respond with:</p>
+<pre><code class="json">{
+    &quot;id&quot;: 2,
+    &quot;content&quot;: &quot;Hello, Chris!&quot;
+}
+</code></pre><p>Now that we have that running, we want a RESTful client to call it rather that hitting it using the browser. Let's get it working with the simple HTTP case first to ensure that we have everything working before we go into the HTTPS configuration. Create a groovy script, <code>rest-client.groovy</code> with the following content:</p>
+<pre><code class="groovy">@Grapes(
+    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+
+def http = new HTTPBuilder( &#39;http://localhost:8080/&#39; )
+
+http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
+    println &quot;Status: ${resp.status}&quot;
+    println &quot;Content: $json&quot;
+}
+</code></pre><p>Since this is not a discussion of HTTPBuilder itself, I will leave most of the details to your own research; however, it's pretty straight forward. We are making the same request we made in the browser, and after another initial batch of dependency downloads (grapes) it should yield:</p>
+<pre><code>Status: 200
+Content: [content:Hello, Chris!, id:6]
+</code></pre><p>Ok, our control group is working. Now, let's add in the HTTPS. For the Spring Boot project, it's pretty trivial. We need to add an <code>application.properties</code> file in <code>src/main/resources</code> with the following content:</p>
+<pre><code>server.port = 8443
+server.ssl.key-store = /home/cjstehno/.keystore
+server.ssl.key-store-password = tomcat
+server.ssl.key-password = tomcat
+</code></pre><p>Of course, update the key-store path to your home directory. For the server, we also need to install a certificate for our use. </p>
+<blockquote><p>I am not a security certificate expert, so from here on out I will state that this stuff works in development but I make no claims that this is suitable for production use. Proceed at your own risk!</p>
+</blockquote><p>From the <a href="http://tomcat.apache.org/tomcat-8.0-doc/ssl-howto.html">Tomcat 8 SSL How To</a>, run the <code>keytool -genkey -alias tomcat -keyalg RSA</code> and run through the questions answering everything with 'localhost' (there seems to be a reason for this).</p><p>At this point you should be able to restart the server and hit it via HTTPS (<a href="https://localhost:8443/greeting?name=Chris">https://localhost:8443/greeting?name=Chris</a>) to retrieve a successful response as before, though you will need to accept the self-signed certificate.</p><p>Now try the client. Update the URL to the new HTTPS version:</p>
+<pre><code>def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
+</code></pre><p>and give it a run. You should see something like:</p>
+<pre><code>Caught: javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+</code></pre><p>I will start with the simplest method of resolving this problem. HTTPBuilder provides a configuration method that will just ignore these types of SSL errors. If you add:</p>
+<pre><code>http.ignoreSSLIssues()
+</code></pre><p>before you make a request, it will succeed as normal. This should be used only as a development configuration, but there are times when you just want to get something workign for testing. If that's all you want here, you're done. From here on out I will show how to get the SSL configuration working for a more formal use case.</p><p>Still with me? Alright, let's have fun with certificates! The <a href="https://github.com/jgritman/httpbuilder/wiki/SSL">HTTPBuilder wiki page for SSL</a> gives us most of what we need. To summarize, we need to export our server certificate and then import it into a keyfile that our client can use. To export the server certificate, run:</p>
+<pre><code>keytool -exportcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore ~/.keystore -storepass tomcat
+</code></pre><p>which will export the "tomcat" certificate from the keystore at "~/.keystore" (the one we created earlier) and save it into "mytomcat.crt". Next, we need to import this certificate into the keystore that will be used by our client as follows:</p>
+<pre><code>keytool -importcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore clientstore.jks -storepass clientpass
+</code></pre><p>You will be asked to trust this certificate, which you should answer "yes" to continue.</p><p>Now that we have our certificate ready, we can update the client script to use it. The client script becomes:</p>
+<pre><code class="groovy">@Grapes(
+    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+import java.security.KeyStore
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+
+def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
+
+def keyStore = KeyStore.getInstance( KeyStore.defaultType )
+
+new File( args[0] ).withInputStream {
+   keyStore.load( it, args[1].toCharArray() )
+}
+
+http.client.connectionManager.schemeRegistry.register(new Scheme(&quot;https&quot;, new SSLSocketFactory(keyStore), 443) )
+
+http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
+    println &quot;Status: ${resp.status}&quot;
+    println &quot;Content: $json&quot;
+}
+</code></pre><p>The main changes from the previous version are the loading and use of the keystore by the connection manager. When you run this version of the script, with:</p>
+<pre><code>groovy rest-client.groovy clientstore.jks clientpass
+</code></pre><p>you get:</p>
+<pre><code>Status: 200
+Content: [content:Hello, Chris!, id:1]
+</code></pre><p>We are now using HTTPS on both the server and client for our rest service. It's not all that bad to setup once you figure out the steps, but in general the information seems to be tough to find.</p></p>
+  	
 		<a href="blog/2015/tour-de-mock-6-spock.html"><h1>Tour de Mock 6: Spock</h1></a>
 		<p><em>09 April 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
 		<p><p>My last entry in my "Tour de Mock" series was focused on basic <a href="http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html">Groovy mocking</a>. In this post, I am going to take a look at the <a href="https://code.google.com/p/spock/">Spock Framework</a>, which is an alternative testing framework with a lot of features, including its own mocking API.</p><p>Since it's been a while, let's refer back to the <a href="http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html">original posting</a> as a refresher of what is being tested. We have a <code>Servlet</code>, the <code>EmailListServlet</code> </p>
@@ -1148,73 +1227,6 @@ gradle test
 	platforms = &#39;windows&#39;
 }
 </code></pre><p>Will only copy the windows libraries into the build.</p><p>Feel free to create an issue for any bugs you find or features you would like to see. Also, I am open to bug fixes and pull requests from others.</p></p>
-  	
-		<a href="blog/2013/mapping-large-data-sets.html"><h1>Mapping Large Data Sets</h1></a>
-		<p><em>09 June 2013</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/javascript.html'>javascript</a></p>
-		<p><p>Recently, I was tasked to resolve some performance issues related to displaying a large set of geo-location data on a map. Basically, the existing implementation was taking the simple approach of fetching all the location data from the server and rendering it on the map. While, there is nothing inherently wrong with this approach, it does not scale well as the number of data points increases, which was the problem at hand. </p><p>The map needed to be able to render equally well whether there were 100 data points or a million. With this direct approach, the browser started to bog down at just over a thousand points, and failed completely at 100-thousand. A million was out of the question. So, what can be done?</p><p>I have created a small demo application to help present the concepts and techniques I used in solving this problem. I intend to focus mostly on the concepts and keep the discussion of the code to a minimum. This will not really be much of an OpenLayers tutorial unless you are faced with a similar task. See the sidebar for more information about how to setup and run the application - it's only necessary if you want to run the demo yourself.</p>
-<blockquote><p>The demo application is available on <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/mapping-large-data">GitHub</a> and its README file contains the information you need to build and run it.</p>
-</blockquote><p>First, let's look at the problem itself. If you fire up the demo "V1" with a data set of 10k or less, you will see something like the following:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v1_view.png" alt="V1 View""/></p><p>You can see that even with only ten thousand data points it is visually cluttered and a bit sluggish to navigate. If you build a larger data set of 100k or better yet, a million data points and try to run the demo, at best it will take a long time, most likely it will crash your browser. This approach is just not practical for this volume of data.</p><p>The code for this version simply makes an ajax request to the data service to retrieve all the data points:</p>
-<pre><code class="javascript">$.ajax(&#39;poi/v1/fetch&#39;, { contentType:&#39;application/json&#39; }).done(function(data){
-	updateMarkers(map, data);
-});
-</code></pre><p>and then renders the markers for each data point on the map:</p>
-<pre><code class="javascript">function updateMarkers( map, data ){
-	var layer = map.getLayersByName(&#39;Data&#39;)[0];
-
-	var markers = $.map(data, function(item){
-		return new OpenLayers.Feature.Vector(
-			new OpenLayers.Geometry.Point(
-				item.longitude, item.latitude
-			).transform(PROJECTION_EXTERNAL, PROJECTION_INTERNAL),
-			{ 
-				item:item 
-			},
-			OpenLayers.Util.applyDefaults(
-				{ fillColor:&#39;#0000ff&#39; }, 
-				OpenLayers.Feature.Vector.style[&#39;default&#39;]
-			)
-		);
-	});
-
-	layer.addFeatures(markers);
-}
-</code></pre><p>What we really need to do is reduce the amount of data being processed without losing any visual information? The key is to consider the scope of your view. Other than at the lowest zoom levels (whole Earth view) you are only viewing a relatively limited part of the whole map, which means that only a sub-set of the data is visible at any given time. So why fetch it all from the server when it just adds unnecessary load on the JavaScript mapping library?</p><p>The answer is that you don't have to. If you listen to map view change events and fetch the data for only your current view by passing the view bounding box to your query, you can limit the data down to only what you currently see. The "V2" demo uses this approach to limit the volume of data.</p>
-<pre><code class="javascript">eventListeners:{
-	moveend:function(){
-		var bounds = map.getExtent().transform(PROJECTION_INTERNAL, PROJECTION_EXTERNAL).toString();
-
-		$.ajax(&#39;poi/v2/fetch/&#39; + bounds, { contentType:&#39;application/json&#39; }).done(function(data){
-			updateMarkers(map, data);
-		});
-	}
-}
-</code></pre><p>The <code>updateMarkers()</code> function remains unchanged in this version.</p><p>Visually, this version of the application is the same; however, it will handle larger data sets with less pain. This approach increases the number of requests for data but will reduce the amount of data retrieved as the user zooms into their target area of interest.</p><p>This approach is still a bit flawed; this method works fine for cases where the user is zoomed in on a state or small country; however, it is still possible to view the whole large data set when your view is at the lower zoom levels (whole Earth). There is still more work to be done.</p><p>In order to reduce the number of data points when viewing the lower zoom levels, we need to consider how useful all this data really is. Considering the image from V1, which is still valid for V2, is there any use in rendering all of those data points? This is just random distributed data, but even real data would probably be as dense or even more so in areas around population centers which would only compound the problem. How can you clean up this display mess while also reducing the amount of data being sent, oh, and without any lose of useful information?</p><p>The first part of the answer is clustering (see <a href="http://en.wikipedia.org/wiki/Cluster_analysis">Cluster Analysis</a>). We needed to group the data together in a meaningful way such that we present a representative point for a nearby group of points, otherwise known as a cluster. After some research and peer discussion, it was decided that the <a href="http://en.wikipedia.org/wiki/K-means_clustering">K-Means Clustering Algorithm</a> was the approach for our needs, and the <a href="http://commons.apache.org/proper/commons-math/">Apache Commons - Math</a> library provided a stable and generic implementation that would work well for our requirements. It is also what I have used here for this demo.</p><p>The clustering provides a means of generating a fixed-size data set representing the whole around a common center point. With this, you can limit your clustered data set down to something like 200, which can easily be displayed on the map, and will still provide an accurate representation of the location data.</p><p>Notice, though, I said that clustering was the first part of the answer... what is the second? Consider the effect of clustering on your data set as you zoom in from whole Earth view down to city street level. Clustering combined with view-bounds limiting will cause your overall data set to change. When the data points used in the cluster calculation change, the results change, which causes the location points to jump. I called this "jitter". Even just panning the map at a constant zoom level would cause map markers to move around like they were doing some sort of annoying square dance. To overcome the jittery cluster markers, you need to keep the data set used in the cluster calculation constant.</p><p>A hybrid approach is required. Basically, add the zoom level to the fetch request.</p>
-<pre><code class="javascript">eventListeners:{
-	moveend:function(){
-		var bounds = map.getExtent().transform(PROJECTION_INTERNAL, PROJECTION_EXTERNAL).toString();
-		var zoom = map.getZoom();
-
-		$.ajax(&#39;poi/v3/fetch/&#39; + bounds + &#39;/&#39; + zoom, { contentType:&#39;application/json&#39; }).done(function(data){
-			updateMarkers(map, data);
-		});
-	}
-}
-</code></pre><p>At the lower zoom levels, up to a configured threshold, you calculate the clusters across the whole data set (not bound by view) and cache this cluster data so that the calculation will only be done on the first call. Since zoom is not a function of this calculation, there can be one cached data set for all of the zoom levels below the specified threshold. Then, when the user zooms into the higher zoom levels (over the threshold), the actual data points (filtered by the view bounds) are returned by the fetch.</p><p>If you look at demo V3, you can see this in action, for 10-thousand points:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v3_10k.png" alt="V3 10k View""/></p><p>And if you run the demo with a one-million point data set, you will see the same view. The initial load will take a bit longer but once loaded, it should perform nicely. What you may notice, though is that once you cross the clustered threshold you may suddenly get a large data set again... not overly so, but just more than you might expect. This is an area that you would want to tune to your specific needs so that you have a balance of when this change occurs to get the best perceived results.</p><p>You could stop here and be done with it, but depending on how your data is distributed you could still run into some overly-dense visual areas. Consider the case where you generate a million data points, but only in the Western Hemisphere.</p><p>If you build a one-million point data set for only the Americas, you can see that there are still some overly-dense areas even with the clustering. Since I am using <a href="http://openlayers.org/">OpenLayers</a> as the mapping API, I can use their client-side clustering mechanism to help resolve this. With the client-side clustering enabled, the mapping API will groups markers together by distance to help de-clutter the view. If you look at V3 again, you can see the cluster clutter problem:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v3_west.png" alt="V3 West""/></p><p>You can see that there are still some areas of high marker density. The client-side clustering strategy in OpenLayers can help relieve the clutter a bit:</p>
-<pre><code class="javascript">new OpenLayers.Layer.Vector(&#39;Data&#39;,{
-	style: OpenLayers.Util.applyDefaults(
-		{
-			fillColor:&#39;#00ff00&#39;
-		},
-		OpenLayers.Feature.Vector.style[&#39;default&#39;]
-	),
-	strategies:[
-		new OpenLayers.Strategy.Cluster({
-			distance:50,
-			threshold:3
-		})
-	]
-})
-</code></pre><p>as can be seen in V4:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west.png" alt="V4 West""/></p><p>But, it is more apparent when you zoom in:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west_zoom.png" alt="V4 West Zoom""/></p><p>You can see now that the green markers are client-side clusters and the blue markers are server-side points (clusters or single locations).</p><p>At the end of all that you have a map with client-side clustering to handle visual density at the local level. You have server-side clustering at more-global zoom levels, with caching to remove jitter and reduce calculation time and you have actual location points being served filtered by bounds. It seems like a lot of effort, but overall the code itself is fairly simple and straight-forward... and now we can support a million data points with no real issues or loss of information.</p><p>One thing I have not mentioned here is the use of GIS databases or extensions. My goal here was more conceptual, but should you be faced with this kind of problem, you should look into the GIS support for your data storage solution since being able to run queries directly on the bounding shape can be more efficient with GIS solutions in place.</p></p>
   	
 	
 	<hr />

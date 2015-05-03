@@ -111,22 +111,22 @@ Weight: 200-300
 <pre><code class="groovy">interface Lobe {
     boolean overlaps( Lobe other )
 }
-</code></pre><p>Each lobe implementation defines what it means to overlap another Lobe of the same type. Using Groovy and some<br/>generic logic we can easily come up with a<br/><a href="http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/ComparableLobe.groovy">ComparableLobe</a><br/>which is based on single values and ranges of Comparable objects such as numbers, strings and ranges. This allows us to<br/>do things like:</p>
+</code></pre><p>Each lobe implementation defines what it means to overlap another Lobe of the same type. Using Groovy and some<br/>generic logic we can easily come up with a<br/><a href="https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/ComparableLobe.groovy">ComparableLobe</a><br/>which is based on single values and ranges of Comparable objects such as numbers, strings and ranges. This allows us to<br/>do things like:</p>
 <pre><code class="groovy">new ComparableLobe( 10..20, 50, 75 )
 new ComparableLobe( &#39;a&#39;, &#39;h&#39;..&#39;j&#39;, &#39;m&#39; )
 
 lobeA.overlaps( lobeB )
 </code></pre><p>which can make the overlap determination very flexible.</p>
-<blockquote><p><em>Note:</em> All of the source code from this article is available in my <a href="http://github.com/">GitHub</a> repo called <a href="http://github.com/cjstehno/overlap">Overlap</a>.</p>
+<blockquote><p><em>Note:</em> All of the source code from this article is available in my <a href="http://github.com/">GitHub</a> repo called <a href="https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap">Overlap</a>.</p>
 </blockquote><p>Now we can create Lobes for each of the overlap-comparable parts of our People, using "People A" as an<br/>example:</p>
 <pre><code class="groovy">def genderLobe = new ComparableLobe( &#39;M&#39; )
 def agesLobe = new ComparableLobe( 15..25 )
 def weightsLobe = new ComparableLobe( 200..300 )
-</code></pre><p>The next thing we need is a way of comparing these lobes in a simple and repeatable manner and that's where the<br/><a href="http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/Overlappable.groovy">Overlappable</a> interface<br/>comes in:</p>
+</code></pre><p>The next thing we need is a way of comparing these lobes in a simple and repeatable manner and that's where the<br/><a href="https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy">Overlappable</a> interface<br/>comes in:</p>
 <pre><code class="groovy">interface Overlappable {
     boolean overlaps ( Overlappable other )
 }
-</code></pre><p>The Overlappable interface defines an object that can be compared for overlap. The required method is basically the<br/>same as that of the Lobe; however, this interface is for the parent object itself. By providing an abstract<br/>implementation of this interface we have a nice clean way of providing overlap detection functionality for an object<br/>type. The <a href="http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/AbstractOverlappable.groovy">AbstractOverlappable</a><br/>provides an implementation of the overlaps() method using the OverlapBuilder, which we will talk about in a minute. What<br/>the abstract class also provides is a simple way of emitting the Lobes for the given object in a simple manner, as an<br/>array. You can use this with our example above to create a simple Overlappable Person object:</p>
+</code></pre><p>The Overlappable interface defines an object that can be compared for overlap. The required method is basically the<br/>same as that of the Lobe; however, this interface is for the parent object itself. By providing an abstract<br/>implementation of this interface we have a nice clean way of providing overlap detection functionality for an object<br/>type. The <a href="https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy">AbstractOverlappable</a><br/>provides an implementation of the overlaps() method using the OverlapBuilder, which we will talk about in a minute. What<br/>the abstract class also provides is a simple way of emitting the Lobes for the given object in a simple manner, as an<br/>array. You can use this with our example above to create a simple Overlappable Person object:</p>
 <pre><code class="groovy">class People extends AbstractOverlappable {
     String gender
     IntRange ages
@@ -140,7 +140,7 @@ def weightsLobe = new ComparableLobe( 200..300 )
         ]
     }
 }
-</code></pre><p>The overlaps() method uses the provided Lobes to popualte an<br/><a href="http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/OverlapBuilder.groovy">OverlapBuilder</a>,<br/>which is basically a helper class for performing the actual Lobe-to-Lobe comparison of a given set of Lobes. The<br/>OverlapBuilder is inspired by the builder in the Apache Commons - Lang API, such as EqualsBuilder and HashCodeBuilder.<br/>You create an instance and append your Lobes to it, then execute the overlap() method to perform the comparison.</p>
+</code></pre><p>The overlaps() method uses the provided Lobes to popualte an<br/><a href="https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/OverlapBuilder.groovy">OverlapBuilder</a>,<br/>which is basically a helper class for performing the actual Lobe-to-Lobe comparison of a given set of Lobes. The<br/>OverlapBuilder is inspired by the builder in the Apache Commons - Lang API, such as EqualsBuilder and HashCodeBuilder.<br/>You create an instance and append your Lobes to it, then execute the overlap() method to perform the comparison.</p>
 <pre><code class="groovy">new OverlapBuilder()
     .appendLobe(new ComparableLobe(1..10), new ComparableLobe(5..15))
     .overlap()
@@ -160,7 +160,9 @@ list[0..-2].eachWithIndex { self, idx-&gt;
         }
     }
 }
-</code></pre><p>As a final little bonus feature, I have added a <code>ComparableLobe.ANY</code> object which denotes a Lobe that will always be<br/>considered to overlap, no matter what the other value is.</p><p>This kind of multi-variable overlap-checking scenario may not come up all that often, but when it does, it can give you<br/>a lot of grief, especially if the fields being compared are numerous and complex. I have had to create a couple<br/>additional Lobe implementations but am also using the <code>ComparableLobe</code> quite a bit. This library has been a real<br/>time-saver. And, once broken down into component parts, the overlap determination becomes simple to implement and test,<br/>which makes it much more stable over time.</p></p>
+</code></pre><p>As a final little bonus feature, I have added a <code>ComparableLobe.ANY</code> object which denotes a Lobe that will always be<br/>considered to overlap, no matter what the other value is.</p><p>This kind of multi-variable overlap-checking scenario may not come up all that often, but when it does, it can give you<br/>a lot of grief, especially if the fields being compared are numerous and complex. I have had to create a couple<br/>additional Lobe implementations but am also using the <code>ComparableLobe</code> quite a bit. This library has been a real<br/>time-saver. And, once broken down into component parts, the overlap determination becomes simple to implement and test,<br/>which makes it much more stable over time.</p>
+<blockquote><p>Update: I have updated the <a href="https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap">Overlap code</a> and added it to my <a href="http://stehno.com/vanilla/">Vanilla</a> library. There have a been a few changes, but the overall usage described here remains the same.</p>
+</blockquote></p>
 
 	<hr />
 	

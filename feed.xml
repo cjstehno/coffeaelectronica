@@ -6,9 +6,94 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Thu, 9 Apr 2015 09:30:24 -0500</pubDate>
-    <lastBuildDate>Thu, 9 Apr 2015 09:30:24 -0500</lastBuildDate>
+    <pubDate>Sun, 3 May 2015 17:29:10 -0500</pubDate>
+    <lastBuildDate>Sun, 3 May 2015 17:29:10 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Secure REST in Spring</title>
+      <link>http://coffeaelectronica.com/blog/2015/secure-rest-spring.html</link>
+      <pubDate>Mon, 4 May 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/secure-rest-spring.html</guid>
+      <description>
+      &lt;p&gt;Getting HTTPS to play nice with REST and non-browser web clients in development (with a self-signed certificate) can be a frustrating effort. I struggled for a while down the path of using the Spring &lt;code&gt;RestTemplate&lt;/code&gt; thinking that since I was using Spring MVC as my REST provider, it would make things easier; in this case, Spring did not come to the rescue, but Groovy did or rather the Groovy &lt;a href=&quot;https://github.com/jgritman/httpbuilder&quot;&gt;HTTPBuilder&lt;/a&gt; did.&lt;/p&gt;&lt;p&gt;To keep this discussion simple, we need a simple REST project using HTTPS. I found the &lt;a href=&quot;https://github.com/spring-guides/gs-rest-service&quot;&gt;Spring REST Service Guide&lt;/a&gt; project useful for this (with a few modifications to follow).&lt;/p&gt;&lt;p&gt;Go ahead and clone the project:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git clone git@github.com:spring-guides/gs-rest-service.git
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Since this is a tutorial project, it has a few versions of the code in it. We are going to work with the &quot;complete&quot; version, which is a Gradle project. Let&apos;s go ahead and do a build and run just to ensure everything works out of the box:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cd gs-rest-service/complete
+./gradlew bootRun
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;After a bunch of downloading and startup logging you should see that the application has started. You can give it a test by opening &lt;code&gt;http://localhost:8080/greeting?name=Chris&lt;/code&gt; in your browser, which should respond with:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;json&quot;&gt;{
+    &amp;quot;id&amp;quot;: 2,
+    &amp;quot;content&amp;quot;: &amp;quot;Hello, Chris!&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now that we have that running, we want a RESTful client to call it rather that hitting it using the browser. Let&apos;s get it working with the simple HTTP case first to ensure that we have everything working before we go into the HTTPS configuration. Create a groovy script, &lt;code&gt;rest-client.groovy&lt;/code&gt; with the following content:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@Grapes(
+    @Grab(group=&amp;#39;org.codehaus.groovy.modules.http-builder&amp;#39;, module=&amp;#39;http-builder&amp;#39;, version=&amp;#39;0.7.1&amp;#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+
+def http = new HTTPBuilder( &amp;#39;http://localhost:8080/&amp;#39; )
+
+http.get( path: &amp;#39;greeting&amp;#39;, query:[name:&amp;#39;Chris&amp;#39;] ) { resp, json -&amp;gt;
+    println &amp;quot;Status: ${resp.status}&amp;quot;
+    println &amp;quot;Content: $json&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Since this is not a discussion of HTTPBuilder itself, I will leave most of the details to your own research; however, it&apos;s pretty straight forward. We are making the same request we made in the browser, and after another initial batch of dependency downloads (grapes) it should yield:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Status: 200
+Content: [content:Hello, Chris!, id:6]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Ok, our control group is working. Now, let&apos;s add in the HTTPS. For the Spring Boot project, it&apos;s pretty trivial. We need to add an &lt;code&gt;application.properties&lt;/code&gt; file in &lt;code&gt;src/main/resources&lt;/code&gt; with the following content:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;server.port = 8443
+server.ssl.key-store = /home/cjstehno/.keystore
+server.ssl.key-store-password = tomcat
+server.ssl.key-password = tomcat
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Of course, update the key-store path to your home directory. For the server, we also need to install a certificate for our use. &lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;I am not a security certificate expert, so from here on out I will state that this stuff works in development but I make no claims that this is suitable for production use. Proceed at your own risk!&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;From the &lt;a href=&quot;http://tomcat.apache.org/tomcat-8.0-doc/ssl-howto.html&quot;&gt;Tomcat 8 SSL How To&lt;/a&gt;, run the &lt;code&gt;keytool -genkey -alias tomcat -keyalg RSA&lt;/code&gt; and run through the questions answering everything with &apos;localhost&apos; (there seems to be a reason for this).&lt;/p&gt;&lt;p&gt;At this point you should be able to restart the server and hit it via HTTPS (&lt;a href=&quot;https://localhost:8443/greeting?name=Chris&quot;&gt;https://localhost:8443/greeting?name=Chris&lt;/a&gt;) to retrieve a successful response as before, though you will need to accept the self-signed certificate.&lt;/p&gt;&lt;p&gt;Now try the client. Update the URL to the new HTTPS version:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;def http = new HTTPBuilder( &amp;#39;https://localhost:8443/&amp;#39; )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and give it a run. You should see something like:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Caught: javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I will start with the simplest method of resolving this problem. HTTPBuilder provides a configuration method that will just ignore these types of SSL errors. If you add:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;http.ignoreSSLIssues()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;before you make a request, it will succeed as normal. This should be used only as a development configuration, but there are times when you just want to get something workign for testing. If that&apos;s all you want here, you&apos;re done. From here on out I will show how to get the SSL configuration working for a more formal use case.&lt;/p&gt;&lt;p&gt;Still with me? Alright, let&apos;s have fun with certificates! The &lt;a href=&quot;https://github.com/jgritman/httpbuilder/wiki/SSL&quot;&gt;HTTPBuilder wiki page for SSL&lt;/a&gt; gives us most of what we need. To summarize, we need to export our server certificate and then import it into a keyfile that our client can use. To export the server certificate, run:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;keytool -exportcert -alias &amp;quot;tomcat&amp;quot; -file mytomcat.crt -keystore ~/.keystore -storepass tomcat
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which will export the &quot;tomcat&quot; certificate from the keystore at &quot;~/.keystore&quot; (the one we created earlier) and save it into &quot;mytomcat.crt&quot;. Next, we need to import this certificate into the keystore that will be used by our client as follows:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;keytool -importcert -alias &amp;quot;tomcat&amp;quot; -file mytomcat.crt -keystore clientstore.jks -storepass clientpass
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You will be asked to trust this certificate, which you should answer &quot;yes&quot; to continue.&lt;/p&gt;&lt;p&gt;Now that we have our certificate ready, we can update the client script to use it. The client script becomes:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@Grapes(
+    @Grab(group=&amp;#39;org.codehaus.groovy.modules.http-builder&amp;#39;, module=&amp;#39;http-builder&amp;#39;, version=&amp;#39;0.7.1&amp;#39;)
+)
+
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.Method.GET
+import java.security.KeyStore
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+
+def http = new HTTPBuilder( &amp;#39;https://localhost:8443/&amp;#39; )
+
+def keyStore = KeyStore.getInstance( KeyStore.defaultType )
+
+new File( args[0] ).withInputStream {
+   keyStore.load( it, args[1].toCharArray() )
+}
+
+http.client.connectionManager.schemeRegistry.register(new Scheme(&amp;quot;https&amp;quot;, new SSLSocketFactory(keyStore), 443) )
+
+http.get( path: &amp;#39;greeting&amp;#39;, query:[name:&amp;#39;Chris&amp;#39;] ) { resp, json -&amp;gt;
+    println &amp;quot;Status: ${resp.status}&amp;quot;
+    println &amp;quot;Content: $json&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The main changes from the previous version are the loading and use of the keystore by the connection manager. When you run this version of the script, with:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;groovy rest-client.groovy clientstore.jks clientpass
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;you get:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Status: 200
+Content: [content:Hello, Chris!, id:1]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We are now using HTTPS on both the server and client for our rest service. It&apos;s not all that bad to setup once you figure out the steps, but in general the information seems to be tough to find.&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Tour de Mock 6: Spock</title>
@@ -1793,22 +1878,22 @@ Weight: 200-300
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;interface Lobe {
     boolean overlaps( Lobe other )
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each lobe implementation defines what it means to overlap another Lobe of the same type. Using Groovy and some&lt;br/&gt;generic logic we can easily come up with a&lt;br/&gt;&lt;a href=&quot;http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/ComparableLobe.groovy&quot;&gt;ComparableLobe&lt;/a&gt;&lt;br/&gt;which is based on single values and ranges of Comparable objects such as numbers, strings and ranges. This allows us to&lt;br/&gt;do things like:&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Each lobe implementation defines what it means to overlap another Lobe of the same type. Using Groovy and some&lt;br/&gt;generic logic we can easily come up with a&lt;br/&gt;&lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/ComparableLobe.groovy&quot;&gt;ComparableLobe&lt;/a&gt;&lt;br/&gt;which is based on single values and ranges of Comparable objects such as numbers, strings and ranges. This allows us to&lt;br/&gt;do things like:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;new ComparableLobe( 10..20, 50, 75 )
 new ComparableLobe( &amp;#39;a&amp;#39;, &amp;#39;h&amp;#39;..&amp;#39;j&amp;#39;, &amp;#39;m&amp;#39; )
 
 lobeA.overlaps( lobeB )
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which can make the overlap determination very flexible.&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; All of the source code from this article is available in my &lt;a href=&quot;http://github.com/&quot;&gt;GitHub&lt;/a&gt; repo called &lt;a href=&quot;http://github.com/cjstehno/overlap&quot;&gt;Overlap&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; All of the source code from this article is available in my &lt;a href=&quot;http://github.com/&quot;&gt;GitHub&lt;/a&gt; repo called &lt;a href=&quot;https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap&quot;&gt;Overlap&lt;/a&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;&lt;p&gt;Now we can create Lobes for each of the overlap-comparable parts of our People, using &quot;People A&quot; as an&lt;br/&gt;example:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def genderLobe = new ComparableLobe( &amp;#39;M&amp;#39; )
 def agesLobe = new ComparableLobe( 15..25 )
 def weightsLobe = new ComparableLobe( 200..300 )
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The next thing we need is a way of comparing these lobes in a simple and repeatable manner and that&apos;s where the&lt;br/&gt;&lt;a href=&quot;http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/Overlappable.groovy&quot;&gt;Overlappable&lt;/a&gt; interface&lt;br/&gt;comes in:&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The next thing we need is a way of comparing these lobes in a simple and repeatable manner and that&apos;s where the&lt;br/&gt;&lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy&quot;&gt;Overlappable&lt;/a&gt; interface&lt;br/&gt;comes in:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;interface Overlappable {
     boolean overlaps ( Overlappable other )
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The Overlappable interface defines an object that can be compared for overlap. The required method is basically the&lt;br/&gt;same as that of the Lobe; however, this interface is for the parent object itself. By providing an abstract&lt;br/&gt;implementation of this interface we have a nice clean way of providing overlap detection functionality for an object&lt;br/&gt;type. The &lt;a href=&quot;http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/AbstractOverlappable.groovy&quot;&gt;AbstractOverlappable&lt;/a&gt;&lt;br/&gt;provides an implementation of the overlaps() method using the OverlapBuilder, which we will talk about in a minute. What&lt;br/&gt;the abstract class also provides is a simple way of emitting the Lobes for the given object in a simple manner, as an&lt;br/&gt;array. You can use this with our example above to create a simple Overlappable Person object:&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The Overlappable interface defines an object that can be compared for overlap. The required method is basically the&lt;br/&gt;same as that of the Lobe; however, this interface is for the parent object itself. By providing an abstract&lt;br/&gt;implementation of this interface we have a nice clean way of providing overlap detection functionality for an object&lt;br/&gt;type. The &lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/Overlappable.groovy&quot;&gt;AbstractOverlappable&lt;/a&gt;&lt;br/&gt;provides an implementation of the overlaps() method using the OverlapBuilder, which we will talk about in a minute. What&lt;br/&gt;the abstract class also provides is a simple way of emitting the Lobes for the given object in a simple manner, as an&lt;br/&gt;array. You can use this with our example above to create a simple Overlappable Person object:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class People extends AbstractOverlappable {
     String gender
     IntRange ages
@@ -1822,7 +1907,7 @@ def weightsLobe = new ComparableLobe( 200..300 )
         ]
     }
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The overlaps() method uses the provided Lobes to popualte an&lt;br/&gt;&lt;a href=&quot;http://github.com/cjstehno/overlap/blob/master/src/main/groovy/com/stehno/overlap/OverlapBuilder.groovy&quot;&gt;OverlapBuilder&lt;/a&gt;,&lt;br/&gt;which is basically a helper class for performing the actual Lobe-to-Lobe comparison of a given set of Lobes. The&lt;br/&gt;OverlapBuilder is inspired by the builder in the Apache Commons - Lang API, such as EqualsBuilder and HashCodeBuilder.&lt;br/&gt;You create an instance and append your Lobes to it, then execute the overlap() method to perform the comparison.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The overlaps() method uses the provided Lobes to popualte an&lt;br/&gt;&lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap/OverlapBuilder.groovy&quot;&gt;OverlapBuilder&lt;/a&gt;,&lt;br/&gt;which is basically a helper class for performing the actual Lobe-to-Lobe comparison of a given set of Lobes. The&lt;br/&gt;OverlapBuilder is inspired by the builder in the Apache Commons - Lang API, such as EqualsBuilder and HashCodeBuilder.&lt;br/&gt;You create an instance and append your Lobes to it, then execute the overlap() method to perform the comparison.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;new OverlapBuilder()
     .appendLobe(new ComparableLobe(1..10), new ComparableLobe(5..15))
     .overlap()
@@ -1843,6 +1928,8 @@ list[0..-2].eachWithIndex { self, idx-&amp;gt;
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As a final little bonus feature, I have added a &lt;code&gt;ComparableLobe.ANY&lt;/code&gt; object which denotes a Lobe that will always be&lt;br/&gt;considered to overlap, no matter what the other value is.&lt;/p&gt;&lt;p&gt;This kind of multi-variable overlap-checking scenario may not come up all that often, but when it does, it can give you&lt;br/&gt;a lot of grief, especially if the fields being compared are numerous and complex. I have had to create a couple&lt;br/&gt;additional Lobe implementations but am also using the &lt;code&gt;ComparableLobe&lt;/code&gt; quite a bit. This library has been a real&lt;br/&gt;time-saver. And, once broken down into component parts, the overlap determination becomes simple to implement and test,&lt;br/&gt;which makes it much more stable over time.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;Update: I have updated the &lt;a href=&quot;https://github.com/cjstehno/vanilla/tree/master/vanilla-core/src/main/groovy/com/stehno/vanilla/overlap&quot;&gt;Overlap code&lt;/a&gt; and added it to my &lt;a href=&quot;http://stehno.com/vanilla/&quot;&gt;Vanilla&lt;/a&gt; library. There have a been a few changes, but the overall usage described here remains the same.&lt;/p&gt;
+&lt;/blockquote&gt;
 	  </description>
     </item>
     
@@ -5461,7 +5548,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -5739,7 +5826,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -5751,7 +5838,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -5862,7 +5949,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6181,7 +6268,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
