@@ -6,9 +6,61 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 3 May 2015 17:29:10 -0500</pubDate>
-    <lastBuildDate>Sun, 3 May 2015 17:29:10 -0500</lastBuildDate>
+    <pubDate>Wed, 6 May 2015 06:55:53 -0500</pubDate>
+    <lastBuildDate>Wed, 6 May 2015 06:55:53 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Property Randomization for Testing</title>
+      <link>http://coffeaelectronica.com/blog/2015/property-randomization.html</link>
+      <pubDate>Wed, 6 May 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/property-randomization.html</guid>
+      <description>
+      &lt;p&gt;Unit tests are great, but sometimes you end up creating a lot of test objects requiring data, such as DTOs and domain objects. Generally, I have always come up with movie quotes or other interesting content for test data. Recently, while working on a Groovy project, I thought it would be interesting to have a way to randomly generate and populate the data for these objects. The randomization would provide a simpler approach to test data as well as providing the potential for stumbling on test data that would break your code in interesting ways.&lt;/p&gt;&lt;p&gt;My &lt;a href=&quot;http://github.com/cjstehno/vanilla&quot;&gt;Vanilla&lt;/a&gt; project now has a &lt;code&gt;PropertyRandomizer&lt;/code&gt; class, which provides this property randomization functionality in two ways. You can use it as a builder or as a DSL.&lt;/p&gt;&lt;p&gt;Say you have a &lt;code&gt;Person&lt;/code&gt; domain class, defined as:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@ToString
+class Person {
+    String name
+    Date birthDate
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You could generate a random instance of it using:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def rando = randomize(Person).typeRandomizers( (Date):{ new Date() } )
+def instance = rando.one()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Note, that there is no default randomizer for &lt;code&gt;Date&lt;/code&gt; so we had to provide one. The other fields, &lt;code&gt;name&lt;/code&gt; in this case would be randomized by the default randomizer.&lt;/p&gt;&lt;p&gt;The DSL usage style for the use case above would be:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def rando = randomize(Person){
+    typeRandomizers( 
+        (Date):{ new Date() } 
+    )
+}
+def instance = rando.one()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not really much difference, but sometimes a DSL style construct is cleaner to work with.&lt;/p&gt;&lt;p&gt;What if you need three random instances for the same class, all different? You just ask for them:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def instances = rando.times(3)
+
+// or 
+
+instances = rando * 3
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The multiplication operator is overridden to provide a nice shortcut for requesting multiple random instances.&lt;/p&gt;&lt;p&gt;You can customize the randomizers at either the type or property level or you can configure certain properties to be ignored by the randomization. This allows for nested randomized objects. Say your &lt;code&gt;Person&lt;/code&gt; has a new &lt;code&gt;pet&lt;/code&gt; property.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@ToString
+class Person {
+    String name
+    Date birthDate
+    Pet pet
+}
+
+@ToString
+class Pet {
+    String name
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You can easily provide randomized pets for your randomized people:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def rando = randomize(Person){
+    typeRandomizers( 
+        (Date):{ new Date() },
+        (Pet): { randomize(Pet).one() }
+    )
+}
+def instance = rando.one()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I have started using this in some of my testing, at it comes in pretty handy. My Vanilla library is not yet available via any public repositories; however, it will be soon, and if there is expressed interest, I can speed this up.&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Secure REST in Spring</title>
@@ -5548,7 +5600,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -5826,7 +5878,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -5838,7 +5890,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -5949,7 +6001,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6268,7 +6320,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
