@@ -4,7 +4,7 @@ type=post
 tags=blog,java,groovy
 status=published
 ~~~~~~
-In my last post about [Jackrabbit](http://jackrabbit.apache.org), "[Wabbit Season with Jackrabbit](Wabbit-Season-with-Jackrabbit)", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.
+In my last post about [Jackrabbit](http://jackrabbit.apache.org), "[Wabbit Season with Jackrabbit](http://coffeaelectronica.com/blog/2014/wabbit-season-with-jackrabbit.html)", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.
 
 In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.
 

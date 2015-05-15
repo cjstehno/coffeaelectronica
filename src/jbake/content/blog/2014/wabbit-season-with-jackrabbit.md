@@ -6,8 +6,6 @@ status=published
 ~~~~~~
 I have been playing with [Apache Jackrabbit](http://jackrabbit.apache.org) today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "[First Hops](http://jackrabbit.apache.org/first-hops.html)" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.
 
-## Getting Started
-
 The quickest and easiest way to get started is using an embedded `TransientRepository`. Create a project directory and create a `build.groovy` Gradle build file similar to the following:
 
 ```groovy
@@ -28,9 +26,7 @@ dependencies {
 
 This will give you the required dependencies and a nice playground project to work with.
 
-## Logging in to Jackrabbit
-
-In the `src/main/groovy` directory of the project, create a file called `Rabbits.groovy` with the following code:
+Next, we need to login to the repository. In the `src/main/groovy` directory of the project, create a file called `Rabbits.groovy` with the following code:
 
 ```groovy
 import groovy.util.logging.Slf4j
@@ -65,7 +61,9 @@ The important part here is the `TransientRepository` code, which allows you to u
 
 The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:
 
-```2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.```
+```
+2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.
+```
 
 The `finally` block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.
 
@@ -83,8 +81,6 @@ log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p
 ```
 
 > If you want to see more about what Jackrabbit is doing, set the logging level for `log4j.logger.org.apache.jackrabbit` to `INFO` - it gets a little verbose, so I turned it down to WARN.
-
-## Working with Content
 
 When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The `main` method of the `Rabbits` class now becomes:
 
@@ -168,9 +164,7 @@ When you run this version of the code, you should see something like this:
 2014-08-23 15:45:18 Rabbits [INFO] Removed node.
 ```
 
-## Working with Binary Content
-
-This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "[Storing Files and Folders](https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t)" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.
+On to binary content. This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "[Storing Files and Folders](https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t)" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.
 
 Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the `try/finally` block of our example becomes:
 
@@ -277,8 +271,6 @@ When you run this version of the code, you will have output similar to:
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
 ```
-
-## Conclusion
 
 Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.
 
