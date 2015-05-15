@@ -90,7 +90,7 @@
 
 	<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
 
-	<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><h2>Getting Started</h2><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
+	<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
 <pre><code class="groovy">apply plugin: &#39;groovy&#39;
 
 repositories {
@@ -104,7 +104,7 @@ dependencies {
     compile &#39;org.apache.jackrabbit:jackrabbit-core:2.8.0&#39;
     compile &#39;org.slf4j:slf4j-log4j12:1.7.7&#39;
 }
-</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><h2>Logging in to Jackrabbit</h2><p>In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
+</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><p>Next, we need to login to the repository. In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
 <pre><code class="groovy">import groovy.util.logging.Slf4j
 import org.apache.jackrabbit.core.TransientRepository
 
@@ -132,13 +132,19 @@ class Rabbits {
     }
 }
 </code></pre><p>The important part here is the <code>TransientRepository</code> code, which allows you to use/reuse a repository for testing. I found that specifying a repository directory in my build directory was useful since by default it will put a bunch of files and directories in the root of your project when you run the project - it's just a little cleaner when you can run <code>gradle clean</code> to wipe out your development repository when needed. The downside of specifying the directory seems to be that your repository is not completely transient. I was not clear whether or not this was always the case or just when I set the directory, hence the need to wipe it out sometimes.</p><p>The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:</p>
-<pre><code class="2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.```"><br/>The `finally` block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.
+<pre><code>2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.
+</code></pre><p>The <code>finally</code> block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.</p><p>Lastly, to round out the first version of the project, create a <code>log4j.properties</code> file in <code>src/main/resources</code> so that your logger has some configuration. I used:</p>
+<pre><code>log4j.rootCategory=INFO, Cons
 
-Lastly, to round out the first version of the project, create a `log4j.properties` file in `src/main/resources` so that your logger has some configuration. I used:
+# log4j.logger.com.something=ERROR
+log4j.logger.org.apache.jackrabbit=WARN
 
-</code></pre><p>log4j.rootCategory=INFO, Cons</p><h1>log4j.logger.com.something=ERROR</h1><p>log4j.logger.org.apache.jackrabbit=WARN</p><p>log4j.appender.Cons = org.apache.log4j.ConsoleAppender<br/>log4j.appender.Cons.layout = org.apache.log4j.PatternLayout<br/>log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n<br/>```</p>
+log4j.appender.Cons = org.apache.log4j.ConsoleAppender
+log4j.appender.Cons.layout = org.apache.log4j.PatternLayout
+log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n
+</code></pre>
 <blockquote><p>If you want to see more about what Jackrabbit is doing, set the logging level for <code>log4j.logger.org.apache.jackrabbit</code> to <code>INFO</code> - it gets a little verbose, so I turned it down to WARN.</p>
-</blockquote><h2>Working with Content</h2><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
+</blockquote><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
 <pre><code class="groovy">Repository repository = new TransientRepository(
     new File(&#39;./build/repository&#39;)
 )
@@ -192,7 +198,7 @@ log.info &#39;Removed node.&#39;
 <pre><code>2014-08-23 15:45:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
 2014-08-23 15:45:18 Rabbits [INFO] Found node (/hello/world) with property: Hello, World!
 2014-08-23 15:45:18 Rabbits [INFO] Removed node.
-</code></pre><h2>Working with Binary Content</h2><p>This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
+</code></pre><p>On to binary content. This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
 <pre><code class="groovy">String username = session.userID
 String name = repository.getDescriptor(Repository.REP_NAME_DESC)
 log.info &#39;User ({}) logged into repository ({})&#39;, username, name
@@ -268,7 +274,7 @@ dumpProps node.getNode(&#39;jcr:content&#39;)
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModifiedBy : admin
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
-</code></pre><h2>Conclusion</h2><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
+</code></pre><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
 
 	<hr />
 	

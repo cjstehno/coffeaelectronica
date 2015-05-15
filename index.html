@@ -85,6 +85,48 @@
 
 
 	
+		<a href="blog/2015/test-fixtures.html"><h1>Vanilla Test Fixtures</h1></a>
+		<p><em>15 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><p>Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a <code>FixtureBuilder</code> and <code>Fixture</code> class to my <a href="http://github.com/cjstehno/vanilla">Vanilla-Testing</a> library.</p><p>Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, <code>Person</code> defined as:</p>
+<pre><code class="groovy">class Person {
+    Name name
+    LocalDate birthDate
+    int score
+}
+</code></pre><p>You are writing your unit tests for services and controllers that may need to create and compare various instances of <code>Person</code> and you end up with some constants somewhere or duplication of code with custom instances all over the test code.</p><p>Using <code>com.stehno.vanilla.test.FixtureBuilder</code> you can create reusable fixtures with a simple DSL. I tend to create a main class to contain my fixtures and to also provide the set of supported fixture keys, something like:</p>
+<pre><code class="groovy">class PersonFixtures {
+
+    static final String BOB = &#39;Bob&#39;
+    static final String LARRY = &#39;Larry&#39;
+    
+    static final Fixture FIXTURES = define {
+        fix BOB, [ name:new Name(&#39;Bob&#39;,&#39;Q&#39;,&#39;Public&#39;), birthDate:LocalDate.of(1952,5,14), score:120 ]
+        fix LARRY, [ name:new Name(&#39;Larry&#39;,&#39;G&#39;,&#39;Larson&#39;), birthDate:LocalDate.of(1970,2,8), score:100 ]
+    }
+}
+</code></pre><p>Notice that the <code>define</code> method is where you create the data contained by the fixtures, each mapped with an object key. The key can be any object which may be used as a Map key (proper <code>equals</code> and <code>hashCode</code> implementation).</p><p>The reasoning behind using Maps is that Groovy allows them to be used as constructor arguments for creating objects; therefore, the maps give you a reusable and detached dataset for use in creating your test fixture instances. Two objects instances created from the same fixture data will be equivalent at the level of the properties defined by the fixture; however, each can be manipulated without effecting the other.</p><p>Once your fixtures are defined, you can use them in various ways. You can request the immutable data map for a fixture:</p>
+<pre><code>Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB)
+</code></pre><p>You can create an instance of the target object using the data mapped to a specified fixture:</p>
+<pre><code>Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY)
+</code></pre><p>Or, you can request the data or an instance for a fixture while applying additional (or overridden) properties to the fixture data:</p>
+<pre><code>Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB, score:53)
+Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, score:200)
+</code></pre><p>You can easily retrieve field property values for each fixture for use in your tests:</p>
+<pre><code>assert 100 == PersonFixtures.FIXTURES.field(&#39;score&#39;, PersonFixtures.LARRY)
+</code></pre><p>This allows field-by-field comparisons for testing and the ability to use the field values as parameters as needed.</p><p>Lastly, you can verify that an object instance contains the expected data that is associated with a fixture:</p>
+<pre><code>assert PersonFixtures.FIXTURES.verify(person, PersonFixtures.LARRY)
+</code></pre><p>which will compare the given object to the specified fixture and return true of all of the properties defined in the fixture match the same properties of the given object. There is also a second version of the method which allows property customizations before comparison.</p><p>One step farther... you can combine fixtures with <a href="http://coffeaelectronica.com/blog/2015/property-randomization.html">property randomizaiton</a> to make fixture creation even simpler for those cases where you don't care about what the properties are, just that you can get at them reliably.</p>
+<pre><code class="groovy">static final Fixture FIXTURES = define {
+    fix FIX_A, [ name:randomize(Name).one(), birthDate:LocalDate.of(1952,5,14), score:120 ]
+    fix FIX_B, randomize(Person){
+        typeRandomizers(
+            (Name): randomize(Name),
+            (LocalDate): { LocalDate.now() }
+        )
+    }
+}
+</code></pre><p>The fixture mapper accepts <code>PropertyRandomizer</code> instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.</p><p>One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the <code>asImmutable()</code> method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.</p><p>Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.</p></p>
+  	
 		<a href="blog/2015/property-randomization.html"><h1>Property Randomization for Testing</h1></a>
 		<p><em>06 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
 		<p><p>Unit tests are great, but sometimes you end up creating a lot of test objects requiring data, such as DTOs and domain objects. Generally, I have always come up with movie quotes or other interesting content for test data. Recently, while working on a Groovy project, I thought it would be interesting to have a way to randomly generate and populate the data for these objects. The randomization would provide a simpler approach to test data as well as providing the potential for stumbling on test data that would break your code in interesting ways.</p><p>My <a href="http://github.com/cjstehno/vanilla">Vanilla</a> project now has a <code>PropertyRandomizer</code> class, which provides this property randomization functionality in two ways. You can use it as a builder or as a DSL.</p><p>Say you have a <code>Person</code> domain class, defined as:</p>
@@ -702,7 +744,7 @@ class TimeController {
   	
 		<a href="blog/2014/nodetypes-rabbit-hole.html"><h1>NodeTypes - Deeper Down the Rabbit Hole</h1></a>
 		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>In my last post about <a href="http://jackrabbit.apache.org">Jackrabbit</a>, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.</p><p>In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.</p><p>For this post, you will want to refer to the code presented in the other post, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>" as a starting point (especially the last version of the code, which the code here will be based on).</p><p>For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since <a href="http://tika.apache.org">Apache Tika</a> is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your <code>build.gradle</code> file to update the version:</p>
+		<p><p>In my last post about <a href="http://jackrabbit.apache.org">Jackrabbit</a>, "<a href="http://coffeaelectronica.com/blog/2014/wabbit-season-with-jackrabbit.html">Wabbit Season with Jackrabbit</a>", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.</p><p>In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.</p><p>For this post, you will want to refer to the code presented in the other post, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>" as a starting point (especially the last version of the code, which the code here will be based on).</p><p>For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since <a href="http://tika.apache.org">Apache Tika</a> is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your <code>build.gradle</code> file to update the version:</p>
 <pre><code class="groovy">compile &#39;org.apache.tika:tika-parsers:1.5&#39;
 </code></pre><p>Tika provides metadata extractors for a wide range of file formats, one of which is JPEG images, which is what we are playing with here.</p><p>First, we need to extract the metadata from the image file. I did this just after the main method's file reference statement:</p>
 <pre><code class="groovy">def metadata = extractMetadata( file )
@@ -909,7 +951,7 @@ class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
   	
 		<a href="blog/2014/wabbit-season-with-jackrabbit.html"><h1>Wabbit Season with Jackrabbit</h1></a>
 		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><h2>Getting Started</h2><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
+		<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
 <pre><code class="groovy">apply plugin: &#39;groovy&#39;
 
 repositories {
@@ -923,7 +965,7 @@ dependencies {
     compile &#39;org.apache.jackrabbit:jackrabbit-core:2.8.0&#39;
     compile &#39;org.slf4j:slf4j-log4j12:1.7.7&#39;
 }
-</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><h2>Logging in to Jackrabbit</h2><p>In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
+</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><p>Next, we need to login to the repository. In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
 <pre><code class="groovy">import groovy.util.logging.Slf4j
 import org.apache.jackrabbit.core.TransientRepository
 
@@ -951,13 +993,19 @@ class Rabbits {
     }
 }
 </code></pre><p>The important part here is the <code>TransientRepository</code> code, which allows you to use/reuse a repository for testing. I found that specifying a repository directory in my build directory was useful since by default it will put a bunch of files and directories in the root of your project when you run the project - it's just a little cleaner when you can run <code>gradle clean</code> to wipe out your development repository when needed. The downside of specifying the directory seems to be that your repository is not completely transient. I was not clear whether or not this was always the case or just when I set the directory, hence the need to wipe it out sometimes.</p><p>The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:</p>
-<pre><code class="2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.```"><br/>The `finally` block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.
+<pre><code>2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.
+</code></pre><p>The <code>finally</code> block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.</p><p>Lastly, to round out the first version of the project, create a <code>log4j.properties</code> file in <code>src/main/resources</code> so that your logger has some configuration. I used:</p>
+<pre><code>log4j.rootCategory=INFO, Cons
 
-Lastly, to round out the first version of the project, create a `log4j.properties` file in `src/main/resources` so that your logger has some configuration. I used:
+# log4j.logger.com.something=ERROR
+log4j.logger.org.apache.jackrabbit=WARN
 
-</code></pre><p>log4j.rootCategory=INFO, Cons</p><h1>log4j.logger.com.something=ERROR</h1><p>log4j.logger.org.apache.jackrabbit=WARN</p><p>log4j.appender.Cons = org.apache.log4j.ConsoleAppender<br/>log4j.appender.Cons.layout = org.apache.log4j.PatternLayout<br/>log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n<br/>```</p>
+log4j.appender.Cons = org.apache.log4j.ConsoleAppender
+log4j.appender.Cons.layout = org.apache.log4j.PatternLayout
+log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n
+</code></pre>
 <blockquote><p>If you want to see more about what Jackrabbit is doing, set the logging level for <code>log4j.logger.org.apache.jackrabbit</code> to <code>INFO</code> - it gets a little verbose, so I turned it down to WARN.</p>
-</blockquote><h2>Working with Content</h2><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
+</blockquote><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
 <pre><code class="groovy">Repository repository = new TransientRepository(
     new File(&#39;./build/repository&#39;)
 )
@@ -1011,7 +1059,7 @@ log.info &#39;Removed node.&#39;
 <pre><code>2014-08-23 15:45:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
 2014-08-23 15:45:18 Rabbits [INFO] Found node (/hello/world) with property: Hello, World!
 2014-08-23 15:45:18 Rabbits [INFO] Removed node.
-</code></pre><h2>Working with Binary Content</h2><p>This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
+</code></pre><p>On to binary content. This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
 <pre><code class="groovy">String username = session.userID
 String name = repository.getDescriptor(Repository.REP_NAME_DESC)
 log.info &#39;User ({}) logged into repository ({})&#39;, username, name
@@ -1087,105 +1135,7 @@ dumpProps node.getNode(&#39;jcr:content&#39;)
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModifiedBy : admin
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
-</code></pre><h2>Conclusion</h2><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
-  	
-		<a href="blog/2014/simple-configuration-dsl-using-groovy.html"><h1>Simple Configuration DSL using Groovy</h1></a>
-		<p><em>19 July 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the <code>missingMethod()</code> calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.</p><p>To start out with, we need a configuration holder class, which we'll just call <code>Configuration</code>:</p>
-<pre><code class="groovy">class Configuration {
-    String hostName
-    String protocol
-    int port
-    Headers headers
-}
-</code></pre><p>Say we are collecting configuration information for some sort of HTTP request util or something, it's a contrived example, but shows the concept nicely. The <code>Headers</code> class is a simple delegated builder in itself, and looks like:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
-class Headers {
-    Map&lt;String,Object&gt; values = [:]
-
-    static Headers headers( Closure closure ){
-        Headers h = new Headers()
-        closure.delegate = h
-        closure()
-        return h
-    }
-    
-    void header( String name, value ){
-        values[name] = value
-    }
-}
-</code></pre><p>I won't explain much about the <code>Headers</code> class, other than it takes a closure and delegates the method calls of it onto a <code>Headers</code> instance to populate it. For our purposes it just makes a nice simple way to show closure usage in the example.</p><p>Now, we need a configuration file to load. It's just a simple text file:</p>
-<pre><code class="text">hostname &#39;localhost&#39;
-protocol = &#39;https&#39;
-port 2468
-
-headers {
-    header &#39;Content-type&#39;,&#39;text/html&#39;
-    header &#39;Content-length&#39;,10101
-}
-</code></pre><p>The script-based configuration is similar to the delegated builder, in that the method calls of the "script" (text configuration file) will be delegated to an instance of the <code>Configuration</code> class. For that to work, we could override the <code>missingMethod()</code> method and handle each desired operation, or if we have a good idea of the configuration (as we do in our case), we could just add the missing methods, as follows:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
-class Configuration {
-
-    String hostName
-    int port
-    Headers headers
-   
-    void hostname( final String name ){
-        this.hostName = name
-    }
-
-    void port( final int port ){
-        this.port = port
-    }
-    
-    void headers( final Closure closure ){
-        this.headers = Headers.headers( closure )
-    }
-}
-</code></pre><p>Basically, they are just setters in our case; however, you could do whatever conversion or validation you need, they're just method calls. Also, notice that the <code>protocol</code> property in the configuration file is actually setting the property directly with an equals <code>=</code> rather than using a method call - this is also valid, though personally I like the way it looks without all the equals signs.</p><p>The final part needed to make this work, is the Groovy magic. We need to load the text as a script in a <code>GroovyShell</code>, parse it and run it. The whole code for the <code>Configuration</code> object is shown below:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
-class Configuration {
-
-    String hostName
-    String protocol
-    int port
-    Headers headers
-   
-    void hostname( final String name ){
-        this.hostName = name
-    }
-
-    void port( final int port ){
-        this.port = port
-    }
-    
-    void headers( final Closure closure ){
-        this.headers = Headers.headers( closure )
-    }
-
-    static Configuration configure( final File file ){
-        def script = new GroovyShell(
-            new CompilerConfiguration(
-                scriptBaseClass:DelegatingScript.class.name 
-            )
-        ).parse(file)
-
-        def configuration = new Configuration()
-        script.setDelegate( configuration )
-        script.run()
-
-        return configuration
-    }
-}
-</code></pre><p>The important parts are the use of the <code>DelegatingScript</code> as the <code>scriptBaseClass</code> and then setting the <code>Configuration</code> instance as the delegate for the script. Now if you run the following:</p>
-<pre><code>def conf = Configuration.configure( new File(&#39;conf.txt&#39;) )
-println conf
-</code></pre><p>You get something like the following output: </p>
-<pre><code>Configuration(protocol:https, hostName:localhost, port:2468, headers:Headers(values:[Content-type:text/html, Content-length:10101]))
-</code></pre>
-<blockquote><p>Notice, that in the example we didn't define a method for <code>protocol</code>, which means that the only way you can set it in the configuration is as a property; however, we could use the property format to set the value of the other fields, such as <code>port</code> since there is a setter method available along with the helper method (options are nice).</p>
-</blockquote><p>Groovy makes simple DSLs, well... simple.</p></p>
+</code></pre><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
   	
 	
 	<hr />

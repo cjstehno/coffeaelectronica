@@ -6,9 +6,57 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Wed, 6 May 2015 06:55:53 -0500</pubDate>
-    <lastBuildDate>Wed, 6 May 2015 06:55:53 -0500</lastBuildDate>
+    <pubDate>Fri, 15 May 2015 07:31:48 -0500</pubDate>
+    <lastBuildDate>Fri, 15 May 2015 07:31:48 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Vanilla Test Fixtures</title>
+      <link>http://coffeaelectronica.com/blog/2015/test-fixtures.html</link>
+      <pubDate>Fri, 15 May 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/test-fixtures.html</guid>
+      <description>
+      &lt;p&gt;Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a &lt;code&gt;FixtureBuilder&lt;/code&gt; and &lt;code&gt;Fixture&lt;/code&gt; class to my &lt;a href=&quot;http://github.com/cjstehno/vanilla&quot;&gt;Vanilla-Testing&lt;/a&gt; library.&lt;/p&gt;&lt;p&gt;Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, &lt;code&gt;Person&lt;/code&gt; defined as:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class Person {
+    Name name
+    LocalDate birthDate
+    int score
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You are writing your unit tests for services and controllers that may need to create and compare various instances of &lt;code&gt;Person&lt;/code&gt; and you end up with some constants somewhere or duplication of code with custom instances all over the test code.&lt;/p&gt;&lt;p&gt;Using &lt;code&gt;com.stehno.vanilla.test.FixtureBuilder&lt;/code&gt; you can create reusable fixtures with a simple DSL. I tend to create a main class to contain my fixtures and to also provide the set of supported fixture keys, something like:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class PersonFixtures {
+
+    static final String BOB = &amp;#39;Bob&amp;#39;
+    static final String LARRY = &amp;#39;Larry&amp;#39;
+    
+    static final Fixture FIXTURES = define {
+        fix BOB, [ name:new Name(&amp;#39;Bob&amp;#39;,&amp;#39;Q&amp;#39;,&amp;#39;Public&amp;#39;), birthDate:LocalDate.of(1952,5,14), score:120 ]
+        fix LARRY, [ name:new Name(&amp;#39;Larry&amp;#39;,&amp;#39;G&amp;#39;,&amp;#39;Larson&amp;#39;), birthDate:LocalDate.of(1970,2,8), score:100 ]
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Notice that the &lt;code&gt;define&lt;/code&gt; method is where you create the data contained by the fixtures, each mapped with an object key. The key can be any object which may be used as a Map key (proper &lt;code&gt;equals&lt;/code&gt; and &lt;code&gt;hashCode&lt;/code&gt; implementation).&lt;/p&gt;&lt;p&gt;The reasoning behind using Maps is that Groovy allows them to be used as constructor arguments for creating objects; therefore, the maps give you a reusable and detached dataset for use in creating your test fixture instances. Two objects instances created from the same fixture data will be equivalent at the level of the properties defined by the fixture; however, each can be manipulated without effecting the other.&lt;/p&gt;&lt;p&gt;Once your fixtures are defined, you can use them in various ways. You can request the immutable data map for a fixture:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You can create an instance of the target object using the data mapped to a specified fixture:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Or, you can request the data or an instance for a fixture while applying additional (or overridden) properties to the fixture data:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB, score:53)
+Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, score:200)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;You can easily retrieve field property values for each fixture for use in your tests:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;assert 100 == PersonFixtures.FIXTURES.field(&amp;#39;score&amp;#39;, PersonFixtures.LARRY)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This allows field-by-field comparisons for testing and the ability to use the field values as parameters as needed.&lt;/p&gt;&lt;p&gt;Lastly, you can verify that an object instance contains the expected data that is associated with a fixture:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;assert PersonFixtures.FIXTURES.verify(person, PersonFixtures.LARRY)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which will compare the given object to the specified fixture and return true of all of the properties defined in the fixture match the same properties of the given object. There is also a second version of the method which allows property customizations before comparison.&lt;/p&gt;&lt;p&gt;One step farther... you can combine fixtures with &lt;a href=&quot;http://coffeaelectronica.com/blog/2015/property-randomization.html&quot;&gt;property randomizaiton&lt;/a&gt; to make fixture creation even simpler for those cases where you don&apos;t care about what the properties are, just that you can get at them reliably.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;static final Fixture FIXTURES = define {
+    fix FIX_A, [ name:randomize(Name).one(), birthDate:LocalDate.of(1952,5,14), score:120 ]
+    fix FIX_B, randomize(Person){
+        typeRandomizers(
+            (Name): randomize(Name),
+            (LocalDate): { LocalDate.now() }
+        )
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The fixture mapper accepts &lt;code&gt;PropertyRandomizer&lt;/code&gt; instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.&lt;/p&gt;&lt;p&gt;One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the &lt;code&gt;asImmutable()&lt;/code&gt; method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.&lt;/p&gt;&lt;p&gt;Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Property Randomization for Testing</title>
@@ -679,7 +727,7 @@ class TimeController {
       <pubDate>Sat, 23 Aug 2014 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2014/nodetypes-rabbit-hole.html</guid>
       <description>
-      &lt;p&gt;In my last post about &lt;a href=&quot;http://jackrabbit.apache.org&quot;&gt;Jackrabbit&lt;/a&gt;, &quot;&lt;a href=&quot;Wabbit-Season-with-Jackrabbit&quot;&gt;Wabbit Season with Jackrabbit&lt;/a&gt;&quot;, I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.&lt;/p&gt;&lt;p&gt;In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.&lt;/p&gt;&lt;p&gt;For this post, you will want to refer to the code presented in the other post, &quot;&lt;a href=&quot;Wabbit-Season-with-Jackrabbit&quot;&gt;Wabbit Season with Jackrabbit&lt;/a&gt;&quot; as a starting point (especially the last version of the code, which the code here will be based on).&lt;/p&gt;&lt;p&gt;For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since &lt;a href=&quot;http://tika.apache.org&quot;&gt;Apache Tika&lt;/a&gt; is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your &lt;code&gt;build.gradle&lt;/code&gt; file to update the version:&lt;/p&gt;
+      &lt;p&gt;In my last post about &lt;a href=&quot;http://jackrabbit.apache.org&quot;&gt;Jackrabbit&lt;/a&gt;, &quot;&lt;a href=&quot;http://coffeaelectronica.com/blog/2014/wabbit-season-with-jackrabbit.html&quot;&gt;Wabbit Season with Jackrabbit&lt;/a&gt;&quot;, I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.&lt;/p&gt;&lt;p&gt;In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.&lt;/p&gt;&lt;p&gt;For this post, you will want to refer to the code presented in the other post, &quot;&lt;a href=&quot;Wabbit-Season-with-Jackrabbit&quot;&gt;Wabbit Season with Jackrabbit&lt;/a&gt;&quot; as a starting point (especially the last version of the code, which the code here will be based on).&lt;/p&gt;&lt;p&gt;For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since &lt;a href=&quot;http://tika.apache.org&quot;&gt;Apache Tika&lt;/a&gt; is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your &lt;code&gt;build.gradle&lt;/code&gt; file to update the version:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;compile &amp;#39;org.apache.tika:tika-parsers:1.5&amp;#39;
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Tika provides metadata extractors for a wide range of file formats, one of which is JPEG images, which is what we are playing with here.&lt;/p&gt;&lt;p&gt;First, we need to extract the metadata from the image file. I did this just after the main method&apos;s file reference statement:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def metadata = extractMetadata( file )
@@ -892,7 +940,7 @@ class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
       <pubDate>Sat, 23 Aug 2014 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2014/wabbit-season-with-jackrabbit.html</guid>
       <description>
-      &lt;p&gt;I have been playing with &lt;a href=&quot;http://jackrabbit.apache.org&quot;&gt;Apache Jackrabbit&lt;/a&gt; today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the &quot;&lt;a href=&quot;http://jackrabbit.apache.org/first-hops.html&quot;&gt;First Hops&lt;/a&gt;&quot; document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.&lt;/p&gt;&lt;h2&gt;Getting Started&lt;/h2&gt;&lt;p&gt;The quickest and easiest way to get started is using an embedded &lt;code&gt;TransientRepository&lt;/code&gt;. Create a project directory and create a &lt;code&gt;build.groovy&lt;/code&gt; Gradle build file similar to the following:&lt;/p&gt;
+      &lt;p&gt;I have been playing with &lt;a href=&quot;http://jackrabbit.apache.org&quot;&gt;Apache Jackrabbit&lt;/a&gt; today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the &quot;&lt;a href=&quot;http://jackrabbit.apache.org/first-hops.html&quot;&gt;First Hops&lt;/a&gt;&quot; document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.&lt;/p&gt;&lt;p&gt;The quickest and easiest way to get started is using an embedded &lt;code&gt;TransientRepository&lt;/code&gt;. Create a project directory and create a &lt;code&gt;build.groovy&lt;/code&gt; Gradle build file similar to the following:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;apply plugin: &amp;#39;groovy&amp;#39;
 
 repositories {
@@ -906,7 +954,7 @@ dependencies {
     compile &amp;#39;org.apache.jackrabbit:jackrabbit-core:2.8.0&amp;#39;
     compile &amp;#39;org.slf4j:slf4j-log4j12:1.7.7&amp;#39;
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This will give you the required dependencies and a nice playground project to work with.&lt;/p&gt;&lt;h2&gt;Logging in to Jackrabbit&lt;/h2&gt;&lt;p&gt;In the &lt;code&gt;src/main/groovy&lt;/code&gt; directory of the project, create a file called &lt;code&gt;Rabbits.groovy&lt;/code&gt; with the following code:&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This will give you the required dependencies and a nice playground project to work with.&lt;/p&gt;&lt;p&gt;Next, we need to login to the repository. In the &lt;code&gt;src/main/groovy&lt;/code&gt; directory of the project, create a file called &lt;code&gt;Rabbits.groovy&lt;/code&gt; with the following code:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;import groovy.util.logging.Slf4j
 import org.apache.jackrabbit.core.TransientRepository
 
@@ -934,13 +982,19 @@ class Rabbits {
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The important part here is the &lt;code&gt;TransientRepository&lt;/code&gt; code, which allows you to use/reuse a repository for testing. I found that specifying a repository directory in my build directory was useful since by default it will put a bunch of files and directories in the root of your project when you run the project - it&apos;s just a little cleaner when you can run &lt;code&gt;gradle clean&lt;/code&gt; to wipe out your development repository when needed. The downside of specifying the directory seems to be that your repository is not completely transient. I was not clear whether or not this was always the case or just when I set the directory, hence the need to wipe it out sometimes.&lt;/p&gt;&lt;p&gt;The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.```&quot;&gt;&lt;br/&gt;The `finally` block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.
+&lt;pre&gt;&lt;code&gt;2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;finally&lt;/code&gt; block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.&lt;/p&gt;&lt;p&gt;Lastly, to round out the first version of the project, create a &lt;code&gt;log4j.properties&lt;/code&gt; file in &lt;code&gt;src/main/resources&lt;/code&gt; so that your logger has some configuration. I used:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;log4j.rootCategory=INFO, Cons
 
-Lastly, to round out the first version of the project, create a `log4j.properties` file in `src/main/resources` so that your logger has some configuration. I used:
+# log4j.logger.com.something=ERROR
+log4j.logger.org.apache.jackrabbit=WARN
 
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;log4j.rootCategory=INFO, Cons&lt;/p&gt;&lt;h1&gt;log4j.logger.com.something=ERROR&lt;/h1&gt;&lt;p&gt;log4j.logger.org.apache.jackrabbit=WARN&lt;/p&gt;&lt;p&gt;log4j.appender.Cons = org.apache.log4j.ConsoleAppender&lt;br/&gt;log4j.appender.Cons.layout = org.apache.log4j.PatternLayout&lt;br/&gt;log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n&lt;br/&gt;```&lt;/p&gt;
+log4j.appender.Cons = org.apache.log4j.ConsoleAppender
+log4j.appender.Cons.layout = org.apache.log4j.PatternLayout
+log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n
+&lt;/code&gt;&lt;/pre&gt;
 &lt;blockquote&gt;&lt;p&gt;If you want to see more about what Jackrabbit is doing, set the logging level for &lt;code&gt;log4j.logger.org.apache.jackrabbit&lt;/code&gt; to &lt;code&gt;INFO&lt;/code&gt; - it gets a little verbose, so I turned it down to WARN.&lt;/p&gt;
-&lt;/blockquote&gt;&lt;h2&gt;Working with Content&lt;/h2&gt;&lt;p&gt;When using a content repository, you probably want to do something with actual content, so let&apos;s start off with a simple case of some nodes with simple text content. The &lt;code&gt;main&lt;/code&gt; method of the &lt;code&gt;Rabbits&lt;/code&gt; class now becomes:&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;When using a content repository, you probably want to do something with actual content, so let&apos;s start off with a simple case of some nodes with simple text content. The &lt;code&gt;main&lt;/code&gt; method of the &lt;code&gt;Rabbits&lt;/code&gt; class now becomes:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;Repository repository = new TransientRepository(
     new File(&amp;#39;./build/repository&amp;#39;)
 )
@@ -994,7 +1048,7 @@ log.info &amp;#39;Removed node.&amp;#39;
 &lt;pre&gt;&lt;code&gt;2014-08-23 15:45:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
 2014-08-23 15:45:18 Rabbits [INFO] Found node (/hello/world) with property: Hello, World!
 2014-08-23 15:45:18 Rabbits [INFO] Removed node.
-&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;Working with Binary Content&lt;/h2&gt;&lt;p&gt;This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article &quot;&lt;a href=&quot;https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t&quot;&gt;Storing Files and Folders&lt;/a&gt;&quot; from the ModeShape documentation (another JCR implementation) - since it&apos;s standard JCR, it is still relevant with Jackrabbit.&lt;/p&gt;&lt;p&gt;Basically you need a node for the file and it&apos;s metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the &lt;code&gt;try/finally&lt;/code&gt; block of our example becomes:&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;On to binary content. This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article &quot;&lt;a href=&quot;https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t&quot;&gt;Storing Files and Folders&lt;/a&gt;&quot; from the ModeShape documentation (another JCR implementation) - since it&apos;s standard JCR, it is still relevant with Jackrabbit.&lt;/p&gt;&lt;p&gt;Basically you need a node for the file and it&apos;s metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the &lt;code&gt;try/finally&lt;/code&gt; block of our example becomes:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;String username = session.userID
 String name = repository.getDescriptor(Repository.REP_NAME_DESC)
 log.info &amp;#39;User ({}) logged into repository ({})&amp;#39;, username, name
@@ -1070,7 +1124,7 @@ dumpProps node.getNode(&amp;#39;jcr:content&amp;#39;)
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModifiedBy : admin
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
 2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
-&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;Conclusion&lt;/h2&gt;&lt;p&gt;Jackrabbit seems to still have some development effort behind it, and it&apos;s still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.&lt;/p&gt;&lt;p&gt;The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Jackrabbit seems to still have some development effort behind it, and it&apos;s still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.&lt;/p&gt;&lt;p&gt;The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.&lt;/p&gt;
 	  </description>
     </item>
     
