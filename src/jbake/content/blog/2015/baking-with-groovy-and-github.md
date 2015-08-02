@@ -1,5 +1,5 @@
 title=Baking Your Blog with JBake, Groovy and GitHub
-date=2015-07-01
+date=2015-08-05
 type=post
 tags=blog,groovy
 status=published-date
