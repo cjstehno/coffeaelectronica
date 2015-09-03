@@ -85,6 +85,83 @@
 
 
 	
+		<a href="blog/2015/baking-with-groovy-and-github.html"><h1>Baking Your Blog with JBake, Groovy and GitHub</h1></a>
+		<p><em>02 September 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><p>As a developer, it has always bugged me to have my blog or web site content stored on a server managed by someone else, outside of my control. Granted, WordPress and the like are very stable and generally have means of pulling out your data if you need it, but I really just like to have my content under my own control. Likewise, I have other projects I want to work on, so building content management software is not really on my radar at this point; that's where <a href="http://jbake.org">JBake</a> comes in.</p><p>JBake is a simple JVM-based static site generation tool that makes casual blogging quite simple once you get everything set up. It's a bit of a raw project at this point, so there are a few rough edges to work with, but I will help to file them down in the discussions below.</p><p>Getting started with JBake, you have a couple options. You can install JBake locally and use it as a command line tool, or you can use the <a href="https://github.com/jbake-org/jbake-gradle-plugin">JBake Gradle Plugin</a>. The Gradle plugin is currently lacking the local server feature provided by the command line tools; however, it does provide a more portable development environment along with the universe of other Gradle plugins. We will use the Gradle plugin approach here and I will provide some workarounds for the missing features to bring the functionality back on even ground with the command line tool.</p><p>The first thing we need is our base project and for that I am going to use a <a href="https://github.com/pledbrook/lazybones">Lazybones</a> template that I have created (which may be found in my <a href="https://github.com/cjstehno/lazybones-templates">lazybones-templates</a> repository). You can use the Gradle plugin and do all the setup yourself, but it was fairly simple and having a template for it allowed me to add in the missing features we need.</p>
+<blockquote><p>If you are unfamiliar with Lazybones, it's a Groovy-based project template framework along the lines of Yeoman and the old Maven Archetype plugin. Details for adding my template repo to your configuration can be found on the <a href="https://github.com/cjstehno/lazybones-templates/blob/master/README.md">README page</a> for my templates.</p>
+</blockquote><p>Create the empty project with the following:</p>
+<pre><code>lazybones create jbake-groovy cookies
+</code></pre><p>where "cookies" is the name of our project and the name of the project directory to be created. You will be asked a few questions related to template generation. You should have something similar to the following:</p>
+<pre><code>$ lazybones create jbake-groovy cookies
+Creating project from template jbake-groovy (latest) in &#39;cookies&#39;
+Define value for &#39;JBake Plugin Version&#39; [0.2]:
+Define value for &#39;JBake Version&#39; [2.3.2]:
+Define value for &#39;Gradle version&#39; [2.3]:
+GitHub project: [username/projectname.git]: cjstehno/cookies.git
+</code></pre><p>The "username" should reflect the username of your GitHub account, we'll see what this is used for later. If you look at the generated "cookies" directory now you will see a standard-looking Gradle project structure. The JBake source files reside in the <code>src/jbake</code> directory with the following sub-directories:</p>
+<ul>
+  <li>assets - this is where your static assets live (CSS files, JavaScript files, images, etc)</li>
+  <li>templates - this is where your GSP page templates live</li>
+  <li>content - this is where your site content lives (will be applied to the templates)</li>
+</ul><p>You will see that by default, a simple Bootstrap-based blog site is provided with sample blog posts in HTML, ASCII Doc, and Markdown formats. This is the same sample content as provided by the command line version of the project setup tool. At this point we can build the sample content using:</p>
+<pre><code>./gradlew jbake
+</code></pre><p>The Gradle plugin does <em>not</em> provide a means of serving up the "baked" content yet. There is work in progress so hopefully this will be merged in soon. One of the goodies my template provides is a simple Groovy web server script. This allows you to serve up the content with:</p>
+<pre><code>groovy serve.groovy
+</code></pre><p>which will start a Jetty instance pointed at the content in <code>build/jbake</code> on the configured port (8080 by default, which can be changed by adding a port number to the command line). Now when you hit <code>http://localhost:8080/</code> you should see the sample content. Also, you can leave this server running in a separate console while you develop, running the jbake command as needed to rebuild the content.</p><p>First, let's update the general site information. Our site's title is not "JBake", so let's change it to "JCookies" by updating it in the <code>src/jbake/templates/header.gsp</code> and <code>src/jbake/templates/menu.gsp</code> files. While we're in there we can also update the site meta information as well:</p>
+<pre><code class="jsp">&lt;title&gt;&lt;%if (content.title) {%&gt;${content.title}&lt;% } else { %&gt;JCookies&lt;% }%&gt;&lt;/title&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;meta name=&quot;description&quot; content=&quot;A site about cookies.&quot;&gt;
+&lt;meta name=&quot;author&quot; content=&quot;Chris Stehno&quot;&gt;
+&lt;meta name=&quot;keywords&quot; content=&quot;cookies,baking&quot;&gt;
+&lt;meta name=&quot;generator&quot; content=&quot;JBake&quot;&gt;
+</code></pre><p>Then to apply the changes, run <code>./gradlew jbake</code> and refresh the browser. Now we see our correct site name.</p>
+<blockquote><p>Note that JBake makes no requirements about the templates or content to be used. It provides special support for blog-style sites; however, you can remove all the content and make a standard simple static site if you wish.</p>
+</blockquote><p>Let's add a new blog entry. The blog entries are stored in the <code>src/jbake/content/blog</code> directory by year so we need to create a new directory for <code>2015</code>. Content may be written in HTML, ASCII Doc, or Markdown, based on the file extension. I am a fan of Markdown so we'll use that for our new blog entry. Let's create an entry file named <code>chocolate-chip.md</code>.</p><p>JBake uses a custom header block at the top of content files to store meta information. For our entry we will use the following:</p>
+<pre><code>title=Chocolate Chip Cookies
+date=2015-05-04
+type=post
+tags=blog,recipe
+status=published
+~~~~~~
+</code></pre><p>The <code>title</code> and <code>date</code> are self-explanatory. The <code>type</code> can be <code>post</code> or <code>page</code> to denote a blog post or a standard page. The <code>tags</code> are used to provide extra tag information to categorize the content. The <code>status</code> field may be <code>draft</code> or <code>published</code> to denote whether or not the content should be included in the rendered site. Everything below the line of tildes is your standard markdown content.</p><p>For the content of our entry we are going to use the <a href="https://www.verybestbaking.com/recipes/18476/original-nestle-toll-house-chocolate-chip-cookies/">Nestle Chocolate Chip Cookie recipe</a> - it gives us a nice overview of the content capabilities, and they are yummy!</p><p>The content in Markdown format, is as follows:</p>
+<pre><code>## Ingredients
+
+* 2 1/4 cups all-purpose flour
+* 1 teaspoon baking soda
+* 1 teaspoon salt
+* 1 cup (2 sticks) butter, softened
+* 3/4 cup granulated sugar
+* 3/4 cup packed brown sugar
+* 1 teaspoon vanilla extract
+* 2 large eggs
+* 2 cups (12-oz. pkg.) NESTLÉ® TOLL HOUSE® Semi-Sweet Chocolate Morsels
+* 1 cup chopped nuts
+
+## Instructions
+
+1. Preheat oven to 375° F.
+1. Combine flour, baking soda and salt in small bowl. Beat butter, granulated sugar, brown sugar and vanilla extract in large mixer bowl until creamy. Add eggs, one at a time, beating well after each addition. Gradually beat in flour mixture. Stir in morsels and nuts. Drop by rounded tablespoon onto ungreased baking sheets. 
+1. BAKE for 9 to 11 minutes or until golden brown. Cool on baking sheets for 2 minutes; remove to wire racks to cool completely. 
+
+May be stored in refrigerator for up to 1 week or in freezer for up to 8 weeks.
+</code></pre><p>Rebuild/refresh and now you see we have a new blog post. Now, since we <strike>stole</strike>borrowed this recipe from another site, we should provide an attribution link back to the original source. The content header fields are dynamic; you can create your own and use them in your pages. Let's add an <code>attribution</code> field and put our link in it.</p>
+<pre><code>attribution=https://www.verybestbaking.com/recipes/18476/original-nestle-toll-house-chocolate-chip-cookies/
+</code></pre><p>Then we will want to add it to our rendered page, so we need to open up the blog entry template, the <code>src/jbake/templates/post.gsp</code> file and add the following line after the page header:</p>
+<pre><code class="html">&lt;p&gt;Borrowed from: &lt;a href=&quot;${content.attribution}&quot;&gt;${content.attribution}&lt;/a&gt;&lt;/p&gt;
+</code></pre><p>Notice now, that the templates are just GSP files which may have Groovy code embedded into them in order to perform rendering logic. The header data is accessible via the <code>content</code> object in the page.</p><p>This post is kind of boring at this point. Yes, it's a recipe for chocolate chip cookies, and that's hard to beat, but the page full of text is not selling it to me. Let's add a photo to really make your mouth water. Grab an image of your favorite chocolate chip cookies and save it in <code>src/jbake/assets/images</code> as <code>cookies.jpg</code>. Static content like images live in the <code>assets</code> folder. The contents of the assets folder will be copied into the root of the rendered site directory.</p><p>Now, we need to add the photo to the page. Markdown allows simple HTML tags to be used so we can add:</p>
+<pre><code class="html">&lt;img src=&quot;/images/cookies.jpg&quot; style=&quot;width:300px;float:right;&quot;/&gt;
+</code></pre><p>to the top of our blog post content, which will add the image at the top of the page, floated to the right of the main content text. Now that looks tasty!</p><p>You can also create tandard pages in a similar manner to blog posts; however, they are based on the <code>page.gsp</code> template. This allows for different contextual formatting for each content type.</p><p>You can customize any of the templates to get the desired content and functionality for your static site, but what about the overall visual theme? As I mentioned earlier, the default templates use the Twitter Bootstrap library and there are quite a few resources available for changing the theme to fit your needs and they range from free to somewhat expensive. We just want a free one for demonstration purposes so let's download the <code>bootstrap.min.css</code> file for the <a href="https://bootswatch.com/cerulean/">Bootswatch Cerulean</a> theme. Overwrite the existing theme in the <code>src/jbake/assets/css</code> directory with this new file then rebuild the site and refresh your browser. Now you can see that we have a nice blue banner along with other style changes.</p><p>The end result at this point will look something like this:</p>
+<div style="text-align:center;margin-bottom:15px;"><img src="/images/cookiesblog.png"/></div><p>All-in-all not too bad for a few minutes of coding work!</p><p>Another nice feature of JBake is delayed publishing. The <code>status</code> field in the content header has three accepted values:</p>
+<ul>
+  <li>published - the content will be rendered and listed in the list of available pages.</li>
+  <li>draft - the content will be rendered, but with a "-draft" suffix added to the file name. The content will not appear in the list of available pages.</li>
+  <li>published-date - the content will be rendered normally, but will not appear in the list of available pages until the site is built after the value of its <code>date</code> field has passed.</li>
+</ul><p>We used the <code>published</code> option since we wanted our content to be available right away. You could easily create a bunch of blog entries ahead of time, specifying the <code>date</code> values for when they should be published but having the <code>status</code> values set to <code>published-date</code> so that they are released only after the appropriate date. The downside of this is that since JBake is a static generator, you would have to be sure and build the site often enough to pick up the newly available content - maybe with a nightly scheduled build and deployment job.</p><p>When you are ready to release your site out into the greater internet wilderness, you will need a way to publish it; this is another place where my lazybones template comes in handy. If you are hosting your site as <a href="https://pages.github.com/">github-pages</a>, the template comes with a publishing task built-in, based on the gradle-git plugin. This is where the GitHub username and repository information from the initial project creation comes into play. For this to work, you need a repository named "cookies" associated with your GitHub account. You will also want to double check that the repo clone URL is correct in the <code>publish.gradle</code> file. Then, to publish your site you simply run:</p>
+<pre><code>./gradlew publish
+</code></pre><p>and then go check your project site for the updated content (sometimes it takes a minute or two, though it's usually instantaneous).</p><p>At this point we have a easily managed static web site; what's left to be done? Well, you could associate it with your own custom domain name rather than the one GitHub provides. I will not go into that here, since I really don't want to purchase a domain name just for this demo; however, I do have a blog post (<a href="http://coffeaelectronica.com/blog/2015/custom-github-hosting.html">Custom GitHub Hosting</a>) that goes into how it's done (at least on GoDaddy).</p><p>JBake and GitHub with a dash of Groovy provide a nice environment for quick custom blogs and web sites, with little fuss. Everything I have shown here is what I use to create and manage this blog, so, I'd say it works pretty well.</p>
+<blockquote><p>Portions of this discussion are based on a blog post by Cédric Champeau, "<a href="http://melix.github.io/blog/2014/02/hosting-jbake-github.html">Authoring your blog on GitHub with JBake and Gradle</a>", who is also a contributor to JBake (among other things). </p>
+</blockquote></p>
+  	
 		<a href="blog/2015/test-fixtures.html"><h1>Vanilla Test Fixtures</h1></a>
 		<p><em>15 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
 		<p><p>Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a <code>FixtureBuilder</code> and <code>Fixture</code> class to my <a href="http://github.com/cjstehno/vanilla">Vanilla-Testing</a> library.</p><p>Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, <code>Person</code> defined as:</p>
@@ -948,194 +1025,6 @@ class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
 </code></pre><p>They provide the helper methods to allow a nice clean DSL. Without them you have only setters, which did not work out cleanly. You just end up with some small delegate classes.</p><p>This code takes care of adding in the property definitions, registering namespaces and node types. It does not currently support all the configuration properties; however, that would be simple to add - there are not very many available.</p><p>As you can see from the DSL example code, you can now add new node types in a very simple manner. This kind of thing is why I love Groovy so much.</p>
 <blockquote><p>If there is any interest in this DSL code, I will be using it in one of my own projects, so I could extract it into a library for more public use - let me know if you are interested.</p>
 </blockquote></p>
-  	
-		<a href="blog/2014/wabbit-season-with-jackrabbit.html"><h1>Wabbit Season with Jackrabbit</h1></a>
-		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>I have been playing with <a href="http://jackrabbit.apache.org">Apache Jackrabbit</a> today, while doing some research for one of my personal projects, and while it seems to have matured a bit since the last time I looked into it, the documentation has stagnated. Granted, it still works as a jump-start better than nothing at all, but it really does not reflect the current state of the API. I present here a more modern take on the "<a href="http://jackrabbit.apache.org/first-hops.html">First Hops</a>" document based on what I did for my research - I am using Gradle, Groovy, and generally more modern versions of the libraries involved. Maybe this can help others, or myself at a later date.</p><p>The quickest and easiest way to get started is using an embedded <code>TransientRepository</code>. Create a project directory and create a <code>build.groovy</code> Gradle build file similar to the following:</p>
-<pre><code class="groovy">apply plugin: &#39;groovy&#39;
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    compile &#39;org.codehaus.groovy:groovy-all:2.3.6&#39;
-
-    compile &#39;javax.jcr:jcr:2.0&#39;
-    compile &#39;org.apache.jackrabbit:jackrabbit-core:2.8.0&#39;
-    compile &#39;org.slf4j:slf4j-log4j12:1.7.7&#39;
-}
-</code></pre><p>This will give you the required dependencies and a nice playground project to work with.</p><p>Next, we need to login to the repository. In the <code>src/main/groovy</code> directory of the project, create a file called <code>Rabbits.groovy</code> with the following code:</p>
-<pre><code class="groovy">import groovy.util.logging.Slf4j
-import org.apache.jackrabbit.core.TransientRepository
-
-import javax.jcr.Repository
-import javax.jcr.Session
-
-@Slf4j
-class Rabbits {
-
-    static void main(args) throws Exception {
-        Repository repository = new TransientRepository(
-            new File(&#39;./build/repository&#39;)
-        )
-
-        Session session = repository.login()
-        try {
-            String user = session.getUserID()
-            String name = repository.getDescriptor(Repository.REP_NAME_DESC)
-
-            log.info &#39;Logged in as {} to a {} repository.&#39;, user, name
-
-        } finally {
-            session.logout()
-        }
-    }
-}
-</code></pre><p>The important part here is the <code>TransientRepository</code> code, which allows you to use/reuse a repository for testing. I found that specifying a repository directory in my build directory was useful since by default it will put a bunch of files and directories in the root of your project when you run the project - it's just a little cleaner when you can run <code>gradle clean</code> to wipe out your development repository when needed. The downside of specifying the directory seems to be that your repository is not completely transient. I was not clear whether or not this was always the case or just when I set the directory, hence the need to wipe it out sometimes.</p><p>The rest of the code is pretty clear, it just does a login to the repository and writes out some information. When run, you should get something like the following:</p>
-<pre><code>2014-08-23 15:23:09 Rabbits [INFO] Logged in as anonymous to a Jackrabbit repository.
-</code></pre><p>The <code>finally</code> block is used to always logout of the repository, though this seems a bit dubious because it seemed quite easy to lock the repository in a bad state when errors caused application failure - this will require some additional investigation.</p><p>Lastly, to round out the first version of the project, create a <code>log4j.properties</code> file in <code>src/main/resources</code> so that your logger has some configuration. I used:</p>
-<pre><code>log4j.rootCategory=INFO, Cons
-
-# log4j.logger.com.something=ERROR
-log4j.logger.org.apache.jackrabbit=WARN
-
-log4j.appender.Cons = org.apache.log4j.ConsoleAppender
-log4j.appender.Cons.layout = org.apache.log4j.PatternLayout
-log4j.appender.Cons.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %c{1} [%p] %m%n
-</code></pre>
-<blockquote><p>If you want to see more about what Jackrabbit is doing, set the logging level for <code>log4j.logger.org.apache.jackrabbit</code> to <code>INFO</code> - it gets a little verbose, so I turned it down to WARN.</p>
-</blockquote><p>When using a content repository, you probably want to do something with actual content, so let's start off with a simple case of some nodes with simple text content. The <code>main</code> method of the <code>Rabbits</code> class now becomes:</p>
-<pre><code class="groovy">Repository repository = new TransientRepository(
-    new File(&#39;./build/repository&#39;)
-)
-
-Session session = repository.login(
-    new SimpleCredentials(&#39;admin&#39;,&#39;admin&#39;.toCharArray())
-)
-
-try {
-    String username = session.userID
-    String name = repository.getDescriptor(Repository.REP_NAME_DESC)
-    log.info &#39;User ({}) logged into repository ({})&#39;, username, name
-
-    Node root = session.rootNode
-
-    // Store content
-    Node hello = root.addNode(&#39;hello&#39;)
-    Node world = hello.addNode(&#39;world&#39;)
-    world.setProperty(&#39;message&#39;, &#39;Hello, World!&#39;)
-    session.save()
-
-    // Retrieve content
-    Node node = root.getNode(&#39;hello/world&#39;)
-    log.info &#39;Found node ({}) with property: {}&#39;, node.path, node.getProperty(&#39;message&#39;).string
-
-    // Remove content
-    root.getNode(&#39;hello&#39;).remove()
-    log.info &#39;Removed node.&#39;
-
-    session.save()
-
-} finally {
-    session.logout()
-}
-</code></pre><p>Notice, that the login code now contains credentials so that we can login with a writable session rather than the read-only default session (previous example).</p><p>First, we need to store some content in the repository. Since Jackrabbit is a hierarchical data store, you need to get a reference to the root node, and then add a child node to it with some content:</p>
-<pre><code class="groovy">Node root = session.rootNode
-
-// Store content
-Node hello = root.addNode(&#39;hello&#39;)
-Node world = hello.addNode(&#39;world&#39;)
-world.setProperty(&#39;message&#39;, &#39;Hello, World!&#39;)
-session.save()
-</code></pre><p>We create a node named "hello", the add a child named "world" to that node, and give the child node a "message" property. Notice that we save the session to persist the changes to the underlying data store.</p><p>Next, we want to read the data back out:</p>
-<pre><code class="groovy">Node node = root.getNode(&#39;hello/world&#39;)
-log.info &#39;Found node ({}) with property: {}&#39;, node.path, node.getProperty(&#39;message&#39;).string
-</code></pre><p>You just get the node by it's relative path, in this case from the root, and then retrieve its data.</p><p>Lastly, for this example, we want to remove the nodes we just added:</p>
-<pre><code class="groovy">root.getNode(&#39;hello&#39;).remove()
-session.save()
-log.info &#39;Removed node.&#39;
-</code></pre><p>Removing the "hello" node removes it and it's children (i.e. the "world" node). We then save the session to commit the node removal.</p><p>When you run this version of the code, you should see something like this:</p>
-<pre><code>2014-08-23 15:45:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
-2014-08-23 15:45:18 Rabbits [INFO] Found node (/hello/world) with property: Hello, World!
-2014-08-23 15:45:18 Rabbits [INFO] Removed node.
-</code></pre><p>On to binary content. This is where my tour diverts from the original wiki document, which goes on to cover XML data imports. I was more interested in loading binary content, especially image files. To accomplish this, we need to consider how the data is stored in JCR. I found a very helpful article "<a href="https://docs.jboss.org/author/display/MODE/Storing+files+and+folders?_sscc=t">Storing Files and Folders</a>" from the ModeShape documentation (another JCR implementation) - since it's standard JCR, it is still relevant with Jackrabbit.</p><p>Basically you need a node for the file and it's metadata, which has a child node for the actual file content. The article has some nice explanations and diagrams, so if you want more than code and quick discussion I recommend you head over there and take a look at it. For my purpose, I am just going to ingest a single image file and then read out the data to ensure that it was actually stored. The code for the <code>try/finally</code> block of our example becomes:</p>
-<pre><code class="groovy">String username = session.userID
-String name = repository.getDescriptor(Repository.REP_NAME_DESC)
-log.info &#39;User ({}) logged into repository ({})&#39;, username, name
-
-Node root = session.rootNode
-
-// Assume that we have a file that exists and can be read ...
-File file = IMAGE_FILE
-
-// Determine the last-modified by value of the file (if important) ...
-Calendar lastModified = Calendar.instance
-lastModified.setTimeInMillis(file.lastModified())
-
-// Create an &#39;nt:file&#39; node at the supplied path ...
-Node fileNode = root.addNode(file.name, &#39;nt:file&#39;)
-
-// Upload the file to that node ...
-Node contentNode = fileNode.addNode(&#39;jcr:content&#39;, &#39;nt:resource&#39;)
-Binary binary = session.valueFactory.createBinary(file.newInputStream())
-contentNode.setProperty(&#39;jcr:data&#39;, binary)
-contentNode.setProperty(&#39;jcr:lastModified&#39;,lastModified)
-
-// Save the session (and auto-created the properties) ...
-session.save()
-
-log.info &#39;Stored image file data into node ({})...&#39;, file.name
-
-// now get the image node data back out
-
-def node = root.getNode(file.name)
-dumpProps node
-
-dumpProps node.getNode(&#39;jcr:content&#39;)
-</code></pre><p>Where <code>IMAGE_FILE</code> is a <code>File</code> object pointing to a JPEG image file.</p><p>The first thing we do is create the file node:</p>
-<pre><code class="groovy">Node fileNode = root.addNode(file.name, &#39;nt:file&#39;)
-</code></pre><p>Notice, it's of type <code>nt:file</code> to designate that it's a file node - you will want to brush up on NodeTypes in the Jackrabbit or JCR documentation if you don't already have a basic understanding; I won't do much more than use them in these examples. For the name of the node, we just use the file name.</p><p>Second, we create the file content node as a child of the file node:</p>
-<pre><code class="groovy">Node contentNode = fileNode.addNode(&#39;jcr:content&#39;, &#39;nt:resource&#39;)
-Binary binary = session.valueFactory.createBinary(file.newInputStream())
-contentNode.setProperty(&#39;jcr:data&#39;, binary)
-contentNode.setProperty(&#39;jcr:lastModified&#39;,lastModified)
-
-// Save the session (and auto-created the properties) ...
-session.save()
-</code></pre><p>Notice that the child node is named "jcr:content" and is of type "nt:resource" and that it has a property named "jcr:data" containing the binary data content for the file. Of course, the session is saved to persist the changes.</p><p>Once we have the file data stored, we want to pull it back out to see that we stored everything as intended:</p>
-<pre><code class="groovy">def node = root.getNode(file.name)
-dumpProps node
-
-dumpProps node.getNode(&#39;jcr:content&#39;)
-</code></pre><p>The <code>dumpProps</code> method just iterates the properties of a given node and writes them to the log file:</p>
-<pre><code class="groovy">private static void dumpProps( Node node ){
-    log.info &#39;Node: ({})&#39;, node.name
-
-    def iter = node.properties
-    while( iter.hasNext() ){
-        def prop = iter.nextProperty()
-        if( prop.type != PropertyType.BINARY ){
-            log.info &#39; - {} : {}&#39;, prop.name, prop.value.string
-        } else {
-            log.info &#39; - {} : &lt;binary-data&gt;&#39;, prop.name
-        }
-    }
-}
-</code></pre><p>When you run this version of the code, you will have output similar to:</p>
-<pre><code>2014-08-23 16:09:18 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
-2014-08-23 16:09:18 Rabbits [INFO] Stored image file data into node (2014-08-19 20.49.40.jpg)...
-2014-08-23 16:09:18 Rabbits [INFO] Node: (2014-08-19 20.49.40.jpg)
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:createdBy : admin
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:created : 2014-08-23T15:59:26.155-05:00
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:file
-2014-08-23 16:09:18 Rabbits [INFO] Node: (jcr:content)
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModified : 2014-08-19T20:49:44.000-05:00
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:data : &lt;binary-data&gt;
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:lastModifiedBy : admin
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:uuid : cbdefd4a-ec2f-42d2-b58a-a39942766723
-2014-08-23 16:09:18 Rabbits [INFO]  - jcr:primaryType : nt:resource
-</code></pre><p>Jackrabbit seems to still have some development effort behind it, and it's still a lot easier to setup and use when compared with something like ModeShape, which seems to be the only other viable JCR implementation which is not specifically geared to a target use case.</p><p>The documentation is lacking, but with some previous experience and a little experimentation, it was not too painful getting things to work.</p></p>
   	
 	
 	<hr />
