@@ -1,7 +1,7 @@
 title=Testing AST Transformations
 date=2015-03-08
 type=post
-tags=blog,groovy,testing
+tags=blog,groovy,testing,vanilla
 status=published
 ~~~~~~
 While working on my [Effigy](https://github.com/cjstehno/effigy) project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.

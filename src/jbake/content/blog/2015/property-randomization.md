@@ -1,7 +1,7 @@
 title=Property Randomization for Testing
 date=2015-05-06
 type=post
-tags=blog,groovy
+tags=blog,groovy,vanilla
 status=published-date
 ~~~~~~
 Unit tests are great, but sometimes you end up creating a lot of test objects requiring data, such as DTOs and domain objects. Generally, I have always come up with movie quotes or other interesting content for test data. Recently, while working on a Groovy project, I thought it would be interesting to have a way to randomly generate and populate the data for these objects. The randomization would provide a simpler approach to test data as well as providing the potential for stumbling on test data that would break your code in interesting ways.

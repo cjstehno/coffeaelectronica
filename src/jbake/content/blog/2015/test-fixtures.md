@@ -1,7 +1,7 @@
 title=Vanilla Test Fixtures
 date=2015-05-15
 type=post
-tags=blog,groovy,testing
+tags=blog,groovy,testing,vanilla
 status=published
 ~~~~~~
 Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a `FixtureBuilder` and `Fixture` class to my [Vanilla-Testing](http://github.com/cjstehno/vanilla) library.
