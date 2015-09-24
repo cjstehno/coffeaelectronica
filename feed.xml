@@ -6,9 +6,48 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Wed, 2 Sep 2015 18:01:59 -0500</pubDate>
-    <lastBuildDate>Wed, 2 Sep 2015 18:01:59 -0500</lastBuildDate>
+    <pubDate>Wed, 23 Sep 2015 19:00:38 -0500</pubDate>
+    <lastBuildDate>Wed, 23 Sep 2015 19:00:38 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Lazy Immutables</title>
+      <link>http://coffeaelectronica.com/blog/2015/lazy-immutable.html</link>
+      <pubDate>Wed, 23 Sep 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/lazy-immutable.html</guid>
+      <description>
+      &lt;p&gt;A co-worker and I were discussing the Groovy &lt;code&gt;@Immutable&lt;/code&gt; annotation recently where I was thinking it would be useful if it allowed you to work on the object as a mutable object until you were ready to make it permanent, and then you could &quot;seal&quot; it and make it immutable. This would give you a bit more freedom in how the object is configured - sometimes the standard immutable approach can be overly restrictive.&lt;/p&gt;&lt;p&gt;Consider the case of of an immutable &lt;code&gt;Person&lt;/code&gt; object:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@Immutable
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With &lt;code&gt;@Immutable&lt;/code&gt; you have to create the object all at once:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def person = new Person(&amp;#39;Chris&amp;#39;,&amp;#39;J&amp;#39;,&amp;#39;Stehno&amp;#39;,42)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and then you&apos;re stuck with it. You can create a copy of it with one or more different properties using the &lt;code&gt;copyWith&lt;/code&gt; method, but you need to specify the &lt;code&gt;copyWith=true&lt;/code&gt; in the annotation itself, then you can do something like:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;Person otherPerson = person.copyWith(firstName:&amp;#39;Bob&amp;#39;, age:50)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I&apos;m not sure who &quot;Bob J Stehno&quot; is though. With more complicated immutables, this all at once requirement can be annoying. This is where the &lt;code&gt;@LazyImmutable&lt;/code&gt; annotation comes in (part of my &lt;a href=&quot;http://stehno.com/vanilla/&quot;&gt;Vanilla - Core library&lt;/a&gt;). With a similar &lt;code&gt;Person&lt;/code&gt; class:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;@LazyImmutable @Canonical
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;using the new annotation, you can create and populate the instance over time:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def person = new Person(&amp;#39;Chris&amp;#39;)
+person.middleName = &amp;#39;J&amp;#39;
+person.lastName = &amp;#39;Stehno&amp;#39;
+person.age = 42
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Notice that the &lt;code&gt;@LazyImmutable&lt;/code&gt; annotation does not apply any other transforms (as the standard &lt;code&gt;@Immutable&lt;/code&gt; does). It&apos;s a standard Groovy object, but with an added method: the &lt;code&gt;asImmutable()&lt;/code&gt; method is injected via AST Transformation. This method will take the current state of the object and create an immutable version of the object - this does imply that the properties of lazy immutable objects should follow the same rules as those of the standard immutable so that the conversion is determinate. For our example case:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;Person immutablePerson = person.asImmutable()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The created object is the same immutable object as would have been created by using the &lt;code&gt;@Immutable&lt;/code&gt; annotation and it is generated as an extension of the class you created so that it&apos;s type is still valid. The immutable version of the object also has a useful added method, the &lt;code&gt;asMutable()&lt;/code&gt; method is used to create a copy of the original mutable object.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;Person otherMutable = immutablePerson.asMutable()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It&apos;s a fairly simple helper annotation, but it just fills one of those little functional gaps that you run into every now and then. Maybe someone else will find it useful.&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Baking Your Blog with JBake, Groovy and GitHub</title>
@@ -5737,7 +5776,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -6015,7 +6054,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -6027,7 +6066,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -6138,7 +6177,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6457,7 +6496,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;

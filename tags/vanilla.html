@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>When GStrings Attack</title>
+    <title>CoffeaElectronica.com</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Christopher J. Stehno">
@@ -26,7 +26,7 @@
   <body onload="prettyPrint()">
     <div id="wrap">
    
-	
+
 		<!-- Fixed navbar -->
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="container">
@@ -87,46 +87,50 @@
 
 	
 	<div class="page-header">
-		<h1>When GStrings Attack</h1>
+		<h1>Tag: vanilla</h1>
 	</div>
-
-	<p><em>28 March 2012</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
-
-	<p><p>I have run into this behavior a few times now, so I decided to dig into it a bit. Basically, if you have a map using "string" keys in <a href="http://groovy.codehaus.org">Groovy</a>, they can provide unexpected (or at least non-intuitive results).</p><p>Groovy has two object types of "string"... the standard Java String, which is denoted by single-quotes, and the dynamic GString, which is denoted by double-quotes _(Note: the current version of the documentation has a nice outline of <a href="http://groovy.codehaus.org/Strings+and+GString">Strings vs GStrings</a>). From a developer perspective these generally seem interchangable other than the dynamic nature of GStrings; however, there is a more fundamental difference when you are working with hashes (Sets and Maps) since these are not the same class.</p><p>Let's consider the following two strings:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;&lt;br/&gt;def gstr = &quot;foo${1+1}&quot;
-</code></pre><p>Yes, the 1+1 is a bit contrived, but it's where the fun comes in. If you check them for equality:</p>
-<pre><code class="groovy">println( str == gstr )&lt;br/&gt;println( str.equals( gstr ) )
-</code></pre><p>The first line (==), will print "true", while the second line (equals) will print "false". But, wait, there's more...</p>
-<pre><code class="groovy">println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>will print "false". They are two different instances of two different classes, lightly hidden by a layer of similarity. As a developer, you can get used to not thinking about the differences, especially when they are not always visible. Consider the case when both strings have the same non-dynamic content:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;
-def gstr = &quot;foo2&quot;
-
-println( str == gstr )
-println( str.equals( gstr ))
-println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>In this scenario, all three lines print "true". So really what it comes down to is the cases when there is actually dynamic content in the GString. These will be considered differently than a seemingly equivalent static string. This is can be a dangerous difference when working with maps:</p>
-<pre><code class="groovy">def map = [:]
-map.put( &#39;foo2&#39;, 1 )
-map.put( &quot;foo${1+1}&quot; as String, 2 )
-map.put( &quot;foo${1+1}&quot;, 3 )
-
-println &quot;map.size() -&amp;gt; ${map.size()}&quot;
-map.each {k,v-&gt; println &quot;$k = $v&quot; }
-
-println map[&#39;foo2&#39;] // 2
-println map[&quot;foo2&quot;] // 2
-println map[&quot;foo${1+1}&quot;] // 2
-</code></pre><p>If you add a similar string in three different ways (static string, GString cast as String, and GString), you will see that it results in:</p>
-<pre><code class="groovy">map.size() -&gt; 2
-foo2 = 2
-foo2 = 3
-2
-2
-2
-</code></pre><p>You end up with two unique entries in the map, though only one of them is accessible directly.</p><p>I don't really feel that this is a bug in Groovy; however, more of an unexpected behavior that can play against what a developer might feel is intuitive (e.g. a string is a string). This is just something to beware of while developing in Groovy.</p></p>
-
-	<hr />
+	
+	<ul>
+		
+		
+		
+			<h4>September 2015</h4>
+			<ul>
+		
+		
+		<li>23 - <a href="/blog/2015/lazy-immutable.html">Lazy Immutables</a></li>
+		
+		
+		
+			
+				</ul>
+				<h4>May 2015</h4>
+				<ul>
+			
+		
+		
+		<li>15 - <a href="/blog/2015/test-fixtures.html">Vanilla Test Fixtures</a></li>
+		
+		
+		
+			
+		
+		
+		<li>06 - <a href="/blog/2015/property-randomization.html">Property Randomization for Testing</a></li>
+		
+		
+		
+			
+				</ul>
+				<h4>March 2015</h4>
+				<ul>
+			
+		
+		
+		<li>08 - <a href="/blog/2015/ast-testing.html">Testing AST Transformations</a></li>
+		
+		
+	</ul>
 	
 		</div>
 		<div id="push"></div>
@@ -141,9 +145,9 @@ foo2 = 3
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="../../js/jquery-1.11.1.min.js"></script>
-    <script src="../../js/bootstrap.min.js"></script>
-    <script src="../../js/prettify.js"></script>
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/prettify.js"></script>
     
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

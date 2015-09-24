@@ -71,6 +71,8 @@
 		
 		  <li><a href="/tags/testing.html">testing</a></li>
 		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
 		
 	      </ul>
 	    </li>
@@ -88,7 +90,7 @@
 		<h1>Testing AST Transformations</h1>
 	</div>
 
-	<p><em>08 March 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+	<p><em>08 March 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 
 	<p><p>While working on my <a href="https://github.com/cjstehno/effigy">Effigy</a> project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.</p><p>After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it's actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)</p><p>The key to making transforms testable is the <code>GroovyClassLoader</code> which gives you the ability to compile Groovy code on the fly:</p>
 <pre><code>def clazz = new GroovyClassLoader().parseClass(sourceCode)

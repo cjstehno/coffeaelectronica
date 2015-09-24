@@ -71,6 +71,8 @@
 		
 		  <li><a href="/tags/testing.html">testing</a></li>
 		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
 		
 	      </ul>
 	    </li>
@@ -85,6 +87,39 @@
 
 
 	
+		<a href="blog/2015/lazy-immutable.html"><h1>Lazy Immutables</h1></a>
+		<p><em>23 September 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
+		<p><p>A co-worker and I were discussing the Groovy <code>@Immutable</code> annotation recently where I was thinking it would be useful if it allowed you to work on the object as a mutable object until you were ready to make it permanent, and then you could "seal" it and make it immutable. This would give you a bit more freedom in how the object is configured - sometimes the standard immutable approach can be overly restrictive.</p><p>Consider the case of of an immutable <code>Person</code> object:</p>
+<pre><code class="groovy">@Immutable
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+</code></pre><p>With <code>@Immutable</code> you have to create the object all at once:</p>
+<pre><code class="groovy">def person = new Person(&#39;Chris&#39;,&#39;J&#39;,&#39;Stehno&#39;,42)
+</code></pre><p>and then you're stuck with it. You can create a copy of it with one or more different properties using the <code>copyWith</code> method, but you need to specify the <code>copyWith=true</code> in the annotation itself, then you can do something like:</p>
+<pre><code class="groovy">Person otherPerson = person.copyWith(firstName:&#39;Bob&#39;, age:50)
+</code></pre><p>I'm not sure who "Bob J Stehno" is though. With more complicated immutables, this all at once requirement can be annoying. This is where the <code>@LazyImmutable</code> annotation comes in (part of my <a href="http://stehno.com/vanilla/">Vanilla - Core library</a>). With a similar <code>Person</code> class:</p>
+<pre><code class="groovy">@LazyImmutable @Canonical
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+</code></pre><p>using the new annotation, you can create and populate the instance over time:</p>
+<pre><code class="groovy">def person = new Person(&#39;Chris&#39;)
+person.middleName = &#39;J&#39;
+person.lastName = &#39;Stehno&#39;
+person.age = 42
+</code></pre><p>Notice that the <code>@LazyImmutable</code> annotation does not apply any other transforms (as the standard <code>@Immutable</code> does). It's a standard Groovy object, but with an added method: the <code>asImmutable()</code> method is injected via AST Transformation. This method will take the current state of the object and create an immutable version of the object - this does imply that the properties of lazy immutable objects should follow the same rules as those of the standard immutable so that the conversion is determinate. For our example case:</p>
+<pre><code class="groovy">Person immutablePerson = person.asImmutable()
+</code></pre><p>The created object is the same immutable object as would have been created by using the <code>@Immutable</code> annotation and it is generated as an extension of the class you created so that it's type is still valid. The immutable version of the object also has a useful added method, the <code>asMutable()</code> method is used to create a copy of the original mutable object.</p>
+<pre><code class="groovy">Person otherMutable = immutablePerson.asMutable()
+</code></pre><p>It's a fairly simple helper annotation, but it just fills one of those little functional gaps that you run into every now and then. Maybe someone else will find it useful.</p></p>
+  	
 		<a href="blog/2015/baking-with-groovy-and-github.html"><h1>Baking Your Blog with JBake, Groovy and GitHub</h1></a>
 		<p><em>02 September 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
 		<p><p>As a developer, it has always bugged me to have my blog or web site content stored on a server managed by someone else, outside of my control. Granted, WordPress and the like are very stable and generally have means of pulling out your data if you need it, but I really just like to have my content under my own control. Likewise, I have other projects I want to work on, so building content management software is not really on my radar at this point; that's where <a href="http://jbake.org">JBake</a> comes in.</p><p>JBake is a simple JVM-based static site generation tool that makes casual blogging quite simple once you get everything set up. It's a bit of a raw project at this point, so there are a few rough edges to work with, but I will help to file them down in the discussions below.</p><p>Getting started with JBake, you have a couple options. You can install JBake locally and use it as a command line tool, or you can use the <a href="https://github.com/jbake-org/jbake-gradle-plugin">JBake Gradle Plugin</a>. The Gradle plugin is currently lacking the local server feature provided by the command line tools; however, it does provide a more portable development environment along with the universe of other Gradle plugins. We will use the Gradle plugin approach here and I will provide some workarounds for the missing features to bring the functionality back on even ground with the command line tool.</p><p>The first thing we need is our base project and for that I am going to use a <a href="https://github.com/pledbrook/lazybones">Lazybones</a> template that I have created (which may be found in my <a href="https://github.com/cjstehno/lazybones-templates">lazybones-templates</a> repository). You can use the Gradle plugin and do all the setup yourself, but it was fairly simple and having a template for it allowed me to add in the missing features we need.</p>
@@ -163,7 +198,7 @@ May be stored in refrigerator for up to 1 week or in freezer for up to 8 weeks.
 </blockquote></p>
   	
 		<a href="blog/2015/test-fixtures.html"><h1>Vanilla Test Fixtures</h1></a>
-		<p><em>15 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><em>15 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 		<p><p>Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a <code>FixtureBuilder</code> and <code>Fixture</code> class to my <a href="http://github.com/cjstehno/vanilla">Vanilla-Testing</a> library.</p><p>Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, <code>Person</code> defined as:</p>
 <pre><code class="groovy">class Person {
     Name name
@@ -205,7 +240,7 @@ Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, sco
 </code></pre><p>The fixture mapper accepts <code>PropertyRandomizer</code> instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.</p><p>One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the <code>asImmutable()</code> method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.</p><p>Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.</p></p>
   	
 		<a href="blog/2015/property-randomization.html"><h1>Property Randomization for Testing</h1></a>
-		<p><em>06 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><em>06 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 		<p><p>Unit tests are great, but sometimes you end up creating a lot of test objects requiring data, such as DTOs and domain objects. Generally, I have always come up with movie quotes or other interesting content for test data. Recently, while working on a Groovy project, I thought it would be interesting to have a way to randomly generate and populate the data for these objects. The randomization would provide a simpler approach to test data as well as providing the potential for stumbling on test data that would break your code in interesting ways.</p><p>My <a href="http://github.com/cjstehno/vanilla">Vanilla</a> project now has a <code>PropertyRandomizer</code> class, which provides this property randomization functionality in two ways. You can use it as a builder or as a DSL.</p><p>Say you have a <code>Person</code> domain class, defined as:</p>
 <pre><code class="groovy">@ToString
 class Person {
@@ -428,7 +463,7 @@ Content: [content:Hello, Chris!, id:1]
 </blockquote></p>
   	
 		<a href="blog/2015/ast-testing.html"><h1>Testing AST Transformations</h1></a>
-		<p><em>08 March 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a></p>
+		<p><em>08 March 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/testing.html'>testing</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 		<p><p>While working on my <a href="https://github.com/cjstehno/effigy">Effigy</a> project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.</p><p>After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it's actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)</p><p>The key to making transforms testable is the <code>GroovyClassLoader</code> which gives you the ability to compile Groovy code on the fly:</p>
 <pre><code>def clazz = new GroovyClassLoader().parseClass(sourceCode)
 </code></pre><p>During that <code>parseClass</code> method is when all the AST magic happens. This means you can not only easily test your code, but also debug into your transformations to get a better feel for what is going wrong when things break - and they often do.</p><p>For my testing, I have started building a <code>ClassBuilder</code> code helper that is a shell for String-based source code. You provide a code template that acts as your class shell, and then you inject code for your specific test case. You end up with a reasonably clean means of building test code and instantiating it:</p>
@@ -817,213 +852,6 @@ class TimeController {
 <pre><code>Date:Fri, 05 Sep 2014 12:15:27 GMT
 </code></pre><p>As you can see from this long discussion, the Spring-Boot embedded server API is quite useful all on its own. It's nice to see that Spring has exposed this functionality as part of its public API rather than hiding it under the covers somewhere.</p>
 <blockquote><p>The code I used for this article can be found in the main repository for this project, under the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/spring-shoe">spring-shoe</a> directory.</p>
-</blockquote></p>
-  	
-		<a href="blog/2014/nodetypes-rabbit-hole.html"><h1>NodeTypes - Deeper Down the Rabbit Hole</h1></a>
-		<p><em>23 August 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>In my last post about <a href="http://jackrabbit.apache.org">Jackrabbit</a>, "<a href="http://coffeaelectronica.com/blog/2014/wabbit-season-with-jackrabbit.html">Wabbit Season with Jackrabbit</a>", I fleshed out the old Jackrabbit tutorial and expanded it a bit to ingest some image file content. I touched on the subject of node types briefly, but did little with them. In this post, I am going to delve a bit deeper into using node types and creating your own.</p><p>In the older versions of Jackrabbit, they a text-based format for configuring your own node types. I is not well documented, and I was not at all sad to see that it is no longer used since Jackrabbit 2.x. There may be another approach to loading node types, but I found the programmatic approach interesting.</p><p>For this post, you will want to refer to the code presented in the other post, "<a href="Wabbit-Season-with-Jackrabbit">Wabbit Season with Jackrabbit</a>" as a starting point (especially the last version of the code, which the code here will be based on).</p><p>For this example, we are going to expand the previous example to include image metadata in the stored node properties. I was originally under the impression that Jackrabbit would automatically extract the metadata on ingestion of the data, but it appears that this is only the case for text-based data when doing indexing. This is not a big roadblock, though, since <a href="http://tika.apache.org">Apache Tika</a> is included with Jackrabbit, although a slightly older version than what I wanted to use. You can add the following to your <code>build.gradle</code> file to update the version:</p>
-<pre><code class="groovy">compile &#39;org.apache.tika:tika-parsers:1.5&#39;
-</code></pre><p>Tika provides metadata extractors for a wide range of file formats, one of which is JPEG images, which is what we are playing with here.</p><p>First, we need to extract the metadata from the image file. I did this just after the main method's file reference statement:</p>
-<pre><code class="groovy">def metadata = extractMetadata( file )
-</code></pre><p>The code for the <code>extractMetadata(File)</code> method is as follows:</p>
-<pre><code class="groovy">private static Map&lt;String,String&gt; extractMetadata( File imageFile ){
-    def meta = new Metadata()
-    def extractor = new ImageMetadataExtractor( meta )
-
-    log.info &#39;Extracting metadata from {}&#39;, imageFile
-
-    extractor.parseJpeg(imageFile)
-
-    def props = [:]
-    meta.names().sort().each { name-&gt;
-        props[name] = meta.get(name)
-        log.info &quot; : &lt;image-meta&gt; $name : ${meta.get(name)}&quot;
-    }
-
-    return props
-}
-</code></pre><p>It's just a simple straight-forward use of the Tika <code>ImageMetadataExtractor</code>, which pulls out all the data and stores it into a Map for use later.</p><p>Then, after we create the main file node, we want to apply the metadata properties to it:</p>
-<pre><code class="groovy">applyMetadata( fileNode, metadata )
-</code></pre><p>The <code>applyMetadata(Node,Map)</code> method applies the metadata from the map as properties on the node. The code is as shown below:</p>
-<pre><code class="groovy">private static void applyMetadata( Node node, Map&lt;String,String&gt; metadata ){
-    node.addMixin(&#39;pp:photo&#39;)
-    node.setProperty(&#39;pp:photo-width&#39;, metadata[&#39;Image Width&#39;].split(&#39; &#39;)[0] as long )
-
-    log.info &#39;Applied mixin -&gt; {} :: {}&#39;, node.mixinNodeTypes.collect { it.name }.join(&#39;, &#39;), node.getProperty(&#39;pp:photo-width&#39;).string
-}
-</code></pre><p>For the metadata, I used the concept of "Mixin" node types. Every node has a primary node type, in this case it's an "nt:file" node, but nodes can have multiple mixin node types also applied to them so that they can have additional properties available. This works perfectly in my case, since I want a file that is a photo with extra metadata associated with it.</p><p>Also, the <code>dumpProps(Node)</code> method changed slightly to avoid errors during extraction, and to hide properties we don't care about seeing:</p>
-<pre><code class="groovy">private static void dumpProps( Node node ){
-    log.info &#39;Node ({}) of type ({}) with mixins ({})&#39;, node.name, node.getPrimaryNodeType().name, node.getMixinNodeTypes()
-
-    def iter = node.properties
-    while( iter.hasNext() ){
-        def prop = iter.nextProperty()
-        if( prop.type != PropertyType.BINARY ){
-            if( prop.name != &#39;jcr:mixinTypes&#39; ){
-                log.info &#39; - {} : {}&#39;, prop.name, prop.value.string
-            }
-        } else {
-            log.info &#39; - {} : &lt;binary-data&gt;&#39;, prop.name
-        }
-    }
-}
-</code></pre><p>If you run the code at this point, you will get an error about the node type not being defined, so we need to define the new node type. In the current version of Jackrabbit, they defer node type creation to the standard JCR 2.0 approach, which is pretty clean. The code is shown below:</p>
-<pre><code class="groovy">private static void registerNodeTypes(Session session ) throws Exception {
-    if( !session.namespacePrefixes.contains(&#39;pp&#39;) ){
-        session.workspace.namespaceRegistry.registerNamespace(&#39;pp&#39;, &#39;http://stehno.com/pp&#39;)
-    }
-
-    NodeTypeManager manager = session.getWorkspace().getNodeTypeManager()
-
-    if( !manager.hasNodeType(&#39;pp:photo&#39;) ){
-        NodeTypeTemplate nodeTypeTemplate = manager.createNodeTypeTemplate()
-        nodeTypeTemplate.name = &#39;pp:photo&#39;
-        nodeTypeTemplate.mixin = true
-
-        PropertyDefinitionTemplate propTemplate = manager.createPropertyDefinitionTemplate()
-        propTemplate.name = &#39;pp:photo-width&#39;
-        propTemplate.requiredType = PropertyType.LONG
-        propTemplate.multiple = false
-        propTemplate.mandatory = true
-
-        nodeTypeTemplate.propertyDefinitionTemplates &lt;&lt; propTemplate
-
-        manager.registerNodeType( nodeTypeTemplate, false )
-    }
-}
-</code></pre><p>Which is called just after logging in and getting a reference to a repository session. Basically, you use the <code>NodeTypeManager</code> to create a <code>NodeTypeTemplate</code> which you can use to specify the configuration settings of your new node type. There is a similar construct for node type properties, the <code>PropertyDefinitionTemplate</code>. Once you have your configuration done, you register the node type and you are ready to go.</p><p>When run, this code generates output similar to:</p>
-<pre><code>2014-08-23 16:43:02 Rabbits [INFO] User (admin) logged into repository (Jackrabbit)
-...
-2014-08-23 16:43:02 Rabbits [INFO]  : &lt;image-meta&gt; Image Width : 2448 pixels
-...
-2014-08-23 16:43:02 Rabbits [INFO] Applied mixin -&gt; pp:photo :: 2448
-2014-08-23 16:43:02 Rabbits [INFO] Stored image file data into node (2014-08-19 20.49.40.jpg)...
-2014-08-23 16:43:02 Rabbits [INFO] Node (2014-08-19 20.49.40.jpg) of type (nt:file) with mixins ([org.apache.jackrabbit.core.nodetype.NodeTypeImpl@5b3bb1f7])
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:createdBy : admin
-2014-08-23 16:43:02 Rabbits [INFO]  - pp:photo-width : 2448
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:file
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:created : 2014-08-23T16:43:02.531-05:00
-2014-08-23 16:43:02 Rabbits [INFO] Node (jcr:content) of type (nt:resource) with mixins ([])
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModified : 2014-08-19T20:49:44.000-05:00
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:data : &lt;binary-data&gt;
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:lastModifiedBy : admin
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:uuid : a699fbd6-4493-4dc7-9f7a-b87b84cb1ef9
-2014-08-23 16:43:02 Rabbits [INFO]  - jcr:primaryType : nt:resource
-</code></pre><p>(I omitted a bunch of the metadata output lines to clean up the output)</p><p>You can see that the new node type data is populated from the metadata and the mixin is properly applied.</p><p>Call me crazy, but this approach seems a lot cleaner than the old text-based approach. There are some rules around node types and ensuring that they are not created if they already exist, though this only seems to be a problem in certain use cases - need to investigate that a bit more, but be aware of it.</p><p>Now, you can stop here and create new node types all day long, but let's take this experiment a little farther down the rabbit hole. The programmatic approach to node type configuration seems to lend itself nicely to a Groovy-based DSL approach, something like:</p>
-<pre><code class="groovy">private static void registerNodeTypes( Session session ) throws Exception {
-    definitions( session.workspace ){
-        namespace &#39;pp&#39;, &#39;http://stehno.com/pp&#39;
-
-        nodeType {
-            name &#39;pp:photo&#39;
-            mixin true
-
-            propertyDefinition {
-                name &#39;pp:photo-width&#39;
-                requiredType PropertyType.LONG
-                multiple false
-                mandatory true
-            }
-
-            propertyDefinition {
-                name &#39;pp:photo-height&#39;
-                requiredType PropertyType.LONG
-                multiple false
-                mandatory true
-            }
-        }
-    }
-}
-</code></pre><p>Seems like a nice clean way to create new node types and their properties with little fuss and muss. So, using a little Groovy DSL closure delegation we can do this without too much pain:</p>
-<pre><code class="groovy">class NodeTypeDefiner {
-
-    private final NodeTypeManager manager
-    private final Workspace workspace
-
-    private NodeTypeDefiner( final Workspace workspace ){
-        this.workspace = workspace
-        this.manager = workspace.nodeTypeManager
-    }
-
-    void namespace( String name, String uri ){
-        if( !workspace.namespaceRegistry.prefixes.contains(name) ){
-            workspace.namespaceRegistry .registerNamespace(name, uri)
-        }
-    }
-
-    static void definitions( final Workspace workspace, Closure closure ){
-        NodeTypeDefiner definer = new NodeTypeDefiner( workspace )
-        closure.delegate = definer
-        closure.resolveStrategy = Closure.DELEGATE_ONLY
-        closure()
-    }
-
-    void nodeType( Closure closure ){
-        def nodeTypeTemplate = new DelegatingNodeTypeTemplate( manager )
-
-        closure.delegate = nodeTypeTemplate
-        closure.resolveStrategy = Closure.DELEGATE_ONLY
-        closure()
-
-        manager.registerNodeType( nodeTypeTemplate, true )
-    }
-}
-</code></pre><p>The key pain point I found here was that with the nested closure structures, I needed to change the <code>resolveStrategy</code> so that you get the delegate only rather than the owner - took a little debugging to trace that one down.</p><p>The other useful point here was the "Delegating" extensions of the two "template" classes:</p>
-<pre><code class="groovy">class DelegatingNodeTypeTemplate implements NodeTypeDefinition {
-
-    @Delegate NodeTypeTemplate template
-    private final NodeTypeManager manager
-
-    DelegatingNodeTypeTemplate( final NodeTypeManager manager ){
-        this.manager = manager
-        this.template = manager.createNodeTypeTemplate()
-    }
-
-    void name( String name ){
-        template.setName( name )
-    }
-
-    void mixin( boolean mix ){
-        template.mixin = mix
-    }
-
-    void propertyDefinition( Closure closure ){
-        def propertyTemplate = new DelegatingPropertyDefinitionTemplate( manager )
-        closure.delegate = propertyTemplate
-        closure.resolveStrategy = Closure.DELEGATE_ONLY
-        closure()
-        propertyDefinitionTemplates &lt;&lt; propertyTemplate
-    }
-}
-
-class DelegatingPropertyDefinitionTemplate implements PropertyDefinition {
-
-    @Delegate PropertyDefinitionTemplate template
-    private final NodeTypeManager manager
-
-    DelegatingPropertyDefinitionTemplate( final NodeTypeManager manager ){
-        this.manager = manager
-        this.template = manager.createPropertyDefinitionTemplate()
-    }
-
-    void name( String name ){
-        template.setName( name )
-    }
-
-    void requiredType( int propertyType ){
-        template.setRequiredType( propertyType )
-    }
-
-    void multiple( boolean value ){
-        template.multiple = value
-    }
-
-    void mandatory( boolean value ){
-        template.mandatory = value
-    }
-}
-</code></pre><p>They provide the helper methods to allow a nice clean DSL. Without them you have only setters, which did not work out cleanly. You just end up with some small delegate classes.</p><p>This code takes care of adding in the property definitions, registering namespaces and node types. It does not currently support all the configuration properties; however, that would be simple to add - there are not very many available.</p><p>As you can see from the DSL example code, you can now add new node types in a very simple manner. This kind of thing is why I love Groovy so much.</p>
-<blockquote><p>If there is any interest in this DSL code, I will be using it in one of my own projects, so I could extract it into a library for more public use - let me know if you are interested.</p>
 </blockquote></p>
   	
 	

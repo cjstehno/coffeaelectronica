@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>When GStrings Attack</title>
+    <title>Lazy Immutables</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Christopher J. Stehno">
@@ -87,44 +87,41 @@
 
 	
 	<div class="page-header">
-		<h1>When GStrings Attack</h1>
+		<h1>Lazy Immutables</h1>
 	</div>
 
-	<p><em>28 March 2012</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+	<p><em>23 September 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 
-	<p><p>I have run into this behavior a few times now, so I decided to dig into it a bit. Basically, if you have a map using "string" keys in <a href="http://groovy.codehaus.org">Groovy</a>, they can provide unexpected (or at least non-intuitive results).</p><p>Groovy has two object types of "string"... the standard Java String, which is denoted by single-quotes, and the dynamic GString, which is denoted by double-quotes _(Note: the current version of the documentation has a nice outline of <a href="http://groovy.codehaus.org/Strings+and+GString">Strings vs GStrings</a>). From a developer perspective these generally seem interchangable other than the dynamic nature of GStrings; however, there is a more fundamental difference when you are working with hashes (Sets and Maps) since these are not the same class.</p><p>Let's consider the following two strings:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;&lt;br/&gt;def gstr = &quot;foo${1+1}&quot;
-</code></pre><p>Yes, the 1+1 is a bit contrived, but it's where the fun comes in. If you check them for equality:</p>
-<pre><code class="groovy">println( str == gstr )&lt;br/&gt;println( str.equals( gstr ) )
-</code></pre><p>The first line (==), will print "true", while the second line (equals) will print "false". But, wait, there's more...</p>
-<pre><code class="groovy">println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>will print "false". They are two different instances of two different classes, lightly hidden by a layer of similarity. As a developer, you can get used to not thinking about the differences, especially when they are not always visible. Consider the case when both strings have the same non-dynamic content:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;
-def gstr = &quot;foo2&quot;
-
-println( str == gstr )
-println( str.equals( gstr ))
-println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>In this scenario, all three lines print "true". So really what it comes down to is the cases when there is actually dynamic content in the GString. These will be considered differently than a seemingly equivalent static string. This is can be a dangerous difference when working with maps:</p>
-<pre><code class="groovy">def map = [:]
-map.put( &#39;foo2&#39;, 1 )
-map.put( &quot;foo${1+1}&quot; as String, 2 )
-map.put( &quot;foo${1+1}&quot;, 3 )
-
-println &quot;map.size() -&amp;gt; ${map.size()}&quot;
-map.each {k,v-&gt; println &quot;$k = $v&quot; }
-
-println map[&#39;foo2&#39;] // 2
-println map[&quot;foo2&quot;] // 2
-println map[&quot;foo${1+1}&quot;] // 2
-</code></pre><p>If you add a similar string in three different ways (static string, GString cast as String, and GString), you will see that it results in:</p>
-<pre><code class="groovy">map.size() -&gt; 2
-foo2 = 2
-foo2 = 3
-2
-2
-2
-</code></pre><p>You end up with two unique entries in the map, though only one of them is accessible directly.</p><p>I don't really feel that this is a bug in Groovy; however, more of an unexpected behavior that can play against what a developer might feel is intuitive (e.g. a string is a string). This is just something to beware of while developing in Groovy.</p></p>
+	<p><p>A co-worker and I were discussing the Groovy <code>@Immutable</code> annotation recently where I was thinking it would be useful if it allowed you to work on the object as a mutable object until you were ready to make it permanent, and then you could "seal" it and make it immutable. This would give you a bit more freedom in how the object is configured - sometimes the standard immutable approach can be overly restrictive.</p><p>Consider the case of of an immutable <code>Person</code> object:</p>
+<pre><code class="groovy">@Immutable
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+</code></pre><p>With <code>@Immutable</code> you have to create the object all at once:</p>
+<pre><code class="groovy">def person = new Person(&#39;Chris&#39;,&#39;J&#39;,&#39;Stehno&#39;,42)
+</code></pre><p>and then you're stuck with it. You can create a copy of it with one or more different properties using the <code>copyWith</code> method, but you need to specify the <code>copyWith=true</code> in the annotation itself, then you can do something like:</p>
+<pre><code class="groovy">Person otherPerson = person.copyWith(firstName:&#39;Bob&#39;, age:50)
+</code></pre><p>I'm not sure who "Bob J Stehno" is though. With more complicated immutables, this all at once requirement can be annoying. This is where the <code>@LazyImmutable</code> annotation comes in (part of my <a href="http://stehno.com/vanilla/">Vanilla - Core library</a>). With a similar <code>Person</code> class:</p>
+<pre><code class="groovy">@LazyImmutable @Canonical
+class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+}
+</code></pre><p>using the new annotation, you can create and populate the instance over time:</p>
+<pre><code class="groovy">def person = new Person(&#39;Chris&#39;)
+person.middleName = &#39;J&#39;
+person.lastName = &#39;Stehno&#39;
+person.age = 42
+</code></pre><p>Notice that the <code>@LazyImmutable</code> annotation does not apply any other transforms (as the standard <code>@Immutable</code> does). It's a standard Groovy object, but with an added method: the <code>asImmutable()</code> method is injected via AST Transformation. This method will take the current state of the object and create an immutable version of the object - this does imply that the properties of lazy immutable objects should follow the same rules as those of the standard immutable so that the conversion is determinate. For our example case:</p>
+<pre><code class="groovy">Person immutablePerson = person.asImmutable()
+</code></pre><p>The created object is the same immutable object as would have been created by using the <code>@Immutable</code> annotation and it is generated as an extension of the class you created so that it's type is still valid. The immutable version of the object also has a useful added method, the <code>asMutable()</code> method is used to create a copy of the original mutable object.</p>
+<pre><code class="groovy">Person otherMutable = immutablePerson.asMutable()
+</code></pre><p>It's a fairly simple helper annotation, but it just fills one of those little functional gaps that you run into every now and then. Maybe someone else will find it useful.</p></p>
 
 	<hr />
 	
