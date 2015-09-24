@@ -152,4 +152,4 @@ class Mappers {
 
 When the code compiles, a new implementation of `ObjectMapper` will be created and installed as the return value for the `personMapper()` method. The static version of the DSL has all of the same functionality of the dynamic version except that it does not support using `ObjectMappers` direction in the `using` command; however, a workaround for this is to use a closure.
 
-Object property mapping/copying is one of those things you don't run into all that often, but it is useful to have a simple alternative to hand-writing the code for it.
+Object property mapping/copying is one of those things you don't run into all that often, but it is useful to have a simple alternative to hand-writing the code for it. Both the dynamic and static version of the object mappers discussed here are available in my [Vanilla](http://stehno.com/vanilla) library.
