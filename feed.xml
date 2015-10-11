@@ -6,9 +6,107 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Wed, 23 Sep 2015 19:00:38 -0500</pubDate>
-    <lastBuildDate>Wed, 23 Sep 2015 19:00:38 -0500</lastBuildDate>
+    <pubDate>Sun, 11 Oct 2015 10:37:05 -0500</pubDate>
+    <lastBuildDate>Sun, 11 Oct 2015 10:37:05 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Copying Data with ObjectMappers</title>
+      <link>http://coffeaelectronica.com/blog/2015/object-mappers.html</link>
+      <pubDate>Sat, 10 Oct 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/object-mappers.html</guid>
+      <description>
+      &lt;p&gt;When working with legacy codebases, I tend to run into a lot of scenarios where I am copying data objects from one format to another while an API is in transition or due to some data model mismatch. &lt;/p&gt;&lt;p&gt;Suppose we have an object in one system - I am using Groovy because it keeps things simple, but it could be Java as well:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class Person {
+    long id
+    String firstName
+    String lastName
+    LocalDate birthDate
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and then you are working with a legacy (or external) API which provides similar data in the form of:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class Individual {
+    long id
+    String givenName
+    String familyName
+    String birthDate
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and now you have to integrate the conversion from the old/external format (&lt;code&gt;Individual&lt;/code&gt;) to your internal format (&lt;code&gt;Person&lt;/code&gt;).&lt;/p&gt;&lt;p&gt;You can write the code in Java using the &lt;code&gt;Transformer&lt;/code&gt; interface from &lt;a href=&quot;http://commons.apache.org/proper/commons-collections/&quot;&gt;Apache Commons Collections&lt;/a&gt;, which ends up with something like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;public class IndividualToPerson implements Transformer&amp;lt;Individual,Person&amp;gt;{
+    
+    public Person transform(Individual indiv){
+        Person person = new Person();
+        person.setId( indiv.getId() );
+        person.setFirstName( indiv.getGivenName() );
+        person.setLastName( indiv.getFamilyName() );
+        person.setBirthDate( LocalDate.parse(indiv.getBirthDate()) );
+        return person;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I wrote a blog post about this many years ago (&lt;a href=&quot;http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html&quot;&gt;Commons Collections - Transformers&lt;/a&gt;); however, if you have more than a handful of these conversions, you can end up handwriting a lot of the same code over and over, which can be error prone and time consuming. Even switching the code above to full-on Groovy does not really save you much, though it is better:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;class IndividualToPerson implements Transformer&amp;lt;Individual,Person&amp;gt;{
+    
+    Person transform(Individual indiv){
+        new Person(
+            id: indiv.id,
+            firstName: indiv.givenName,
+            lastName: indiv.familyName,
+            birthDate: LocalDate.parse(indiv.birthDate)
+        )
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;What I came up with was a simple mapping DSL which allows for straight-forward definitions of the property mappings in the simplest code possible:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;ObjectMapper inividualToPerson = mapper {
+    map &amp;#39;id&amp;#39;
+    map &amp;#39;givenName&amp;#39; into &amp;#39;firstName&amp;#39;
+    map &amp;#39;familyName&amp;#39; into &amp;#39;lastName&amp;#39;
+    map &amp;#39;birthDate&amp;#39; using { d-&amp;gt; LocaleDate.parse(d) }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which builds an instance of &lt;code&gt;RuntimeObjectMapper&lt;/code&gt; which is stateless and thread-safe. The &lt;code&gt;ObjectMapper&lt;/code&gt; interface has a method &lt;code&gt;copy(Object source, Object dest)&lt;/code&gt; which will copy the properties from the source object to the destination object. Your transformation code ends up something like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def people = individuals.collect { indiv-&amp;gt;
+    Person person = new Person()
+    individualToPerson.copy(indiv, person)
+    person
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;or we can use the &lt;code&gt;create(Object, Class)&lt;/code&gt; method as:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def people = individuals.collect { indiv-&amp;gt;
+    individualToPerson.create(indiv, Person)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which is just a shortcut method for the same code, as long as you are able to create your destination object with a default constructor, which we are able to do.&lt;/p&gt;&lt;p&gt;There is also a third, slightly more useful option in this specific collector case:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def people = individuals.collect( individualToPerson.collector(Person) )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;collector(Class)&lt;/code&gt; method returns a &lt;code&gt;Closure&lt;/code&gt; that is also a shortcut to the conversion code shown previously. It&apos;s mostly syntactic sugar, but it&apos;s nice and clean to work with.&lt;/p&gt;&lt;p&gt;Notice the &apos;using&apos; method - this allows for conversion of the source data before it is set into the destination object. This is one of the more powerful features of the DSL. Consider the case where your &lt;code&gt;Person&lt;/code&gt; class has an embedded &lt;code&gt;Name&lt;/code&gt; class:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class Person {
+    long id
+    Name name
+    LocalDate birthDate
+}
+
+@Canonical
+class Name {
+    String first
+    String last
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now we want to map the name properties into this new embedded object rather than into the main object. The mapper DSL can do this too:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;ObjectMapper individualToPerson = mapper {
+    map &amp;#39;id&amp;#39;
+    map &amp;#39;givenName&amp;#39; into &amp;#39;name&amp;#39; using { p,src-&amp;gt; 
+        new Name(src.givenName, src.familyName)
+    }
+    map &amp;#39;birthDate&amp;#39; using { d-&amp;gt; LocaleDate.parse(d) }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It&apos;s a bit odd since you are mapping two properties into one property, but it gets the job done. The conversion closure will accept up to three parameters (or none) - the first being the source property being converted, the second is the source object instance and the third is the destination object instance. The one thing to keep in mind when using the two and three parameter versions is that the order of your property mapping definitions may begin to matter, especially if you are working with the destination object.&lt;/p&gt;&lt;p&gt;So far, we have been talking about runtime-based mappers that take your configuration and resolve your property mappings at runtime. It&apos;s reasonably efficient since it doesn&apos;t do all that much, but consider the case where you have a million objects to transform; those extra property mapping operations start to add up - that&apos;s when you go back to hand-coding it unless there is a way to build the mappers at compile time rather than run time...&lt;/p&gt;&lt;p&gt;There is. This was something I have really wanted to get a hold of for this project and others; the ability to use a DSL to control the AST transformations used in code generation... or, using the mapper DSL in an annotation to create the mapper class at compile time so that it is closer to what you would have hand-coded yourself (and also becomes a bit more performant since there are fewer operations being executed at runtime).&lt;/p&gt;&lt;p&gt;Using the static approach is simple, you just write the DSL code in the &lt;code&gt;@Mapper&lt;/code&gt; annotation on a method, property or field:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class Mappers {
+
+    @Mapper({
+        map &amp;#39;id&amp;#39;
+        map &amp;#39;givenName&amp;#39; into &amp;#39;firstName&amp;#39;
+        map &amp;#39;familyName&amp;#39; into &amp;#39;lastName&amp;#39;
+        map &amp;#39;birthDate&amp;#39; using { d-&amp;gt; LocaleDate.parse(d) }    
+    })
+    static final ObjectMapper personMapper(){}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;When the code compiles, a new implementation of &lt;code&gt;ObjectMapper&lt;/code&gt; will be created and installed as the return value for the &lt;code&gt;personMapper()&lt;/code&gt; method. The static version of the DSL has all of the same functionality of the dynamic version except that it does not support using &lt;code&gt;ObjectMappers&lt;/code&gt; direction in the &lt;code&gt;using&lt;/code&gt; command; however, a workaround for this is to use a closure.&lt;/p&gt;&lt;p&gt;Object property mapping/copying is one of those things you don&apos;t run into all that often, but it is useful to have a simple alternative to hand-writing the code for it. Both the dynamic and static version of the object mappers discussed here are available in my &lt;a href=&quot;http://stehno.com/vanilla&quot;&gt;Vanilla&lt;/a&gt; library.&lt;/p&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Lazy Immutables</title>
