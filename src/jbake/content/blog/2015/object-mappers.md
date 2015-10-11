@@ -1,5 +1,5 @@
 title=Copying Data with ObjectMappers
-date=2015-09-25
+date=2015-10-10
 type=post
 tags=blog,groovy,vanilla
 status=published
