@@ -1,0 +1,165 @@
+title=Spring ViewResolver for "GSP"
+date=2015-10-26
+type=post
+tags=blog,groovy,vanilla,spring
+status=published
+~~~~~~
+Recently, while working on a http://springframework.org[Spring MVC] application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html[GStringTemplateEngine]. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a 
+nightmare to maintain, and your designers would kill you if they ever had to work with them.
+
+This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try... and I was right, it was not hard at all.
+
+The `ViewResolver` implementation I came up with is an extension of the `AbstractTemplateViewResolver` with one main method of interest, the `buildView(String)` method
+which contains the following:
+
+[source,groovy]
+----
+protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+    GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView // <1>
+    
+    URL templateUrl = applicationContext.getResource(view.url).getURL() // <2>
+    
+    view.template = templateEngine.createTemplate(
+        applicationContext.getResource(view.url).getURL()
+    ) // <3>
+    
+    view.encoding = defaultEncoding
+    
+    return view
+}
+----
+<1> Call the super class to create a configured instance of the `View`
+<2> Load the template from the `ApplicationContext` using the `url` property of the `View`
+<3> Create the `Template` from the contents of the URL
+
+This method basically just uses the view resolver framework to find the template file
+and load it with the `GSTringTemplateEngine` - the framework takes care of the
+caching and model attribute management.
+
+The `View` implementation is also quite simple; it is an extension of the `AbstractTemplateview`, with the only implmented method being the `renderMergedTemplateModel()` method:
+
+[source,groovy]
+----
+protected void renderMergedTemplateModel(
+    Map<String, Object> model, HttpServletRequest req, HttpServletResponse res
+) throws Exception {
+    res.contentType = contentType
+    res.characterEncoding = encoding
+
+    res.writer.withPrintWriter { PrintWriter out ->
+        out.write(template.make(model) as String)
+    }
+}
+----
+
+The `Template` content is rendered using the configured model data and then written to the `PrintWriter` from the `HttpServletResponse`, which sends it to the client.
+
+Lastly, you need to configure the resolver in your application:
+
+[source,groovy]
+----
+@Bean ViewResolver viewResolver() {
+    new GroovyTemplateViewResolver(
+        contentType: 'text/html',
+        cache: true,
+        prefix: '/WEB-INF/gsp/',
+        suffix: '.gsp'
+    )
+}
+----
+
+One thing to notice here is all the functionality you get by default from the Spring `ViewResolver` framework for very little added code on your part.
+
+Another thing to note is that "GSP" file in this case is not really a true GSP; however, you have all the functionality provided by the `GStringTemplateEngine`, which is quite similar. An example template could be something like:
+
+[[app-listing]]
+[source,gsp]
+.hello.gsp
+----
+<html>
+    <head><title>Hello</title></head>
+    <body>
+        [${new Date()}] Hello, ${name ?: 'stranger'}
+        
+        <% if(personService.seen(name)){ %>
+            You have been here ${personService.visits(name)} times.
+        <% } %>
+    </body>
+</html>
+----
+
+It's definitely a nice clean template language if you are already coding everything else in Groovy anyway.
+
+I will be adding a spring helper library to my vanilla project; the "vanilla-spring" 
+project will have the final version of this code, though it should be similar to 
+what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.
+
+[[app-listing]]
+[source,groovy]
+.GroovyTemplateViewResolver.groovy
+----
+package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateViewResolver extends AbstractTemplateViewResolver {
+
+    /**
+     * The default character encoding to be used by the template views. Defaults to UTF-8 if not specified.
+     */
+    String defaultEncoding = StandardCharsets.UTF_8.name()
+
+    private final TemplateEngine templateEngine = new GStringTemplateEngine()
+
+    GroovyTemplateViewResolver() {
+        viewClass = requiredViewClass()
+    }
+
+    @Override
+    protected Class<?> requiredViewClass() {
+        GroovyTemplateView
+    }
+
+    @Override
+    protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+        GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView
+        
+        view.template = templateEngine.createTemplate(
+            applicationContext.getResource(view.url).getURL()
+        )
+        
+        view.encoding = defaultEncoding
+        return view
+    }
+}
+----
+
+[[app-listing]]
+[source,groovy]
+.GroovyTemplateView.groovy
+----
+package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateView extends AbstractTemplateView {
+
+    Template template
+    String encoding
+
+    @Override
+    protected void renderMergedTemplateModel(
+        Map<String, Object> model, HttpServletRequest req, HttpServletResponse res
+    ) throws Exception {
+        res.contentType = contentType
+        res.characterEncoding = encoding
+
+        res.writer.withPrintWriter { PrintWriter out ->
+            out.write(template.make(model) as String)
+        }
+    }
+}
+----
+
