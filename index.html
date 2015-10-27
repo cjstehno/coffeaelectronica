@@ -87,6 +87,186 @@
 
 
 	
+		<a href="blog/2015/gsp-view-resolver.html"><h1>Spring ViewResolver for "GSP"</h1></a>
+		<p><em>26 October 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a>, <a href='/tags/spring.html'>spring</a></p>
+		<p><div class="paragraph">
+<p>Recently, while working on a <a href="http://springframework.org">Spring MVC</a> application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy <a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html">GStringTemplateEngine</a>. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a
+nightmare to maintain, and your designers would kill you if they ever had to work with them.</p>
+</div>
+<div class="paragraph">
+<p>This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try&#8230;&#8203; and I was right, it was not hard at all.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ViewResolver</code> implementation I came up with is an extension of the <code>AbstractTemplateViewResolver</code> with one main method of interest, the <code>buildView(String)</code> method
+which contains the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+    GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView <b class="conum">(1)</b>
+
+    URL templateUrl = applicationContext.getResource(view.url).getURL() <b class="conum">(2)</b>
+
+    view.template = templateEngine.createTemplate(
+        applicationContext.getResource(view.url).getURL()
+    ) <b class="conum">(3)</b>
+
+    view.encoding = defaultEncoding
+
+    return view
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Call the super class to create a configured instance of the <code>View</code></p>
+</li>
+<li>
+<p>Load the template from the <code>ApplicationContext</code> using the <code>url</code> property of the <code>View</code></p>
+</li>
+<li>
+<p>Create the <code>Template</code> from the contents of the URL</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This method basically just uses the view resolver framework to find the template file
+and load it with the <code>GSTringTemplateEngine</code> - the framework takes care of the
+caching and model attribute management.</p>
+</div>
+<div class="paragraph">
+<p>The <code>View</code> implementation is also quite simple; it is an extension of the <code>AbstractTemplateview</code>, with the only implmented method being the <code>renderMergedTemplateModel()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected void renderMergedTemplateModel(
+    Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse res
+) throws Exception {
+    res.contentType = contentType
+    res.characterEncoding = encoding
+
+    res.writer.withPrintWriter { PrintWriter out -&gt;
+        out.write(template.make(model) as String)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Template</code> content is rendered using the configured model data and then written to the <code>PrintWriter</code> from the <code>HttpServletResponse</code>, which sends it to the client.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, you need to configure the resolver in your application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Bean ViewResolver viewResolver() {
+    new GroovyTemplateViewResolver(
+        contentType: 'text/html',
+        cache: true,
+        prefix: '/WEB-INF/gsp/',
+        suffix: '.gsp'
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>One thing to notice here is all the functionality you get by default from the Spring <code>ViewResolver</code> framework for very little added code on your part.</p>
+</div>
+<div class="paragraph">
+<p>Another thing to note is that "GSP" file in this case is not really a true GSP; however, you have all the functionality provided by the <code>GStringTemplateEngine</code>, which is quite similar. An example template could be something like:</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">hello.gsp</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-gsp" data-lang="gsp">&lt;html&gt;
+    &lt;head&gt;&lt;title&gt;Hello&lt;/title&gt;&lt;/head&gt;
+    &lt;body&gt;
+        [${new Date()}] Hello, ${name ?: 'stranger'}
+
+        &lt;% if(personService.seen(name)){ %&gt;
+            You have been here ${personService.visits(name)} times.
+        &lt;% } %&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s definitely a nice clean template language if you are already coding everything else in Groovy anyway.</p>
+</div>
+<div class="paragraph">
+<p>I will be adding a spring helper library to my vanilla project; the "vanilla-spring"
+project will have the final version of this code, though it should be similar to
+what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.</p>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">GroovyTemplateViewResolver.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateViewResolver extends AbstractTemplateViewResolver {
+
+    /**
+     * The default character encoding to be used by the template views. Defaults to UTF-8 if not specified.
+     */
+    String defaultEncoding = StandardCharsets.UTF_8.name()
+
+    private final TemplateEngine templateEngine = new GStringTemplateEngine()
+
+    GroovyTemplateViewResolver() {
+        viewClass = requiredViewClass()
+    }
+
+    @Override
+    protected Class&lt;?&gt; requiredViewClass() {
+        GroovyTemplateView
+    }
+
+    @Override
+    protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+        GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView
+
+        view.template = templateEngine.createTemplate(
+            applicationContext.getResource(view.url).getURL()
+        )
+
+        view.encoding = defaultEncoding
+        return view
+    }
+}</code></pre>
+</div>
+</div>
+<div id="app-listing" class="listingblock">
+<div class="title">GroovyTemplateView.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateView extends AbstractTemplateView {
+
+    Template template
+    String encoding
+
+    @Override
+    protected void renderMergedTemplateModel(
+        Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse res
+    ) throws Exception {
+        res.contentType = contentType
+        res.characterEncoding = encoding
+
+        res.writer.withPrintWriter { PrintWriter out -&gt;
+            out.write(template.make(model) as String)
+        }
+    }
+}</code></pre>
+</div>
+</div></p>
+  	
 		<a href="blog/2015/object-mappers.html"><h1>Copying Data with ObjectMappers</h1></a>
 		<p><em>10 October 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
 		<p><p>When working with legacy codebases, I tend to run into a lot of scenarios where I am copying data objects from one format to another while an API is in transition or due to some data model mismatch. </p><p>Suppose we have an object in one system - I am using Groovy because it keeps things simple, but it could be Java as well:</p>
@@ -618,107 +798,6 @@ codenarcTest {
 </code></pre><p>This will keep the rule active, but will allow line lengths of 150 rather than the default 120 characters. You will need to check the JavaDocs for configurable rule properties; for the most part, they seem to be on or off. </p><p>Running the analysis is simple, the <code>check</code> task may be run by itself, or it will be run along with the <code>build</code> task.</p>
 <pre><code>gradle check
 </code></pre><p>The reports (main and test) will be available in the <code>build/reports/codenarc</code> directory as two html files. They are not the prettiest reports, but they are functional.</p><p>If you are starting to use CodeNarc on an existing project, you may want to take a phased approach to applying and customizing rules so that you are not instantly bogged down with rule violations - do a few passes with the trimmed down rule set, fix what you can fix quickly and configure or disable the others and set your thresholds to a sensible level then make a goal to drop the numbers with each sprint or release so that progress is made.</p></p>
-  	
-		<a href="blog/2014/hello-again-slick2d.html"><h1>Hello Again Slick2D</h1></a>
-		<p><em>11 October 2014</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>I am finally getting back around to working on my little game programming project and I realized that somewhere along the<br/>way, my project stopped working. I am using the <a href="http://slick.ninjacave.com/">Slick2D</a> library, which seems to have little<br/>in the way of formal release or distribution so it didn't surprise me. I think I had something hacked together making it<br/>work last time. I decided to try and put some more concrete and repeatable steps around basic setup, at least for how I use it - I'm no<br/>game programmer. </p><p>I'm using Groovy as my development language and Gradle for building. In the interest of time and clarity, I am going to use a<br/>dump-and-describe approach here; there are only two files, so it should not be a big deal.</p><p>The <code>build.gradle</code> file is as follows:</p>
-<pre><code class="groovy">group = &#39;com.stehno.demo&#39;
-version = &#39;0.1&#39;
-
-buildscript {
-    repositories {
-        jcenter()
-
-        maven {
-            url &#39;http://dl.bintray.com/cjstehno/public/&#39;
-        }
-    }
-
-    dependencies {
-        classpath &#39;com.stehno:gradle-natives:0.2&#39;
-    }
-}
-
-apply plugin:&#39;groovy&#39;
-apply plugin:&#39;application&#39;
-apply plugin:&#39;com.stehno.natives&#39;
-
-compileJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-}
-
-mainClassName = &#39;helloslick.HelloSlick&#39;
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    compile &#39;org.codehaus.groovy:groovy-all:2.3.6&#39;
-
-    compile &#39;org.slick2d:slick2d-core:1.0.1&#39;
-}
-
-test {
-    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
-}
-
-run {
-    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
-}
-
-natives {
-    jars = [
-        &#39;lwjgl-platform-2.9.1-natives-windows.jar&#39;,
-        &#39;jinput-platform-2.0.5-natives-windows.jar&#39;
-    ]
-    platforms = &#39;windows&#39;
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = &#39;2.1&#39;
-}
-</code></pre><p>The first point of note, is that I am using my <a href="http://cjstehno.github.io/gradle-natives/">Gradle Natives plugin</a>, not as<br/>a self-promotion, but since this is the reason I wrote it. This plugin takes care of extracting all the little native<br/>libraries and putting them in your build so that they are easily accessible by your code. The configuration is found near<br/>the bottom of the file, in the <code>natives</code> block - we want to extract the native libraries from the lwjgl and jinput libraries<br/>for this project and in my case, I only care about the Windows versions (leave off <code>platforms</code> to get all platforms).</p><p>There was one interesting development during my time away from this project, a 3rd-party jar version of Slick2D has been pushed to maven central, which makes it a lot easier - I think I had to build it myself and fiddle with pushing it to my local maven repo or something. Now it's just another remote library (hopefully it works as expected - I have not played with it yet).</p><p>The last point of interest here is the use of the <code>application</code> plugin. This plugin provides an easy way to run your game<br/>while specifying the <code>java.library.path</code> which is the painful part of running applications with native libraries. With the<br/><code>application</code> plugin and the <code>run</code> configuration in place, you can run the game from Gradle - admittedly not ideal, but this<br/>is just development; I actually have a configuration set for the IzPack installer that I will write about later.</p><p>Now, we need some code to run, and the Slick2D wiki provides a simple Hello world sample that I have tweaked a bit for my<br/>use - mostly just cosmetic changes:</p>
-<pre><code class="groovy">package helloslick
-
-import groovy.util.logging.Log
-import org.newdawn.slick.*
-
-import java.util.logging.Level
-
-@Log
-class HelloSlick extends BasicGame {
-
-    HelloSlick(String gamename){
-        super(gamename)
-    }
-
-    @Override
-    public void init(GameContainer gc) throws SlickException {}
-
-    @Override
-    public void update(GameContainer gc, int i) throws SlickException {}
-
-    @Override
-    public void render(GameContainer gc, Graphics g) throws SlickException {
-        g.drawString &#39;Hello Slick!&#39;, 50, 50
-    }
-
-    public static void main(String[] args){
-        try {
-            AppGameContainer appgc = new AppGameContainer(new HelloSlick(&#39;Simple Slick Game&#39;))
-            appgc.setDisplayMode(640, 480, false)
-            appgc.start()
-
-        } catch (SlickException ex) {
-            log.log(Level.SEVERE, null, ex)
-        }
-    }
-}
-</code></pre><p>This just opens a game window and writes "Hello Slick!" in it, but if you have that working, you should be ready for playtime<br/>with Slick2D.</p><p>Once you have the project setup (<code>build.gradle</code> in the root, and <code>HelloSlick.groovy</code> in <code>/src/main/groovy/helloslick</code>), you<br/>are ready to go. Run the following to run the project.</p><p><code>gradle unpackNatives run</code></p><p>And if all is well, you will see the game window and message.</p><p>Like I said, this is mostly just for getting my development environment up and running as a sanity check, but maybe it is useful to others.</p>
-<blockquote><p>Yes, the explicit <code>unpackNatives</code> calls are annoying, it's something I am working on.</p>
-</blockquote></p>
   	
 	
 	<hr />

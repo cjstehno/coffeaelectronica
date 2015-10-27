@@ -6,9 +6,195 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 11 Oct 2015 10:37:05 -0500</pubDate>
-    <lastBuildDate>Sun, 11 Oct 2015 10:37:05 -0500</lastBuildDate>
+    <pubDate>Mon, 26 Oct 2015 13:01:56 -0500</pubDate>
+    <lastBuildDate>Mon, 26 Oct 2015 13:01:56 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Spring ViewResolver for "GSP"</title>
+      <link>http://coffeaelectronica.com/blog/2015/gsp-view-resolver.html</link>
+      <pubDate>Mon, 26 Oct 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/gsp-view-resolver.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Recently, while working on a &lt;a href=&quot;http://springframework.org&quot;&gt;Spring MVC&lt;/a&gt; application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy &lt;a href=&quot;http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html&quot;&gt;GStringTemplateEngine&lt;/a&gt;. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a
+nightmare to maintain, and your designers would kill you if they ever had to work with them.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try&amp;#8230;&amp;#8203; and I was right, it was not hard at all.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;ViewResolver&lt;/code&gt; implementation I came up with is an extension of the &lt;code&gt;AbstractTemplateViewResolver&lt;/code&gt; with one main method of interest, the &lt;code&gt;buildView(String)&lt;/code&gt; method
+which contains the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+    GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+
+    URL templateUrl = applicationContext.getResource(view.url).getURL() &lt;b class=&quot;conum&quot;&gt;(2)&lt;/b&gt;
+
+    view.template = templateEngine.createTemplate(
+        applicationContext.getResource(view.url).getURL()
+    ) &lt;b class=&quot;conum&quot;&gt;(3)&lt;/b&gt;
+
+    view.encoding = defaultEncoding
+
+    return view
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Call the super class to create a configured instance of the &lt;code&gt;View&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Load the template from the &lt;code&gt;ApplicationContext&lt;/code&gt; using the &lt;code&gt;url&lt;/code&gt; property of the &lt;code&gt;View&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Create the &lt;code&gt;Template&lt;/code&gt; from the contents of the URL&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This method basically just uses the view resolver framework to find the template file
+and load it with the &lt;code&gt;GSTringTemplateEngine&lt;/code&gt; - the framework takes care of the
+caching and model attribute management.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;View&lt;/code&gt; implementation is also quite simple; it is an extension of the &lt;code&gt;AbstractTemplateview&lt;/code&gt;, with the only implmented method being the &lt;code&gt;renderMergedTemplateModel()&lt;/code&gt; method:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;protected void renderMergedTemplateModel(
+    Map&amp;lt;String, Object&amp;gt; model, HttpServletRequest req, HttpServletResponse res
+) throws Exception {
+    res.contentType = contentType
+    res.characterEncoding = encoding
+
+    res.writer.withPrintWriter { PrintWriter out -&amp;gt;
+        out.write(template.make(model) as String)
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;Template&lt;/code&gt; content is rendered using the configured model data and then written to the &lt;code&gt;PrintWriter&lt;/code&gt; from the &lt;code&gt;HttpServletResponse&lt;/code&gt;, which sends it to the client.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Lastly, you need to configure the resolver in your application:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Bean ViewResolver viewResolver() {
+    new GroovyTemplateViewResolver(
+        contentType: &apos;text/html&apos;,
+        cache: true,
+        prefix: &apos;/WEB-INF/gsp/&apos;,
+        suffix: &apos;.gsp&apos;
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;One thing to notice here is all the functionality you get by default from the Spring &lt;code&gt;ViewResolver&lt;/code&gt; framework for very little added code on your part.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Another thing to note is that &quot;GSP&quot; file in this case is not really a true GSP; however, you have all the functionality provided by the &lt;code&gt;GStringTemplateEngine&lt;/code&gt;, which is quite similar. An example template could be something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&quot;app-listing&quot; class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;hello.gsp&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-gsp&quot; data-lang=&quot;gsp&quot;&gt;&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;&amp;lt;title&amp;gt;Hello&amp;lt;/title&amp;gt;&amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        [${new Date()}] Hello, ${name ?: &apos;stranger&apos;}
+
+        &amp;lt;% if(personService.seen(name)){ %&amp;gt;
+            You have been here ${personService.visits(name)} times.
+        &amp;lt;% } %&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s definitely a nice clean template language if you are already coding everything else in Groovy anyway.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I will be adding a spring helper library to my vanilla project; the &quot;vanilla-spring&quot;
+project will have the final version of this code, though it should be similar to
+what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&quot;app-listing&quot; class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;GroovyTemplateViewResolver.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateViewResolver extends AbstractTemplateViewResolver {
+
+    /**
+     * The default character encoding to be used by the template views. Defaults to UTF-8 if not specified.
+     */
+    String defaultEncoding = StandardCharsets.UTF_8.name()
+
+    private final TemplateEngine templateEngine = new GStringTemplateEngine()
+
+    GroovyTemplateViewResolver() {
+        viewClass = requiredViewClass()
+    }
+
+    @Override
+    protected Class&amp;lt;?&amp;gt; requiredViewClass() {
+        GroovyTemplateView
+    }
+
+    @Override
+    protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+        GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView
+
+        view.template = templateEngine.createTemplate(
+            applicationContext.getResource(view.url).getURL()
+        )
+
+        view.encoding = defaultEncoding
+        return view
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;app-listing&quot; class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;GroovyTemplateView.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;package com.stehno.vanilla.spring.view
+
+// imports removed...
+
+@TypeChecked
+class GroovyTemplateView extends AbstractTemplateView {
+
+    Template template
+    String encoding
+
+    @Override
+    protected void renderMergedTemplateModel(
+        Map&amp;lt;String, Object&amp;gt; model, HttpServletRequest req, HttpServletResponse res
+    ) throws Exception {
+        res.contentType = contentType
+        res.characterEncoding = encoding
+
+        res.writer.withPrintWriter { PrintWriter out -&amp;gt;
+            out.write(template.make(model) as String)
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Copying Data with ObjectMappers</title>
@@ -5874,7 +6060,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -6152,7 +6338,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -6164,7 +6350,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -6275,7 +6461,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6594,7 +6780,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
