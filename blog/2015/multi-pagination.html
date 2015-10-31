@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Multi-Collection Pagination</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Multi-Collection Pagination</h1>
+	</div>
+
+	<p><em>31 October 2015</em> ~ <a href='/tags/blog.html'>blog</a></p>
+
+	<p><div class="paragraph">
+<p>A few years ago, I was working on a project where we had collections of data spread across multiple rows of data&#8230;&#8203; and then we had to provide a paginated view of that data. This research was the result of those efforts. The discussion here is a bit more rigorous than I usually go into, so if you just want the implementation code jump to the bottom.</p>
+</div>
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Consider that you have a data set representing a collection of collections:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[
+    [ A0, A1, A2, A3, A4, A5 ],
+    [ B0, B1, B2, B3, B4, B5 ],
+    [ C0, C1, C2, C3, C4, C5 ]
+]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We want to retrieve the data in a paginated fashion where the subset (page) with index <code>P</code> and subset size (page size) <code>S</code> is used to retrieve only the desired elements in the most efficient means possible.</p>
+</div>
+<div class="paragraph">
+<p>Consider also that the data sets may be very large and that the internal collections may not be directly associated with the enclosing collection (e.g. two different databases).</p>
+</div>
+<div class="paragraph">
+<p>Also consider that the subsets may cross collection boundaries or contain fewer than the desired number of elements.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, requests for data subsets will be more likely discrete events – one subset per request, rather than iterating over all results.</p>
+</div>
+<div class="paragraph">
+<p>For a page size of four (<code>S = 4</code>) you would have the following five pages:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>P0 : [ A0, A1, A2, A3 ]
+P1 : [ A4, A5, B0, B1 ]
+P2 : [ B2, B3, B4, B5 ]
+P3 : [ C0, C1, C2, C3 ]
+P4 : [ C4, C5 ]</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_computations">Computations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The overall collection is traversed to determine how many elements are contained within each sub-collection; this may be pre-computed or done at runtime. Three counts are calculated or derived for each sub-collection:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Count (<code>CI</code>) - the number of elements in the sub-collection.</p>
+</li>
+<li>
+<p>Count-before (<code>CB</code>) - the total count of all sub-collection elements counted before this collection, but not including this collection.</p>
+</li>
+<li>
+<p>Count-with (<code>CW</code>) - the total count of all sub-collection elements counted before and including this collection.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For our example data set we would have:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[
+    { CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
+    { CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] },
+    { CI:6, CB:12, CW:18 [ C0, C1, C2, C3, C4, C5 ] }
+]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This allows for a simple means of selecting only the sub-collections we are interested in; those containing the desired elements based on the starting and ending indices for the subset (<code>START</code> and <code>END</code> respectively). These indices can easily be calculated as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>START = P * S
+
+END = START + S – 1</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The indices referenced here are for the overall collection, not the individual sub-collections.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The desired elements will reside in sub-collections whose inclusive count (<code>CW</code>) is greater than the starting index and whose preceding count (<code>CB</code>) is less than or equal to the ending index, or:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CW &gt; START and CB ≤ END</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the case of selecting the second subset of data (<code>P = 1</code>) with a page size of four (<code>S = 4</code>) we would have:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>START = 4
+
+END = 7</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will select the first two or the three sub-collections as "interesting" sub-collections containing at least some of our desired elements, namely:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{ CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
+{ CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] }</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What remains is to gather from these sub-collections (call them <code>SC[0]</code>, <code>SC[1]</code>) the desired number of elements (<code>S</code>).</p>
+</div>
+<div class="paragraph">
+<p>To achieve this, a local starting and ending index must be calculated while iterating through the "interesting" sub-collections to gather the elements until either the desired amount is obtained (<code>S</code>) or there are no more elements available.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Calculate the initial local starting index (<code>LOCAL_START</code>) by subtracting the non-inclusive preceding count value of the first selected collection (<code>SC[0]</code>) from the overall starting index.</p>
+</li>
+<li>
+<p>Iterate the selected collections (in order) until the desired amount has been gathered</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This is more clearly represented in pseudo code as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>LOCAL_START = START – SC[0].CB
+REMAINING = S
+
+for-each sc in SC while REMAINING &gt; 0
+
+    if( REMAINING &lt; (sc.size() - LOCAL_START) )
+        LOCAL_END = LOCAL_START + REMAINING - 1
+    else
+        LOCAL_END = sc.size()-1
+
+    FOUND = sc.sub( LOCAL_START, LOCAL_END )
+    G.addAll( FOUND )
+    REMAINING = REMAINING – FOUND.size()
+    LOCAL_START = 0
+
+end</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where the gathered collection of elements (<code>G</code>) is your resulting data set containing the elements for the specified data page.</p>
+</div>
+<div class="paragraph">
+<p>It must be stated that the ordering of the overall collection and the sub-collections must be consistent across multiple data requests for this procedure to work properly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_implementation">Implementation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ok now, enough discussion. Let&#8217;s see what this looks like with some real Groovy code. First, we need our collections of collections data to work with:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def data = [
+    [ 'A0', 'A1', 'A2', 'A3', 'A4', 'A5' ],
+    [ 'B0', 'B1', 'B2', 'B3', 'B4', 'B5' ],
+    [ 'C0', 'C1', 'C2', 'C3', 'C4', 'C5' ]
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we need to implement the algorithm in Groovy:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">int page = 1
+int pageSize = 4
+
+// pre-computation
+
+int before = 0
+def prepared = data.collect {d -&gt;
+    def result = [
+        countIn: d.size(),
+        countBefore: before,
+        countWith: before + d.size(),
+        values:d
+    ]
+
+    before += d.size()
+
+    return result
+}
+
+// main computation
+
+def localStart = (page * pageSize ) - prepared[0].countBefore
+def remaining = pageSize
+
+def gathered = []
+
+prepared.each { sc-&gt;
+    if( remaining ){
+        def localEnd
+        if( remaining &lt; (sc.values.size() - localStart) ){
+            localEnd = localStart + remaining - 1
+        } else {
+            localEnd = sc.values.size() - 1
+        }
+
+        def found = sc.values[localStart..localEnd]
+        gathered.addAll(found)
+
+        remaining -= found.size()
+        localStart = 0
+    }
+}
+
+println "P$page : $gathered"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which yields</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>P1 : [A4, A5, B0, B1]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and if you look all the way back up to the beginning of the article, you see that this is the expected data set for page 1 of the example data.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s not a scenario I have run into often, but it was a bit of a tricky one to unravel. The pre-computation steps ended up being the key to keeping it simple and stable.</p>
+</div>
+</div>
+</div></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>

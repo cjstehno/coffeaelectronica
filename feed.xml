@@ -6,9 +6,271 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Mon, 26 Oct 2015 13:01:56 -0500</pubDate>
-    <lastBuildDate>Mon, 26 Oct 2015 13:01:56 -0500</lastBuildDate>
+    <pubDate>Sat, 31 Oct 2015 06:51:19 -0500</pubDate>
+    <lastBuildDate>Sat, 31 Oct 2015 06:51:19 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Multi-Collection Pagination</title>
+      <link>http://coffeaelectronica.com/blog/2015/multi-pagination.html</link>
+      <pubDate>Sat, 31 Oct 2015 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2015/multi-pagination.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;A few years ago, I was working on a project where we had collections of data spread across multiple rows of data&amp;#8230;&amp;#8203; and then we had to provide a paginated view of that data. This research was the result of those efforts. The discussion here is a bit more rigorous than I usually go into, so if you just want the implementation code jump to the bottom.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;_introduction&quot;&gt;Introduction&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Consider that you have a data set representing a collection of collections:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;[
+    [ A0, A1, A2, A3, A4, A5 ],
+    [ B0, B1, B2, B3, B4, B5 ],
+    [ C0, C1, C2, C3, C4, C5 ]
+]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We want to retrieve the data in a paginated fashion where the subset (page) with index &lt;code&gt;P&lt;/code&gt; and subset size (page size) &lt;code&gt;S&lt;/code&gt; is used to retrieve only the desired elements in the most efficient means possible.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Consider also that the data sets may be very large and that the internal collections may not be directly associated with the enclosing collection (e.g. two different databases).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Also consider that the subsets may cross collection boundaries or contain fewer than the desired number of elements.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Lastly, requests for data subsets will be more likely discrete events – one subset per request, rather than iterating over all results.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For a page size of four (&lt;code&gt;S = 4&lt;/code&gt;) you would have the following five pages:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;P0 : [ A0, A1, A2, A3 ]
+P1 : [ A4, A5, B0, B1 ]
+P2 : [ B2, B3, B4, B5 ]
+P3 : [ C0, C1, C2, C3 ]
+P4 : [ C4, C5 ]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;_computations&quot;&gt;Computations&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The overall collection is traversed to determine how many elements are contained within each sub-collection; this may be pre-computed or done at runtime. Three counts are calculated or derived for each sub-collection:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Count (&lt;code&gt;CI&lt;/code&gt;) - the number of elements in the sub-collection.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Count-before (&lt;code&gt;CB&lt;/code&gt;) - the total count of all sub-collection elements counted before this collection, but not including this collection.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Count-with (&lt;code&gt;CW&lt;/code&gt;) - the total count of all sub-collection elements counted before and including this collection.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For our example data set we would have:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;[
+    { CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
+    { CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] },
+    { CI:6, CB:12, CW:18 [ C0, C1, C2, C3, C4, C5 ] }
+]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This allows for a simple means of selecting only the sub-collections we are interested in; those containing the desired elements based on the starting and ending indices for the subset (&lt;code&gt;START&lt;/code&gt; and &lt;code&gt;END&lt;/code&gt; respectively). These indices can easily be calculated as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;START = P * S
+
+END = START + S – 1&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+The indices referenced here are for the overall collection, not the individual sub-collections.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The desired elements will reside in sub-collections whose inclusive count (&lt;code&gt;CW&lt;/code&gt;) is greater than the starting index and whose preceding count (&lt;code&gt;CB&lt;/code&gt;) is less than or equal to the ending index, or:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;CW &amp;gt; START and CB ≤ END&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the case of selecting the second subset of data (&lt;code&gt;P = 1&lt;/code&gt;) with a page size of four (&lt;code&gt;S = 4&lt;/code&gt;) we would have:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;START = 4
+
+END = 7&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This will select the first two or the three sub-collections as &quot;interesting&quot; sub-collections containing at least some of our desired elements, namely:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{ CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
+{ CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] }&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;What remains is to gather from these sub-collections (call them &lt;code&gt;SC[0]&lt;/code&gt;, &lt;code&gt;SC[1]&lt;/code&gt;) the desired number of elements (&lt;code&gt;S&lt;/code&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To achieve this, a local starting and ending index must be calculated while iterating through the &quot;interesting&quot; sub-collections to gather the elements until either the desired amount is obtained (&lt;code&gt;S&lt;/code&gt;) or there are no more elements available.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;olist arabic&quot;&gt;
+&lt;ol class=&quot;arabic&quot;&gt;
+&lt;li&gt;
+&lt;p&gt;Calculate the initial local starting index (&lt;code&gt;LOCAL_START&lt;/code&gt;) by subtracting the non-inclusive preceding count value of the first selected collection (&lt;code&gt;SC[0]&lt;/code&gt;) from the overall starting index.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Iterate the selected collections (in order) until the desired amount has been gathered&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This is more clearly represented in pseudo code as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;LOCAL_START = START – SC[0].CB
+REMAINING = S
+
+for-each sc in SC while REMAINING &amp;gt; 0
+
+    if( REMAINING &amp;lt; (sc.size() - LOCAL_START) )
+        LOCAL_END = LOCAL_START + REMAINING - 1
+    else
+        LOCAL_END = sc.size()-1
+
+    FOUND = sc.sub( LOCAL_START, LOCAL_END )
+    G.addAll( FOUND )
+    REMAINING = REMAINING – FOUND.size()
+    LOCAL_START = 0
+
+end&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Where the gathered collection of elements (&lt;code&gt;G&lt;/code&gt;) is your resulting data set containing the elements for the specified data page.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It must be stated that the ordering of the overall collection and the sub-collections must be consistent across multiple data requests for this procedure to work properly.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;_implementation&quot;&gt;Implementation&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Ok now, enough discussion. Let&amp;#8217;s see what this looks like with some real Groovy code. First, we need our collections of collections data to work with:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def data = [
+    [ &apos;A0&apos;, &apos;A1&apos;, &apos;A2&apos;, &apos;A3&apos;, &apos;A4&apos;, &apos;A5&apos; ],
+    [ &apos;B0&apos;, &apos;B1&apos;, &apos;B2&apos;, &apos;B3&apos;, &apos;B4&apos;, &apos;B5&apos; ],
+    [ &apos;C0&apos;, &apos;C1&apos;, &apos;C2&apos;, &apos;C3&apos;, &apos;C4&apos;, &apos;C5&apos; ]
+]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Next, we need to implement the algorithm in Groovy:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;int page = 1
+int pageSize = 4
+
+// pre-computation
+
+int before = 0
+def prepared = data.collect {d -&amp;gt;
+    def result = [
+        countIn: d.size(),
+        countBefore: before,
+        countWith: before + d.size(),
+        values:d
+    ]
+
+    before += d.size()
+
+    return result
+}
+
+// main computation
+
+def localStart = (page * pageSize ) - prepared[0].countBefore
+def remaining = pageSize
+
+def gathered = []
+
+prepared.each { sc-&amp;gt;
+    if( remaining ){
+        def localEnd
+        if( remaining &amp;lt; (sc.values.size() - localStart) ){
+            localEnd = localStart + remaining - 1
+        } else {
+            localEnd = sc.values.size() - 1
+        }
+
+        def found = sc.values[localStart..localEnd]
+        gathered.addAll(found)
+
+        remaining -= found.size()
+        localStart = 0
+    }
+}
+
+println &quot;P$page : $gathered&quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which yields&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;P1 : [A4, A5, B0, B1]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;and if you look all the way back up to the beginning of the article, you see that this is the expected data set for page 1 of the example data.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s not a scenario I have run into often, but it was a bit of a tricky one to unravel. The pre-computation steps ended up being the key to keeping it simple and stable.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Spring ViewResolver for "GSP"</title>
@@ -6060,7 +6322,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -6338,7 +6600,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -6350,7 +6612,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -6461,7 +6723,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -6780,7 +7042,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
