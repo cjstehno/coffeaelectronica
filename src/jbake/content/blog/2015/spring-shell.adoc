@@ -1,0 +1,274 @@
+title=Spring Boot Remote Shell
+date=2015-11-05
+type=post
+tags=blog,groovy,spring
+status=published
+~~~~~~
+http://projects.spring.io/spring-boot/[Spring Boot] comes with a ton of useful features that you can enable as needed, and in general the documentation is pretty good; however, sometimes it feels like they gloss over a feature that eventually realize is much more useful than it originally seemed. The remote shell support is one of those features.
+
+Let's start off with a simple Spring Boot project based on the example provided with the Boot documentation. Our `build.gradle`
+file is:
+
+[source,groovy]
+.build.gradle
+----
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.7.RELEASE'
+    }
+}
+
+version = "0.0.1"
+group = "com.stehno"
+
+apply plugin: 'groovy'
+apply plugin: 'spring-boot'
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+mainClassName = 'com.stehno.SampleController'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.4.5"
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.8"
+}
+----
+
+Then, our simple controller and starter class looks like:
+
+[source,groovy]
+.SampleController.groovy
+----
+@Controller
+@EnableAutoConfiguration
+public class SampleController {
+
+    @RequestMapping('/')
+    @ResponseBody
+    String home() {
+        'Hello World!'
+    }
+
+    static void main(args) throws Exception {
+        SpringApplication.run(SampleController, args)
+    }
+}
+----
+
+Run it using:
+
+----
+./gradlew clean build bootRun
+----
+
+and you get your run of the mill "Hello world" application. For our demonstration purposes, we need something a bit more
+interesting. Let's make the controller something like a "Message of the Day" server which will return a fixed configured
+message. Remove the `hello` controller action and add in the following:
+
+[source,groovy]
+----
+String message = 'Message for you, sir!'
+
+@RequestMapping('/') @ResponseBody
+String message() {
+    message
+}
+----
+
+which will return the static message "Message for you, sir!" for every request. Running the application now, will still
+be pretty uninteresting, but wait, it gets better.
+
+Now, we would like to have the ability to change the message as needed without rebuilding or even restarting the server.
+There are handful of ways to do this; however, I'm going to discuss one of the seemingly less used options... The
+http://www.crashub.org/[CRaSH Shell] integration provided in Spring Boot
+(http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready-remote-shell[43. Production Ready Remote Shell]).
+
+To add the remote shell support in Spring Boot, you add the following line to your `dependencies` block in your `build.gradle` file:
+
+----
+compile 'org.springframework.boot:spring-boot-starter-remote-shell'
+----
+
+Now, when you run the application, you will see an extra line in the server log:
+
+----
+Using default password for shell access: 44b3556b-ff9f-4f82-9f1b-54a16da471d5
+----
+
+Since no password was configured, Boot has provided a randomly generated one for you (obviously you would configure this in a real system). You now have an SSH connection available to your application. Using the ssh client of your choice you can login using:
+
+----
+ssh -p 2000 user@localhost
+----
+
+Which will ask you for the provided password. Once you have logged in you are connected to a secure shell running inside your application. You can run `help` at the prompt to get a list of available commands, which will look something like this:
+
+----
+> help
+Try one of these commands with the -h or --help switch:
+
+NAME       DESCRIPTION
+autoconfig Display auto configuration report from ApplicationContext
+beans      Display beans in ApplicationContext
+cron       manages the cron plugin
+dashboard  a monitoring dashboard
+egrep      search file(s) for lines that match a pattern
+endpoint   Invoke actuator endpoints
+env        display the term env
+filter     a filter for a stream of map
+java       various java language commands
+jmx        Java Management Extensions
+jul        java.util.logging commands
+jvm        JVM informations
+less       opposite of more
+mail       interact with emails
+man        format and display the on-line manual pages
+metrics    Display metrics provided by Spring Boot
+shell      shell related command
+sleep      sleep for some time
+sort       sort a map
+system     vm system properties commands
+thread     JVM thread commands
+help       provides basic help
+repl       list the repl or change the current repl
+----
+
+As you can see, you get quite a bit of functionality right out of the box. I will leave the discussion of each of the provided commands to another post. What we are interested at this point is adding our own command to update the message displayed by our controller.
+
+The really interesting part of the shell integration is the fact that you can extend it with your own commands.
+
+Create a new directory `src/main/resources/commands` which is where your extended commands will live, and then add a simple starting point class for our command:
+
+[source,goovy]
+.message.groovy
+----
+package commands
+
+import org.crsh.cli.Usage
+import org.crsh.cli.Command
+import org.crsh.command.InvocationContext
+
+@Usage('Interactions with the message of the day.')
+class message {
+
+    @Usage('View the current message of the day.')
+    @Command
+    def view(InvocationContext context) {
+        return 'Hello'
+    }
+}
+----
+
+The `@Usage` annotations provide the help/usage documentation for the command, while the `@Command` annotation denotes that the `view` method is a command. 
+
+Now, when you run the application and list the shell commands, you will see our new command added to the list:
+
+----
+message    Interactions with the message of the day.
+----
+
+If you run the command as `message view` you will get the static "Hello" message returned to you on the shell console.
+
+Okay, we need the ability to view our current message of the day. The `InvocationContext` has `attributes` which are propulated by Spring, one of which is `spring.beanfactory` a reference to the Spring `BeanFactory` for your application. We can access the current message of the day by replacing the content of the `view` method with the following:
+
+[source,java]
+----
+BeanFactory beans = context.attributes['spring.beanfactory']
+return beans.getBean(SampleController).message
+----
+
+where we find our controller bean and simply read the `message` property. Running the application and the shell command now, yield:
+
+----
+Message for you, sir!
+----
+
+While that is pretty cool, we are actually here to modify the message, not just view it and this is just as easy. Add a new command named `update`:
+
+[source,groovy]
+----
+@Usage('Update the current message of the day.')
+@Command
+def update(
+    InvocationContext context,
+    @Usage('The new message') @Argument String message
+) {
+    BeanFactory beans = context.attributes['spring.beanfactory']
+    beans.getBean(SampleController).message = message
+    return "Message updated to: $message"
+}
+----
+
+Now, rebuild/restart the server and start up the shell. If you execute:
+
+----
+message update "This is cool!"
+----
+
+You will update the configured message, which you can verify using the `message view` command, or better yet, you can hit your server and see that the returned message has been updated... no restart required. Indeed, this is cool.
+
+TIP: You can find a lot more information about writing your own commands in the CRaSH documentation for http://www.crashub.org/1.3/reference.html#developping_commands[Developing Commands]. There is a lot of functionality that I am not covering here.
+
+At this point, we are functionally complete. We can view and update the message of the day without requiring a restart of the server. But, there are still some added goodies provided by the shell, especially around shell UI support - yes, it's text, but it can still be pretty and one of the ways CRaSH allows you to pretty things up is with colors and formatting via styles and the `UIBuilder` (which is sadly under-documented).
+
+Let's add another property to our controller to make things more interesting. Just add a `Date lastUpdated = new Date()` field. This will give us two properties to play with. Update the `view` action as follows:
+
+[source,groovy]
+----
+SampleController controller = context.attributes['spring.beanfactory'].getBean(SampleController)
+
+String message = controller.message
+String date = controller.lastUpdated.format('MM/dd/yyyy HH:mm')
+
+out.print new UIBuilder().table(separator: dashed, overflow: Overflow.HIDDEN, rightCellPadding: 1) {
+    header(decoration: bold, foreground: black, background: white) {
+        label('Date')
+        label('Message')
+    }
+
+    row {
+        label(date, foreground: green)
+        label(message, foreground: yellow)
+    }
+}
+----
+
+We still retrieve the instance of the controller as before; however, now our output rendering is a bit more complicated, though still pretty understandable. We are creating a new `UIBuilder` for a `table` and then applying the `header` and `row` contents to it. It's actually a very powerful construct, I just had to dig around in the project source code to actually figure out how to make it work.
+
+You will also need to update the `update` command to set the new date field:
+
+[source,groovy]
+----
+SampleController controller = context.attributes['spring.beanfactory'].getBean(SampleController)
+controller.message = message
+controller.lastUpdated = new Date()
+
+return "Message updated to: $message"
+----
+
+Once you have that built and running you can run the `message view` command and get a much nicer multi-colored table output.
+
+----
+> message view
+Date             Message
+-------------------------------------------------------------
+11/05/2015 10:37 And now for something completely different.
+----
+
+Which puts wraps up what we are trying to do here and even puts a bow on it. You can find more information on the remote shell configuration options in the Spring Boot documentation in http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#common-application-properties[Appendix A: Common Application Properties]. This is where you can configure the port, change the authentication settings, and even disable some of the default provided commands.
+
+The remote shell support is one of the more interesting, but underused features in Spring Boot. Before Spring Boot was around, I was working on a project where we did a similar integration of CRaSH shell with a Spring-based server project and it provided a wealth of interesting and useful opportunities to dig into our running system and observe or make changes. Very powerful.
