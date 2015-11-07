@@ -87,6 +87,326 @@
 
 
 	
+		<a href="blog/2015/spring-shell.html"><h1>Spring Boot Remote Shell</h1></a>
+		<p><em>07 November 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/spring.html'>spring</a></p>
+		<p><div class="paragraph">
+<p><a href="http://projects.spring.io/spring-boot/">Spring Boot</a> comes with a ton of useful features that you can enable as needed, and in general the documentation is pretty good; however, sometimes it feels like they gloss over a feature that eventually realize is much more useful than it originally seemed. The remote shell support is one of those features.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s start off with a simple Spring Boot project based on the example provided with the Boot documentation. Our <code>build.gradle</code>
+file is:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.7.RELEASE'
+    }
+}
+
+version = "0.0.1"
+group = "com.stehno"
+
+apply plugin: 'groovy'
+apply plugin: 'spring-boot'
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+mainClassName = 'com.stehno.SampleController'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.4.5"
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.8"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, our simple controller and starter class looks like:</p>
+</div>
+<div class="listingblock">
+<div class="title">SampleController.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Controller
+@EnableAutoConfiguration
+public class SampleController {
+
+    @RequestMapping('/')
+    @ResponseBody
+    String home() {
+        'Hello World!'
+    }
+
+    static void main(args) throws Exception {
+        SpringApplication.run(SampleController, args)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run it using:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>./gradlew clean build bootRun</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and you get your run of the mill "Hello world" application. For our demonstration purposes, we need something a bit more
+interesting. Let&#8217;s make the controller something like a "Message of the Day" server which will return a fixed configured
+message. Remove the <code>hello</code> controller action and add in the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String message = 'Message for you, sir!'
+
+@RequestMapping('/') @ResponseBody
+String message() {
+    message
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which will return the static message "Message for you, sir!" for every request. Running the application now, will still
+be pretty uninteresting, but wait, it gets better.</p>
+</div>
+<div class="paragraph">
+<p>Now, we would like to have the ability to change the message as needed without rebuilding or even restarting the server.
+There are handful of ways to do this; however, I&#8217;m going to discuss one of the seemingly less used options&#8230;&#8203; The
+<a href="http://www.crashub.org/">CRaSH Shell</a> integration provided in Spring Boot
+(<a href="http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready-remote-shell">43. Production Ready Remote Shell</a>).</p>
+</div>
+<div class="paragraph">
+<p>To add the remote shell support in Spring Boot, you add the following line to your <code>dependencies</code> block in your <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>compile 'org.springframework.boot:spring-boot-starter-remote-shell'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, when you run the application, you will see an extra line in the server log:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Using default password for shell access: 44b3556b-ff9f-4f82-9f1b-54a16da471d5</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since no password was configured, Boot has provided a randomly generated one for you (obviously you would configure this in a real system). You now have an SSH connection available to your application. Using the ssh client of your choice you can login using:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ssh -p 2000 user@localhost</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which will ask you for the provided password. Once you have logged in you are connected to a secure shell running inside your application. You can run <code>help</code> at the prompt to get a list of available commands, which will look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; help
+Try one of these commands with the -h or --help switch:
+
+NAME       DESCRIPTION
+autoconfig Display auto configuration report from ApplicationContext
+beans      Display beans in ApplicationContext
+cron       manages the cron plugin
+dashboard  a monitoring dashboard
+egrep      search file(s) for lines that match a pattern
+endpoint   Invoke actuator endpoints
+env        display the term env
+filter     a filter for a stream of map
+java       various java language commands
+jmx        Java Management Extensions
+jul        java.util.logging commands
+jvm        JVM informations
+less       opposite of more
+mail       interact with emails
+man        format and display the on-line manual pages
+metrics    Display metrics provided by Spring Boot
+shell      shell related command
+sleep      sleep for some time
+sort       sort a map
+system     vm system properties commands
+thread     JVM thread commands
+help       provides basic help
+repl       list the repl or change the current repl</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, you get quite a bit of functionality right out of the box. I will leave the discussion of each of the provided commands to another post. What we are interested at this point is adding our own command to update the message displayed by our controller.</p>
+</div>
+<div class="paragraph">
+<p>The really interesting part of the shell integration is the fact that you can extend it with your own commands.</p>
+</div>
+<div class="paragraph">
+<p>Create a new directory <code>src/main/resources/commands</code> which is where your extended commands will live, and then add a simple starting point class for our command:</p>
+</div>
+<div class="listingblock">
+<div class="title">message.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-goovy" data-lang="goovy">package commands
+
+import org.crsh.cli.Usage
+import org.crsh.cli.Command
+import org.crsh.command.InvocationContext
+
+@Usage('Interactions with the message of the day.')
+class message {
+
+    @Usage('View the current message of the day.')
+    @Command
+    def view(InvocationContext context) {
+        return 'Hello'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@Usage</code> annotations provide the help/usage documentation for the command, while the <code>@Command</code> annotation denotes that the <code>view</code> method is a command.</p>
+</div>
+<div class="paragraph">
+<p>Now, when you run the application and list the shell commands, you will see our new command added to the list:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>message    Interactions with the message of the day.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you run the command as <code>message view</code> you will get the static "Hello" message returned to you on the shell console.</p>
+</div>
+<div class="paragraph">
+<p>Okay, we need the ability to view our current message of the day. The <code>InvocationContext</code> has <code>attributes</code> which are propulated by Spring, one of which is <code>spring.beanfactory</code> a reference to the Spring <code>BeanFactory</code> for your application. We can access the current message of the day by replacing the content of the <code>view</code> method with the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">BeanFactory beans = context.attributes['spring.beanfactory']
+return beans.getBean(SampleController).message</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where we find our controller bean and simply read the <code>message</code> property. Running the application and the shell command now, yield:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Message for you, sir!</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While that is pretty cool, we are actually here to modify the message, not just view it and this is just as easy. Add a new command named <code>update</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Usage('Update the current message of the day.')
+@Command
+def update(
+    InvocationContext context,
+    @Usage('The new message') @Argument String message
+) {
+    BeanFactory beans = context.attributes['spring.beanfactory']
+    beans.getBean(SampleController).message = message
+    return "Message updated to: $message"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, rebuild/restart the server and start up the shell. If you execute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>message update "This is cool!"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will update the configured message, which you can verify using the <code>message view</code> command, or better yet, you can hit your server and see that the returned message has been updated&#8230;&#8203; no restart required. Indeed, this is cool.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+You can find a lot more information about writing your own commands in the CRaSH documentation for <a href="http://www.crashub.org/1.3/reference.html#developping_commands">Developing Commands</a>. There is a lot of functionality that I am not covering here.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>At this point, we are functionally complete. We can view and update the message of the day without requiring a restart of the server. But, there are still some added goodies provided by the shell, especially around shell UI support - yes, it&#8217;s text, but it can still be pretty and one of the ways CRaSH allows you to pretty things up is with colors and formatting via styles and the <code>UIBuilder</code> (which is sadly under-documented).</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s add another property to our controller to make things more interesting. Just add a <code>Date lastUpdated = new Date()</code> field. This will give us two properties to play with. Update the <code>view</code> action as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">SampleController controller = context.attributes['spring.beanfactory'].getBean(SampleController)
+
+String message = controller.message
+String date = controller.lastUpdated.format('MM/dd/yyyy HH:mm')
+
+out.print new UIBuilder().table(separator: dashed, overflow: Overflow.HIDDEN, rightCellPadding: 1) {
+    header(decoration: bold, foreground: black, background: white) {
+        label('Date')
+        label('Message')
+    }
+
+    row {
+        label(date, foreground: green)
+        label(message, foreground: yellow)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We still retrieve the instance of the controller as before; however, now our output rendering is a bit more complicated, though still pretty understandable. We are creating a new <code>UIBuilder</code> for a <code>table</code> and then applying the <code>header</code> and <code>row</code> contents to it. It&#8217;s actually a very powerful construct, I just had to dig around in the project source code to actually figure out how to make it work.</p>
+</div>
+<div class="paragraph">
+<p>You will also need to update the <code>update</code> command to set the new date field:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">SampleController controller = context.attributes['spring.beanfactory'].getBean(SampleController)
+controller.message = message
+controller.lastUpdated = new Date()
+
+return "Message updated to: $message"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have that built and running you can run the <code>message view</code> command and get a much nicer multi-colored table output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; message view
+Date             Message
+-------------------------------------------------------------
+11/05/2015 10:37 And now for something completely different.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which puts wraps up what we are trying to do here and even puts a bow on it. You can find more information on the remote shell configuration options in the Spring Boot documentation in <a href="http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#common-application-properties">Appendix A: Common Application Properties</a>. This is where you can configure the port, change the authentication settings, and even disable some of the default provided commands.</p>
+</div>
+<div class="paragraph">
+<p>The remote shell support is one of the more interesting, but underused features in Spring Boot. Before Spring Boot was around, I was working on a project where we did a similar integration of CRaSH shell with a Spring-based server project and it provided a wealth of interesting and useful opportunities to dig into our running system and observe or make changes. Very powerful.</p>
+</div></p>
+  	
 		<a href="blog/2015/multi-pagination.html"><h1>Multi-Collection Pagination</h1></a>
 		<p><em>31 October 2015</em> ~ <a href='/tags/blog.html'>blog</a></p>
 		<p><div class="paragraph">
@@ -1022,10 +1342,6 @@ Content: [content:Hello, Chris!, id:1]
 </code></pre><p>The <code>forCode</code> method creates the builder and prepares the code shell. This construct may be reused for each of your tests.</p><p>The <code>inject</code> method adds in the actual code you care about, meaning your transformation code being tested.</p><p>The <code>instantiate</code> method uses the <code>GroovyClassLoader</code> internally to load the class and then instantiate it for testing.</p><p>I am going to add a version of the <code>ClassBuilder</code> to my <a href="https://github.com/cjstehno/vanilla">Vanilla</a> project once it is more stable; however, I have a version of it and a simple AST testing demo project in the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing">ast-testing</a> CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).</p>
 <blockquote><p>Note: I have recently discovered the <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html">groovy.tools.ast.TransformTestHelper</a> class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.</p>
 </blockquote></p>
-  	
-		<a href="blog/2015/custom-github-hosting.html"><h1>Custom Domain for GitHub Pages</h1></a>
-		<p><em>15 February 2015</em> ~ <a href='/tags/blog.html'>blog</a></p>
-		<p><p>I have been working for a while now to get my blog fully cut over to being generated by <a href="http://jbake.org/">JBake</a> and hosted on <a href="http://github.org">GitHub</a>; it's not all that difficult, just a format conversion and some domain fiddling, but I was procrastinating.</p><p>Pointing your GitHub Pages at a custom domain is not all that hard to do, and they provide <a href="https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/">decent documentation</a> about how to do it; however, some streamlining is nice for DNS novices like myself. I may have done things a bit out of order, but it worked in the end...</p><p>First, I created <code>A</code> records for the GitHub-provided IP Addresses. I use Godaddy for my domain names, so your experience may be a bit different; but, in the Godaddy DNS Zone File editor you end up adding something like:</p><p><img src="/files/a_records.png" alt="A Record""/></p><p>Next, I added a <code>CName</code> record alias for <code>www</code> pointing to my GitHub account hostname, which ended up looking like this:</p><p><img src="/files/cname_record.png" alt="CName Record""/></p><p>Lastly, you need to make <a href="https://help.github.com/articles/adding-a-cname-file-to-your-repository/">changes in your repository</a> - this step seems to be missed by a lot of people. The gist of it is that you add a new file to your <code>gh-pages</code> branch, named <code>CNAME</code> (all caps, no extension). And in that file you add your domain name (without <code>http://www.</code>). Save the file and be sure you push it to your remote repository.</p><p>At this point it worked for me, but the documentation said it could take up to 48 hours to propagate the changes.</p></p>
   	
 	
 	<hr />

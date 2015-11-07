@@ -6,9 +6,335 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sat, 31 Oct 2015 06:51:19 -0500</pubDate>
-    <lastBuildDate>Sat, 31 Oct 2015 06:51:19 -0500</lastBuildDate>
+    <pubDate>Sat, 7 Nov 2015 06:42:01 -0600</pubDate>
+    <lastBuildDate>Sat, 7 Nov 2015 06:42:01 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Spring Boot Remote Shell</title>
+      <link>http://coffeaelectronica.com/blog/2015/spring-shell.html</link>
+      <pubDate>Sat, 7 Nov 2015 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2015/spring-shell.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;http://projects.spring.io/spring-boot/&quot;&gt;Spring Boot&lt;/a&gt; comes with a ton of useful features that you can enable as needed, and in general the documentation is pretty good; however, sometimes it feels like they gloss over a feature that eventually realize is much more useful than it originally seemed. The remote shell support is one of those features.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s start off with a simple Spring Boot project based on the example provided with the Boot documentation. Our &lt;code&gt;build.gradle&lt;/code&gt;
+file is:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath &apos;org.springframework.boot:spring-boot-gradle-plugin:1.2.7.RELEASE&apos;
+    }
+}
+
+version = &quot;0.0.1&quot;
+group = &quot;com.stehno&quot;
+
+apply plugin: &apos;groovy&apos;
+apply plugin: &apos;spring-boot&apos;
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+mainClassName = &apos;com.stehno.SampleController&apos;
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile &quot;org.codehaus.groovy:groovy-all:2.4.5&quot;
+
+    compile &apos;org.springframework.boot:spring-boot-starter-web&apos;
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = &quot;2.8&quot;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Then, our simple controller and starter class looks like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;SampleController.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Controller
+@EnableAutoConfiguration
+public class SampleController {
+
+    @RequestMapping(&apos;/&apos;)
+    @ResponseBody
+    String home() {
+        &apos;Hello World!&apos;
+    }
+
+    static void main(args) throws Exception {
+        SpringApplication.run(SampleController, args)
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Run it using:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;./gradlew clean build bootRun&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;and you get your run of the mill &quot;Hello world&quot; application. For our demonstration purposes, we need something a bit more
+interesting. Let&amp;#8217;s make the controller something like a &quot;Message of the Day&quot; server which will return a fixed configured
+message. Remove the &lt;code&gt;hello&lt;/code&gt; controller action and add in the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;String message = &apos;Message for you, sir!&apos;
+
+@RequestMapping(&apos;/&apos;) @ResponseBody
+String message() {
+    message
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which will return the static message &quot;Message for you, sir!&quot; for every request. Running the application now, will still
+be pretty uninteresting, but wait, it gets better.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, we would like to have the ability to change the message as needed without rebuilding or even restarting the server.
+There are handful of ways to do this; however, I&amp;#8217;m going to discuss one of the seemingly less used options&amp;#8230;&amp;#8203; The
+&lt;a href=&quot;http://www.crashub.org/&quot;&gt;CRaSH Shell&lt;/a&gt; integration provided in Spring Boot
+(&lt;a href=&quot;http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready-remote-shell&quot;&gt;43. Production Ready Remote Shell&lt;/a&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To add the remote shell support in Spring Boot, you add the following line to your &lt;code&gt;dependencies&lt;/code&gt; block in your &lt;code&gt;build.gradle&lt;/code&gt; file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;compile &apos;org.springframework.boot:spring-boot-starter-remote-shell&apos;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, when you run the application, you will see an extra line in the server log:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;Using default password for shell access: 44b3556b-ff9f-4f82-9f1b-54a16da471d5&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Since no password was configured, Boot has provided a randomly generated one for you (obviously you would configure this in a real system). You now have an SSH connection available to your application. Using the ssh client of your choice you can login using:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;ssh -p 2000 user@localhost&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which will ask you for the provided password. Once you have logged in you are connected to a secure shell running inside your application. You can run &lt;code&gt;help&lt;/code&gt; at the prompt to get a list of available commands, which will look something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; help
+Try one of these commands with the -h or --help switch:
+
+NAME       DESCRIPTION
+autoconfig Display auto configuration report from ApplicationContext
+beans      Display beans in ApplicationContext
+cron       manages the cron plugin
+dashboard  a monitoring dashboard
+egrep      search file(s) for lines that match a pattern
+endpoint   Invoke actuator endpoints
+env        display the term env
+filter     a filter for a stream of map
+java       various java language commands
+jmx        Java Management Extensions
+jul        java.util.logging commands
+jvm        JVM informations
+less       opposite of more
+mail       interact with emails
+man        format and display the on-line manual pages
+metrics    Display metrics provided by Spring Boot
+shell      shell related command
+sleep      sleep for some time
+sort       sort a map
+system     vm system properties commands
+thread     JVM thread commands
+help       provides basic help
+repl       list the repl or change the current repl&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As you can see, you get quite a bit of functionality right out of the box. I will leave the discussion of each of the provided commands to another post. What we are interested at this point is adding our own command to update the message displayed by our controller.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The really interesting part of the shell integration is the fact that you can extend it with your own commands.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Create a new directory &lt;code&gt;src/main/resources/commands&lt;/code&gt; which is where your extended commands will live, and then add a simple starting point class for our command:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;message.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-goovy&quot; data-lang=&quot;goovy&quot;&gt;package commands
+
+import org.crsh.cli.Usage
+import org.crsh.cli.Command
+import org.crsh.command.InvocationContext
+
+@Usage(&apos;Interactions with the message of the day.&apos;)
+class message {
+
+    @Usage(&apos;View the current message of the day.&apos;)
+    @Command
+    def view(InvocationContext context) {
+        return &apos;Hello&apos;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;@Usage&lt;/code&gt; annotations provide the help/usage documentation for the command, while the &lt;code&gt;@Command&lt;/code&gt; annotation denotes that the &lt;code&gt;view&lt;/code&gt; method is a command.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, when you run the application and list the shell commands, you will see our new command added to the list:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;message    Interactions with the message of the day.&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you run the command as &lt;code&gt;message view&lt;/code&gt; you will get the static &quot;Hello&quot; message returned to you on the shell console.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Okay, we need the ability to view our current message of the day. The &lt;code&gt;InvocationContext&lt;/code&gt; has &lt;code&gt;attributes&lt;/code&gt; which are propulated by Spring, one of which is &lt;code&gt;spring.beanfactory&lt;/code&gt; a reference to the Spring &lt;code&gt;BeanFactory&lt;/code&gt; for your application. We can access the current message of the day by replacing the content of the &lt;code&gt;view&lt;/code&gt; method with the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;BeanFactory beans = context.attributes[&apos;spring.beanfactory&apos;]
+return beans.getBean(SampleController).message&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;where we find our controller bean and simply read the &lt;code&gt;message&lt;/code&gt; property. Running the application and the shell command now, yield:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;Message for you, sir!&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;While that is pretty cool, we are actually here to modify the message, not just view it and this is just as easy. Add a new command named &lt;code&gt;update&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Usage(&apos;Update the current message of the day.&apos;)
+@Command
+def update(
+    InvocationContext context,
+    @Usage(&apos;The new message&apos;) @Argument String message
+) {
+    BeanFactory beans = context.attributes[&apos;spring.beanfactory&apos;]
+    beans.getBean(SampleController).message = message
+    return &quot;Message updated to: $message&quot;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, rebuild/restart the server and start up the shell. If you execute:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;message update &quot;This is cool!&quot;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You will update the configured message, which you can verify using the &lt;code&gt;message view&lt;/code&gt; command, or better yet, you can hit your server and see that the returned message has been updated&amp;#8230;&amp;#8203; no restart required. Indeed, this is cool.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tip&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+You can find a lot more information about writing your own commands in the CRaSH documentation for &lt;a href=&quot;http://www.crashub.org/1.3/reference.html#developping_commands&quot;&gt;Developing Commands&lt;/a&gt;. There is a lot of functionality that I am not covering here.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;At this point, we are functionally complete. We can view and update the message of the day without requiring a restart of the server. But, there are still some added goodies provided by the shell, especially around shell UI support - yes, it&amp;#8217;s text, but it can still be pretty and one of the ways CRaSH allows you to pretty things up is with colors and formatting via styles and the &lt;code&gt;UIBuilder&lt;/code&gt; (which is sadly under-documented).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s add another property to our controller to make things more interesting. Just add a &lt;code&gt;Date lastUpdated = new Date()&lt;/code&gt; field. This will give us two properties to play with. Update the &lt;code&gt;view&lt;/code&gt; action as follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;SampleController controller = context.attributes[&apos;spring.beanfactory&apos;].getBean(SampleController)
+
+String message = controller.message
+String date = controller.lastUpdated.format(&apos;MM/dd/yyyy HH:mm&apos;)
+
+out.print new UIBuilder().table(separator: dashed, overflow: Overflow.HIDDEN, rightCellPadding: 1) {
+    header(decoration: bold, foreground: black, background: white) {
+        label(&apos;Date&apos;)
+        label(&apos;Message&apos;)
+    }
+
+    row {
+        label(date, foreground: green)
+        label(message, foreground: yellow)
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We still retrieve the instance of the controller as before; however, now our output rendering is a bit more complicated, though still pretty understandable. We are creating a new &lt;code&gt;UIBuilder&lt;/code&gt; for a &lt;code&gt;table&lt;/code&gt; and then applying the &lt;code&gt;header&lt;/code&gt; and &lt;code&gt;row&lt;/code&gt; contents to it. It&amp;#8217;s actually a very powerful construct, I just had to dig around in the project source code to actually figure out how to make it work.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You will also need to update the &lt;code&gt;update&lt;/code&gt; command to set the new date field:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;SampleController controller = context.attributes[&apos;spring.beanfactory&apos;].getBean(SampleController)
+controller.message = message
+controller.lastUpdated = new Date()
+
+return &quot;Message updated to: $message&quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Once you have that built and running you can run the &lt;code&gt;message view&lt;/code&gt; command and get a much nicer multi-colored table output.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; message view
+Date             Message
+-------------------------------------------------------------
+11/05/2015 10:37 And now for something completely different.&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which puts wraps up what we are trying to do here and even puts a bow on it. You can find more information on the remote shell configuration options in the Spring Boot documentation in &lt;a href=&quot;http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#common-application-properties&quot;&gt;Appendix A: Common Application Properties&lt;/a&gt;. This is where you can configure the port, change the authentication settings, and even disable some of the default provided commands.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The remote shell support is one of the more interesting, but underused features in Spring Boot. Before Spring Boot was around, I was working on a project where we did a similar integration of CRaSH shell with a Spring-based server project and it provided a wealth of interesting and useful opportunities to dig into our running system and observe or make changes. Very powerful.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Multi-Collection Pagination</title>
@@ -6322,7 +6648,7 @@ System.out.println(&amp;quot;Echo: &amp;quot; + myRemote.echoString(&amp;quot;He
     <item>
       <title>Embedding Jetty in Spring</title>
       <link>http://coffeaelectronica.com/blog/2006/embedding-jetty-in-spring.html</link>
-      <pubDate>Wed, 1 Feb 2006 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 1 Feb 2006 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2006/embedding-jetty-in-spring.html</guid>
       <description>
       &lt;blockquote&gt;&lt;p&gt;The discussion here is based on Jetty 5, while Jetty 6 makes things a lot easier to do. I have an updated version of this post for Jetty 6, &lt;a href=&quot;Embedding-Jetty-6-in-Spring&quot;&gt;Embedding Jetty 6 in Spring&lt;/a&gt;.&lt;/p&gt;
@@ -6600,7 +6926,7 @@ public static Long[] getIds(List list){
     <item>
       <title>End of Time - Well, Date Anyway</title>
       <link>http://coffeaelectronica.com/blog/2005/end-of-time-well-date-anyway.html</link>
-      <pubDate>Fri, 18 Feb 2005 00:00:00 -0500</pubDate>
+      <pubDate>Fri, 18 Feb 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/end-of-time-well-date-anyway.html</guid>
       <description>
       &lt;p&gt;I have run across this issue before you need to specify a &quot;far-off&quot; expiration date for something using the &lt;code&gt;java.util.Date&lt;/code&gt;&lt;br/&gt;class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old&lt;br/&gt;deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.&lt;/p&gt;&lt;p&gt;First, in the case where you want to specify a static date, you could run a quick test to determine the long time value&lt;br/&gt;for the date you create using the deprecated constructors. You then modify your code to use the long value in the&lt;br/&gt;constructor, which is the only remaining non-empty constructor.&lt;/p&gt;&lt;p&gt;The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like&lt;br/&gt;issues) you can use the following:&lt;/p&gt;
@@ -6612,7 +6938,7 @@ public static Long[] getIds(List list){
     <item>
       <title>Commons Collections - Transformers</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-transformers.html</link>
-      <pubDate>Thu, 6 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Thu, 6 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-transformers.html</guid>
       <description>
       &lt;p&gt;Continuing the example from my discussion of &lt;a href=&quot;/2005/01/jakarta-commons-collections-predicates.html&quot;&gt;Predicates&lt;/a&gt;,&lt;br/&gt;I would not like to take a quick look at Transformers. According to the JavaDocs:&lt;/p&gt;
@@ -6723,7 +7049,7 @@ CollectionUtils.transform(numbers,chain);
     <item>
       <title>Commons Collections - Predicates</title>
       <link>http://coffeaelectronica.com/blog/2005/commons-collections-predicates.html</link>
-      <pubDate>Tue, 4 Jan 2005 00:00:00 -0500</pubDate>
+      <pubDate>Tue, 4 Jan 2005 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2005/commons-collections-predicates.html</guid>
       <description>
       &lt;p&gt;Nestled in the &lt;a href=&quot;http://commons.apache.org/&quot;&gt;Jakarta Commons&lt;/a&gt; project is a monstrosity called the&lt;br/&gt;&lt;a href=&quot;http://commons.apache.org/collections&quot;&gt;Jakarta Commons - Collections&lt;/a&gt; API. It contains a wealth of extensions to the&lt;br/&gt;standard collections as well as new collections and collection-related utilities. To try and document the use of the&lt;br/&gt;whole API would be a good topic for a book (and there are a few&lt;br/&gt;&lt;a href=&quot;http://www.amazon.com/s/ref=br_ss_hs/103-3887221-2235807?platform=gurupa&amp;amp;url=index%3Dblended&amp;amp;keywords=jakarta+commons&amp;amp;Go.x=0&amp;amp;Go.y=0&amp;amp;Go=Go&quot;&gt;on Amazon&lt;/a&gt;).&lt;br/&gt;I am going to cover one of my favorite interfaces from this API, the Predicate, and its implementations.&lt;/p&gt;&lt;p&gt;From the documentation for the Predicate interface:&lt;/p&gt;
@@ -7042,7 +7368,7 @@ try {
     <item>
       <title>Proxy Method Logging</title>
       <link>http://coffeaelectronica.com/blog/2004/proxy-method-logging.html</link>
-      <pubDate>Wed, 11 Feb 2004 00:00:00 -0500</pubDate>
+      <pubDate>Wed, 11 Feb 2004 00:00:00 -0600</pubDate>
       <guid isPermaLink="false">blog/2004/proxy-method-logging.html</guid>
       <description>
       &lt;p&gt;Here&apos;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.&lt;/p&gt;&lt;p&gt;First off, you need an interface to do this, any interface that your modules implement will work.&lt;/p&gt;
