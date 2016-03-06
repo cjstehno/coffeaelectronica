@@ -4,6 +4,7 @@ type=post
 tags=blog,groovy,spring
 status=published
 ~~~~~~
+
 http://projects.spring.io/spring-boot/[Spring Boot] comes with a ton of useful features that you can enable as needed, and in general the documentation is pretty good; however, sometimes it feels like they gloss over a feature that eventually realize is much more useful than it originally seemed. The remote shell support is one of those features.
 
 Let's start off with a simple Spring Boot project based on the example provided with the Boot documentation. Our `build.gradle`
