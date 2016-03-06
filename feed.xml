@@ -6,9 +6,204 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sat, 7 Nov 2015 06:42:01 -0600</pubDate>
-    <lastBuildDate>Sat, 7 Nov 2015 06:42:01 -0600</lastBuildDate>
+    <pubDate>Sun, 6 Mar 2016 12:05:11 -0600</pubDate>
+    <lastBuildDate>Sun, 6 Mar 2016 12:05:11 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Vanilla TextFileReader/Writer</title>
+      <link>http://coffeaelectronica.com/blog/2016/text-file-read-write.html</link>
+      <pubDate>Sun, 6 Mar 2016 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2016/text-file-read-write.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Something I have found myself doing quite often over my whole career as a developer is reading and writing simple text file data. Whether it is a quick data dump or a data set to be loaded from a 3rd party, it is something I end up doing a lot and usually it is something coded mostly from scratch since, surprisingly enough, there are very few tools available for working with formatted text files. Sure, there are a few for CSV, but quite often I get a reqest to read or write a format that is kind of similar to CSV, but just enough different that it breaks a standard CSV parser for whatever reason. Recently, I decided to add some utility components to my &lt;a href=&quot;http://stehno.com/vanilla&quot;&gt;Vanilla project&lt;/a&gt; with the aim of making these readers and writers simpler to build.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s start off with the &lt;code&gt;com.stehno.vanilla.text.TextFileWriter&lt;/code&gt; and say we have a data source of &lt;code&gt;Person&lt;/code&gt; objects in our application that the business wants dumped out to a text file (so they can import it into some business tools that only ever seem capable of importing simple text files). In the application, the data structure looks something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class Person {
+    String firstName
+    String middleName
+    String lastName
+    int age
+    float height
+    float weight
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;with the &lt;code&gt;TextFileWriter&lt;/code&gt; you need to define a &lt;code&gt;LineFormatter&lt;/code&gt; which will be used to format the generated lines of text, one per object written. The &lt;code&gt;LineFormatter&lt;/code&gt; defines two methods, &lt;code&gt;String formatComment(String)&lt;/code&gt; for formatting a comment line, and &lt;code&gt;String formatLine(Object)&lt;/code&gt; for formatting a data line. A simple implementation is provided, the &lt;code&gt;CommaSeparatedLineFormatter&lt;/code&gt; will generate comment lines prefixed with a &lt;code&gt;#&lt;/code&gt; and will expect a &lt;code&gt;Collection&lt;/code&gt; object to be formatted and will format it as a CSV line.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The available implementation will not work for our case, so we will need to define our own &lt;code&gt;LineFormatter&lt;/code&gt;. We want the formatted data lines to be of the form:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;# Last-Name,First-Name-Middle-Initial,Attrs
+Smith,John Q,{age:42, height:5.9, weight:230.5}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Yes, that&amp;#8217;s a bit of a convoluted format, but I have had to generate worse. Our &lt;code&gt;LineFormatter&lt;/code&gt; ends up being something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class PersonLineFormatter implements LineFormatter {
+
+    @Override
+    String formatComment(String text) {
+        &quot;# $text&quot; &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+    }
+
+    @Override
+    String formatLine(Object object) {
+        Person person = object as Person
+        &quot;${person.lastName},${person.firstName} ${person.middleName[0]},{age:${person.age}, height:${person.height}, weight:${person.weight}}&quot; &lt;b class=&quot;conum&quot;&gt;(2)&lt;/b&gt;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;We specify the comment as being prefixed by a &lt;code&gt;#&lt;/code&gt; symbol.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Write out the &lt;code&gt;Person&lt;/code&gt; object as the formatted &lt;code&gt;String&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We see that implementing the &lt;code&gt;LineFormatter&lt;/code&gt; keeps all the application specific logic isolated from the common operation of actually writing the file. Now we can use our formatter as follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;TextFileWriter writer = new TextFileWriter(
+    lineFormatter: new PersonLineFormatter(),
+    filePath: new File(outputDir, &apos;people.txt&apos;)
+)
+
+writer.writeComment(&apos;Last-Name,First-Name-Middle-Initial,Attrs&apos;)
+
+Collection&amp;lt;Person&amp;gt; people = peopleDao.listPeople()
+
+people.each { Person p-&amp;gt;
+    writer.write(p)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This will write out the text file in the desired format with very little new coding required.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Generally, writing out text representations of application data is not really all that challenging, since you have access to the data you need and some control over the formatting of the objects to be represented. The real challenge is usually going in the other direction, when you are reading in a data file from some external source, this is where the &lt;code&gt;com.stehno.vanilla.text.TextFileReader&lt;/code&gt; becomes useful.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s say you receive a request to import the data file we described above, maybe it was generated by the same business tools I mentioned earlier. We have something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;# Last-Name,First-Name-Middle-Initial,Attrs
+Smith,John Q,{age:42, height:5.9, weight:230.5}
+Jones,Robert M,{age:38, height:5.6, weight:240.0}
+Mendez,Jose R,{age:25, height:6.1, weight:232.4}
+Smalls,Jessica X,{age:30, height:5.5, weight:175.2}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;TextFileReader&lt;/code&gt; requires a &lt;code&gt;LineParser&lt;/code&gt; to parse the input file lines into objects; it defines three methods, &lt;code&gt;boolean parseable(String)&lt;/code&gt; which is used to determine whether or not the line should be parsed, &lt;code&gt;Object[] parseLine(String)&lt;/code&gt; which is used to parse the line of text, and &lt;code&gt;Object parseItem(Object, int)&lt;/code&gt; which is used to parse an individual element of the comma-separated line. There is a default implementation provided, the &lt;code&gt;CommaSeparatedLineParser&lt;/code&gt; will parse simple comma-separated lines of text into arrays of Objects based on configured item converters; however, this will not work in the case of our file since there are commas in the data items themselves (the JSON-like format of the last element). So we need to implement one. Our &lt;code&gt;LineParser&lt;/code&gt; will look something like the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class PersonLineParser implements LineParser {
+
+    boolean parsable(String line){
+        line &amp;amp;&amp;amp; !line.startsWith(HASH) &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+    }
+
+    Object[] parseLine(String line){ &lt;b class=&quot;conum&quot;&gt;(2)&lt;/b&gt;
+        int idx = 0
+        def elements = line.split(&apos;,&apos;).collect { parseItem(it, idx++) }
+
+        [
+            new Person(
+                firstName:elements[1][0],
+                middleName:elements[1][1],
+                lastName:elements[0],
+                age:elements[2],
+                height:elements[3],
+                weight:elements[4],
+            )
+        ] as Object[]
+    }
+
+    // Smith,John Q,{age:42, height:5.9, weight:230.5}
+    // 0    ,1     ,2      ,3          ,4
+    Object parseItem(Object item, int index){ &lt;b class=&quot;conum&quot;&gt;(3)&lt;/b&gt;
+        switch(index){
+            case 0:
+                return item as String
+            case 1:
+                return item.split(&apos; &apos;)
+            case 2:
+                return item.split(&apos;:&apos;)[1] as int
+            case 3:
+                return item.split(&apos;:&apos;)[1] as float
+            case 4:
+                return item.split(&apos;:&apos;)[1][0..-2] as float
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;We want to ignore blank lines or lines that start with a &lt;code&gt;#&lt;/code&gt; symbol.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;We extract the line items and build the &lt;code&gt;Person&lt;/code&gt; object&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;We convert the line items to our desired types&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s not pretty, but it does the job and keeps all the line parsing logic out of the main file loading functionality. Our code to read in the file would look somethign like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;setup:
+TextFileReader reader = new TextFileReader(
+    filePath: new File(inputDir, &apos;people.txt&apos;),
+    lineParser: new PersonLineParser(),
+    firstLine: 2 &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+)
+
+when:
+def people = []
+
+reader.eachLine { Object[] data -&amp;gt;
+    lines &amp;lt;&amp;lt; data[0]
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;We skip the first line, since it will always be the header&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The provided implementations for both the &lt;code&gt;LineFormatter&lt;/code&gt; and &lt;code&gt;LineParser&lt;/code&gt; will not account for every scenario, but hopefully they will hit some of them and provide a guideline for implementing your own. If nothing else, these components help to streamline the readign and writing of formatted text data so that you can get it done and focus on other more challenging development tasks.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Spring Boot Remote Shell</title>
