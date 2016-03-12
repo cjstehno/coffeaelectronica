@@ -1,0 +1,39 @@
+title=Dependency Duplication Checking
+date=2016-03-12
+type=post
+tags=blog,groovy,gradle
+status=published
+~~~~~~
+Sometimes it takes a critical mass threshold of running into the same issue repeatedly to really do something about it. How often, when working with a dependency manager like http://gradle.org[Gradle] or http://maven.org[Maven], have you run into some runtime issue only to find that it was caused by a build dependency that you had two (or more) different versions of at runtime? More often than you would like, I am sure. It can be a real surprise when you actually go digging into your aggregated dependency list only to find out you have more than one duplicate dependency just waiting to become a problem.
+
+What do I mean by duplicate dependency? Basically, it's just what it sounds like. You have two dependencies with different versions. Something like:
+
+    org.codehaus.groovy:groovy-all:2.4.4
+    org.codehaus.groovy:groovy-all:2.4.5
+    
+Most likely, your project defines one of them and some other dependency brought the other along for the ride. It is usually pretty easy to resolve these extra dependencies; in http://gradle.org[Gradle] you can run the `dependency` task to see which dependency is bringing the extra library in:
+
+    ./gradlew dependencies > deps.txt
+
+I like to dump the output to a text file for easier viewing. Then, once you find the culprit, you can exclude the transitive dependency:
+
+    compile( 'com.somebody:coollib:2.3.5' ){
+        exclude group:'org.codehaus.groovy', module:'groovy-all'
+    }
+
+Then you can run the `dependency` task again to ensure that you got of it. Generally, this is a safe procedure; however, sometimes you get into a situation where different libraries depend on different versions that have significant code differences - that's when the fun begins and it usually ends in having to up or down-grade various dependencies until you get a set that works and is clean.
+
+What is the problem with having multiple versions of the same library in your project? Sometimes nothing, sometimes everything. The classloader will load whichever one is defined first in the classpath. If your project needs a class `Foo` with a method `bar()` and the version you expect to use has it but the previous version does not, bad things can happen at runtime.
+
+Ok, now we know generally how to solve the multiple dependency problem, we're done right? Sure, for a month or so. Unless your project is done and no longer touched, new dependencies and duplicates will creep in over time. I did this duplicataion purge on a project at work a few months ago and just last week I took a peek at the aggregated dependency list and was truely not so shocked to see three duplicated libraries. One of which was probably the cause of some major performance issues we were facing. That's what inspired me to solve the problem at least to the point of letting you know when duplications creep in.
+
+I created the https://github.com/cjstehno/dependency-checker[dependency-checker] Gradle plugin. It is available in the https://plugins.gradle.org/plugin/com.stehno.gradle.dependency-checker[Gradle Plugin Repository]. At this point, it has one added task, `checkDependencies` which, as the name suggests, searches through all the dependencies of the project to see if you have any duplicates within a configuration. If it finds duplicates, it will write them to the output log and fail the build.
+
+Currently, you need to run the task for the checking to occur. I would like to get it to run with the default `check` task, or `build` task, but the code I had for that was not working - later version I guess. You can add that functionality into your own build by adding one or two lines to your `build.gradle` file:
+
+    tasks.check.dependsOn checkDependencies
+    tasks.build.dependsOn checkDependencies
+
+These will make the appropriate tasks depend on the dependency check so that it will be run with every `build` - that way you will know right away that you have a potential problem.
+
+I did take a tour around Google and the plugin repository just to make sure there was nothing else providing this functionality - so hopefully I am not duplicating anyone else's work.
