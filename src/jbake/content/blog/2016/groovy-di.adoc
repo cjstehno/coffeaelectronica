@@ -1,0 +1,190 @@
+title=Groovy Dependency Injection
+date=2016-03-19
+type=post
+tags=blog,groovy
+status=published
+~~~~~~
+Dependency Injection frameworks were a dime a dozen for a while - everybody had their own and probably a spare just in case. For the most part the field has settled down to a few big players, the http://springframework.org[Spring Framework] and https://github.com/google/guice[Google Guice] are the only two that come to mind. While both of these have their pluses and minuses, they both have a certain level of overhead in libraries and understanding. Sometimes you want to throw something together quickly or you are in a scenario where you can't use one of these off the shelf libraries. I had to do this recently and while I still wanted to do something spring/guice-like, I could not use either of them, but I did have Groovy available.
+
+NOTE: I want to preface the further discussion here to say that I am not suggesting you stop using Spring or Guice or whatever you are using now in favor of rolling your own Groovy DI - this is purely a sharing of information about how you can if you ever need to.
+
+Let's use as an example a batch application used to process some game scores and report on the min/max/average values. We will use a database (H2) just to show a little more configuration depth and I will use the `TextFileReader` class from my http://stehno.com/vanilla[Vanilla] project to keep things simple and focussed on DI rather than logic.
+
+First, we need the heart of our DI framework, the configuration class. Let's call it `Config`; we will also need a means of loading external configuration properties and this is where our first Groovy helper comes in, the `ConfigSlurper`. The `ConfigSlurper` does what it sounds like, it slurps up a configuration file with a Groovy-like syntax and converts it to a `ConfigObject`. To start with, our `Config` class looks something like this:
+[source,groovy]
+----
+class Config {
+    private final ConfigObject config
+    
+    Config(final URL configLocation) {
+        config = new ConfigSlurper().parse(configLocation)
+    }
+}
+----
+The backing configuration file we will use, looks like this:
+----
+inputFile = 'classpath:/scores.csv'
+
+datasource {
+    url = 'jdbc:h2:mem:test'
+    user = 'sa'
+    pass = ''
+}
+----
+This will live in a file named `application.cfg` and as can be seen, it will store our externalized config properties.
+
+Next, let's configure our `DataSource`. Both Spring and Guice have a similar "bean definition" style, and what I am sure is based on those influences, I came up with something similar here:
+
+[source,groovy]
+----
+@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}
+----
+
+Notice that I used the `@Memoized` Groovy transformation annotation. This ensures that once the "bean" is created, the same instance is reused, and since I will only ever have one, I can limit the cache size and make sure it sicks around. As an interesting side-item, I created a collected annotation version of the memoized functionality and named it `@OneInstance` since `@Singleton` was alread taken.
+
+[source,groovy]
+----
+@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+@AnnotationCollector
+@interface OneInstance {}
+----
+
+It just keeps things a little cleaner:
+
+[source,groovy]
+----
+@OneInstance DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}
+----
+
+Lastly, notice how the `ConfigObject` is used to retrieve the configuration property values, very clean and concise.
+
+
+Next, we need to an input file to read and a `TextFileReader` to read it so we will configure those as well.
+
+[source,groovy]
+----
+@OneInstance Path inputFilePath() {
+    if (config.inputFile.startsWith('classpath:')) {
+        return Paths.get(Config.getResource(config.inputFile - 'classpath:').toURI())
+    } else {
+        return new File(config.inputFile).toPath()
+    }
+}
+
+@OneInstance TextFileReader fileReader() {
+    new TextFileReader(
+        filePath: inputFilePath(),
+        firstLine: 2,
+        lineParser: new CommaSeparatedLineParser(
+            (0): { v -> v as long },
+            (2): { v -> v as int }
+        )
+    )
+}
+----
+
+I added a little configuration sugar so that you can define the input file as a classpath file or an external file. The `TextFileReader` is setup to convert the data csv file as three columns of data, an id (long), a username (string) and a score (int). The data file looks like this:
+
+----
+# id,username,score
+100,bhoser,4523
+200,ripplehauer,235
+300,jegenflur,576
+400,bobknows,997
+----
+
+The last thing we need in the configuration is our service which will do that data management and the stat calculations, we'll call it the `StatsService`:
+
+[source,groovy]
+----
+@TypeChecked
+class StatsService {
+
+    private Sql sql
+
+    StatsService(DataSource dataSource) {
+        sql = new Sql(dataSource)
+    }
+
+    StatsService init() {
+        sql.execute('create table scores (id bigint PRIMARY KEY, username VARCHAR(20) NOT NULL, score int NOT NULL )')
+        this
+    }
+
+    void input(long id, String username, int score) {
+        sql.executeUpdate(
+            'insert into scores (id,username,score) values (?,?,?)',
+            id,
+            username,
+            score
+        )
+    }
+
+    void report() {
+        def row = sql.firstRow(
+            '''
+            select
+                count(*) as score_count,
+                avg(score) as average_score,
+                min(score) as min_score,
+                max(score) as max_score
+            from scores
+            '''
+        )
+
+        println "Count  : ${row.score_count}"
+        println "Min    : ${row.min_score}"
+        println "Max    : ${row.max_score}"
+        println "Average: ${row.average_score}"
+    }
+}
+----
+
+I'm just going to dump it out there since it's mostly SQL logic to load the data into the table and then report the stats out to the standard output. We will wire this in like the others in `Config`:
+
+[source,groovy]
+----
+@OneInstance StatsService statsService() {
+    new StatsService(dataSource()).init()
+}
+----
+
+With that, our configuration is done. Now we need to use it in an application, which we'll call `Application`:
+
+[source,groovy]
+----
+class Application {
+
+    static void main(args){
+        Config config = Config.fromClasspath('/application.cfg')
+
+        StatsService stats = config.statsService()
+        TextFileReader reader = config.fileReader()
+
+        reader.eachLine { Object[] line->
+            stats.input(line[0], line[1], line[2])
+        }
+
+        stats.report()
+    }
+}
+----
+
+We instantiate a `Config` object, call the bean accessor methods and use the beans to do the desired work. I added the `fromClasspath(String)` helper method to simplify loading config from the classpath.
+
+Like I said, this is no fulltime replacement for a real DI framework; however, when I was in a pinch, this came in pretty handy and worked really well. Also, it was easy to extend the `Config` class in the testing source so that certain parts of the configuration could be overridden and mocked as needed during testing.
+
+NOTE: The demo code for this post is on https://github.com/cjstehno/groovy-di[GitHub: cjstehno/groovy-di].
