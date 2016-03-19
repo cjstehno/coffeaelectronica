@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Groovy Dependency Injection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Groovy Dependency Injection</h1>
+	</div>
+
+	<p><em>19 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><div class="paragraph">
+<p>Dependency Injection frameworks were a dime a dozen for a while - everybody had their own and probably a spare just in case. For the most part the field has settled down to a few big players, the <a href="http://springframework.org">Spring Framework</a> and <a href="https://github.com/google/guice">Google Guice</a> are the only two that come to mind. While both of these have their pluses and minuses, they both have a certain level of overhead in libraries and understanding. Sometimes you want to throw something together quickly or you are in a scenario where you can&#8217;t use one of these off the shelf libraries. I had to do this recently and while I still wanted to do something spring/guice-like, I could not use either of them, but I did have Groovy available.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+I want to preface the further discussion here to say that I am not suggesting you stop using Spring or Guice or whatever you are using now in favor of rolling your own Groovy DI - this is purely a sharing of information about how you can if you ever need to.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s use as an example a batch application used to process some game scores and report on the min/max/average values. We will use a database (H2) just to show a little more configuration depth and I will use the <code>TextFileReader</code> class from my <a href="http://stehno.com/vanilla">Vanilla</a> project to keep things simple and focussed on DI rather than logic.</p>
+</div>
+<div class="paragraph">
+<p>First, we need the heart of our DI framework, the configuration class. Let&#8217;s call it <code>Config</code>; we will also need a means of loading external configuration properties and this is where our first Groovy helper comes in, the <code>ConfigSlurper</code>. The <code>ConfigSlurper</code> does what it sounds like, it slurps up a configuration file with a Groovy-like syntax and converts it to a <code>ConfigObject</code>. To start with, our <code>Config</code> class looks something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class Config {
+    private final ConfigObject config
+
+    Config(final URL configLocation) {
+        config = new ConfigSlurper().parse(configLocation)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The backing configuration file we will use, looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>inputFile = 'classpath:/scores.csv'
+
+datasource {
+    url = 'jdbc:h2:mem:test'
+    user = 'sa'
+    pass = ''
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will live in a file named <code>application.cfg</code> and as can be seen, it will store our externalized config properties.</p>
+</div>
+<div class="paragraph">
+<p>Next, let&#8217;s configure our <code>DataSource</code>. Both Spring and Guice have a similar "bean definition" style, and what I am sure is based on those influences, I came up with something similar here:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that I used the <code>@Memoized</code> Groovy transformation annotation. This ensures that once the "bean" is created, the same instance is reused, and since I will only ever have one, I can limit the cache size and make sure it sicks around. As an interesting side-item, I created a collected annotation version of the memoized functionality and named it <code>@OneInstance</code> since <code>@Singleton</code> was alread taken.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+@AnnotationCollector
+@interface OneInstance {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It just keeps things a little cleaner:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly, notice how the <code>ConfigObject</code> is used to retrieve the configuration property values, very clean and concise.</p>
+</div>
+<div class="paragraph">
+<p>Next, we need to an input file to read and a <code>TextFileReader</code> to read it so we will configure those as well.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance Path inputFilePath() {
+    if (config.inputFile.startsWith('classpath:')) {
+        return Paths.get(Config.getResource(config.inputFile - 'classpath:').toURI())
+    } else {
+        return new File(config.inputFile).toPath()
+    }
+}
+
+@OneInstance TextFileReader fileReader() {
+    new TextFileReader(
+        filePath: inputFilePath(),
+        firstLine: 2,
+        lineParser: new CommaSeparatedLineParser(
+            (0): { v -&gt; v as long },
+            (2): { v -&gt; v as int }
+        )
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I added a little configuration sugar so that you can define the input file as a classpath file or an external file. The <code>TextFileReader</code> is setup to convert the data csv file as three columns of data, an id (long), a username (string) and a score (int). The data file looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre># id,username,score
+100,bhoser,4523
+200,ripplehauer,235
+300,jegenflur,576
+400,bobknows,997</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last thing we need in the configuration is our service which will do that data management and the stat calculations, we&#8217;ll call it the <code>StatsService</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TypeChecked
+class StatsService {
+
+    private Sql sql
+
+    StatsService(DataSource dataSource) {
+        sql = new Sql(dataSource)
+    }
+
+    StatsService init() {
+        sql.execute('create table scores (id bigint PRIMARY KEY, username VARCHAR(20) NOT NULL, score int NOT NULL )')
+        this
+    }
+
+    void input(long id, String username, int score) {
+        sql.executeUpdate(
+            'insert into scores (id,username,score) values (?,?,?)',
+            id,
+            username,
+            score
+        )
+    }
+
+    void report() {
+        def row = sql.firstRow(
+            '''
+            select
+                count(*) as score_count,
+                avg(score) as average_score,
+                min(score) as min_score,
+                max(score) as max_score
+            from scores
+            '''
+        )
+
+        println "Count  : ${row.score_count}"
+        println "Min    : ${row.min_score}"
+        println "Max    : ${row.max_score}"
+        println "Average: ${row.average_score}"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I&#8217;m just going to dump it out there since it&#8217;s mostly SQL logic to load the data into the table and then report the stats out to the standard output. We will wire this in like the others in <code>Config</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance StatsService statsService() {
+    new StatsService(dataSource()).init()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With that, our configuration is done. Now we need to use it in an application, which we&#8217;ll call <code>Application</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class Application {
+
+    static void main(args){
+        Config config = Config.fromClasspath('/application.cfg')
+
+        StatsService stats = config.statsService()
+        TextFileReader reader = config.fileReader()
+
+        reader.eachLine { Object[] line-&gt;
+            stats.input(line[0], line[1], line[2])
+        }
+
+        stats.report()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We instantiate a <code>Config</code> object, call the bean accessor methods and use the beans to do the desired work. I added the <code>fromClasspath(String)</code> helper method to simplify loading config from the classpath.</p>
+</div>
+<div class="paragraph">
+<p>Like I said, this is no fulltime replacement for a real DI framework; however, when I was in a pinch, this came in pretty handy and worked really well. Also, it was easy to extend the <code>Config</code> class in the testing source so that certain parts of the configuration could be overridden and mocked as needed during testing.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The demo code for this post is on <a href="https://github.com/cjstehno/groovy-di">GitHub: cjstehno/groovy-di</a>.
+</td>
+</tr>
+</table>
+</div></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>

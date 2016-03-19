@@ -87,6 +87,235 @@
 
 
 	
+		<a href="blog/2016/groovy-di.html"><h1>Groovy Dependency Injection</h1></a>
+		<p><em>19 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+		<p><div class="paragraph">
+<p>Dependency Injection frameworks were a dime a dozen for a while - everybody had their own and probably a spare just in case. For the most part the field has settled down to a few big players, the <a href="http://springframework.org">Spring Framework</a> and <a href="https://github.com/google/guice">Google Guice</a> are the only two that come to mind. While both of these have their pluses and minuses, they both have a certain level of overhead in libraries and understanding. Sometimes you want to throw something together quickly or you are in a scenario where you can&#8217;t use one of these off the shelf libraries. I had to do this recently and while I still wanted to do something spring/guice-like, I could not use either of them, but I did have Groovy available.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+I want to preface the further discussion here to say that I am not suggesting you stop using Spring or Guice or whatever you are using now in favor of rolling your own Groovy DI - this is purely a sharing of information about how you can if you ever need to.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s use as an example a batch application used to process some game scores and report on the min/max/average values. We will use a database (H2) just to show a little more configuration depth and I will use the <code>TextFileReader</code> class from my <a href="http://stehno.com/vanilla">Vanilla</a> project to keep things simple and focussed on DI rather than logic.</p>
+</div>
+<div class="paragraph">
+<p>First, we need the heart of our DI framework, the configuration class. Let&#8217;s call it <code>Config</code>; we will also need a means of loading external configuration properties and this is where our first Groovy helper comes in, the <code>ConfigSlurper</code>. The <code>ConfigSlurper</code> does what it sounds like, it slurps up a configuration file with a Groovy-like syntax and converts it to a <code>ConfigObject</code>. To start with, our <code>Config</code> class looks something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class Config {
+    private final ConfigObject config
+
+    Config(final URL configLocation) {
+        config = new ConfigSlurper().parse(configLocation)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The backing configuration file we will use, looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>inputFile = 'classpath:/scores.csv'
+
+datasource {
+    url = 'jdbc:h2:mem:test'
+    user = 'sa'
+    pass = ''
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will live in a file named <code>application.cfg</code> and as can be seen, it will store our externalized config properties.</p>
+</div>
+<div class="paragraph">
+<p>Next, let&#8217;s configure our <code>DataSource</code>. Both Spring and Guice have a similar "bean definition" style, and what I am sure is based on those influences, I came up with something similar here:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that I used the <code>@Memoized</code> Groovy transformation annotation. This ensures that once the "bean" is created, the same instance is reused, and since I will only ever have one, I can limit the cache size and make sure it sicks around. As an interesting side-item, I created a collected annotation version of the memoized functionality and named it <code>@OneInstance</code> since <code>@Singleton</code> was alread taken.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+@AnnotationCollector
+@interface OneInstance {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It just keeps things a little cleaner:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly, notice how the <code>ConfigObject</code> is used to retrieve the configuration property values, very clean and concise.</p>
+</div>
+<div class="paragraph">
+<p>Next, we need to an input file to read and a <code>TextFileReader</code> to read it so we will configure those as well.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance Path inputFilePath() {
+    if (config.inputFile.startsWith('classpath:')) {
+        return Paths.get(Config.getResource(config.inputFile - 'classpath:').toURI())
+    } else {
+        return new File(config.inputFile).toPath()
+    }
+}
+
+@OneInstance TextFileReader fileReader() {
+    new TextFileReader(
+        filePath: inputFilePath(),
+        firstLine: 2,
+        lineParser: new CommaSeparatedLineParser(
+            (0): { v -&gt; v as long },
+            (2): { v -&gt; v as int }
+        )
+    )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I added a little configuration sugar so that you can define the input file as a classpath file or an external file. The <code>TextFileReader</code> is setup to convert the data csv file as three columns of data, an id (long), a username (string) and a score (int). The data file looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre># id,username,score
+100,bhoser,4523
+200,ripplehauer,235
+300,jegenflur,576
+400,bobknows,997</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last thing we need in the configuration is our service which will do that data management and the stat calculations, we&#8217;ll call it the <code>StatsService</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TypeChecked
+class StatsService {
+
+    private Sql sql
+
+    StatsService(DataSource dataSource) {
+        sql = new Sql(dataSource)
+    }
+
+    StatsService init() {
+        sql.execute('create table scores (id bigint PRIMARY KEY, username VARCHAR(20) NOT NULL, score int NOT NULL )')
+        this
+    }
+
+    void input(long id, String username, int score) {
+        sql.executeUpdate(
+            'insert into scores (id,username,score) values (?,?,?)',
+            id,
+            username,
+            score
+        )
+    }
+
+    void report() {
+        def row = sql.firstRow(
+            '''
+            select
+                count(*) as score_count,
+                avg(score) as average_score,
+                min(score) as min_score,
+                max(score) as max_score
+            from scores
+            '''
+        )
+
+        println "Count  : ${row.score_count}"
+        println "Min    : ${row.min_score}"
+        println "Max    : ${row.max_score}"
+        println "Average: ${row.average_score}"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I&#8217;m just going to dump it out there since it&#8217;s mostly SQL logic to load the data into the table and then report the stats out to the standard output. We will wire this in like the others in <code>Config</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@OneInstance StatsService statsService() {
+    new StatsService(dataSource()).init()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With that, our configuration is done. Now we need to use it in an application, which we&#8217;ll call <code>Application</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class Application {
+
+    static void main(args){
+        Config config = Config.fromClasspath('/application.cfg')
+
+        StatsService stats = config.statsService()
+        TextFileReader reader = config.fileReader()
+
+        reader.eachLine { Object[] line-&gt;
+            stats.input(line[0], line[1], line[2])
+        }
+
+        stats.report()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We instantiate a <code>Config</code> object, call the bean accessor methods and use the beans to do the desired work. I added the <code>fromClasspath(String)</code> helper method to simplify loading config from the classpath.</p>
+</div>
+<div class="paragraph">
+<p>Like I said, this is no fulltime replacement for a real DI framework; however, when I was in a pinch, this came in pretty handy and worked really well. Also, it was easy to extend the <code>Config</code> class in the testing source so that certain parts of the configuration could be overridden and mocked as needed during testing.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The demo code for this post is on <a href="https://github.com/cjstehno/groovy-di">GitHub: cjstehno/groovy-di</a>.
+</td>
+</tr>
+</table>
+</div></p>
+  	
 		<a href="blog/2016/dependency-duplication-check.html"><h1>Dependency Duplication Checking</h1></a>
 		<p><em>12 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
 		<p><div class="paragraph">
@@ -1381,85 +1610,6 @@ class Pet {
 }
 def instance = rando.one()
 </code></pre><p>I have started using this in some of my testing, at it comes in pretty handy. My Vanilla library is not yet available via any public repositories; however, it will be soon, and if there is expressed interest, I can speed this up.</p></p>
-  	
-		<a href="blog/2015/secure-rest-spring.html"><h1>Secure REST in Spring</h1></a>
-		<p><em>04 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
-		<p><p>Getting HTTPS to play nice with REST and non-browser web clients in development (with a self-signed certificate) can be a frustrating effort. I struggled for a while down the path of using the Spring <code>RestTemplate</code> thinking that since I was using Spring MVC as my REST provider, it would make things easier; in this case, Spring did not come to the rescue, but Groovy did or rather the Groovy <a href="https://github.com/jgritman/httpbuilder">HTTPBuilder</a> did.</p><p>To keep this discussion simple, we need a simple REST project using HTTPS. I found the <a href="https://github.com/spring-guides/gs-rest-service">Spring REST Service Guide</a> project useful for this (with a few modifications to follow).</p><p>Go ahead and clone the project:</p>
-<pre><code>git clone git@github.com:spring-guides/gs-rest-service.git
-</code></pre><p>Since this is a tutorial project, it has a few versions of the code in it. We are going to work with the "complete" version, which is a Gradle project. Let's go ahead and do a build and run just to ensure everything works out of the box:</p>
-<pre><code>cd gs-rest-service/complete
-./gradlew bootRun
-</code></pre><p>After a bunch of downloading and startup logging you should see that the application has started. You can give it a test by opening <code>http://localhost:8080/greeting?name=Chris</code> in your browser, which should respond with:</p>
-<pre><code class="json">{
-    &quot;id&quot;: 2,
-    &quot;content&quot;: &quot;Hello, Chris!&quot;
-}
-</code></pre><p>Now that we have that running, we want a RESTful client to call it rather that hitting it using the browser. Let's get it working with the simple HTTP case first to ensure that we have everything working before we go into the HTTPS configuration. Create a groovy script, <code>rest-client.groovy</code> with the following content:</p>
-<pre><code class="groovy">@Grapes(
-    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
-)
-
-import groovyx.net.http.HTTPBuilder
-import static groovyx.net.http.Method.GET
-
-def http = new HTTPBuilder( &#39;http://localhost:8080/&#39; )
-
-http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
-    println &quot;Status: ${resp.status}&quot;
-    println &quot;Content: $json&quot;
-}
-</code></pre><p>Since this is not a discussion of HTTPBuilder itself, I will leave most of the details to your own research; however, it's pretty straight forward. We are making the same request we made in the browser, and after another initial batch of dependency downloads (grapes) it should yield:</p>
-<pre><code>Status: 200
-Content: [content:Hello, Chris!, id:6]
-</code></pre><p>Ok, our control group is working. Now, let's add in the HTTPS. For the Spring Boot project, it's pretty trivial. We need to add an <code>application.properties</code> file in <code>src/main/resources</code> with the following content:</p>
-<pre><code>server.port = 8443
-server.ssl.key-store = /home/cjstehno/.keystore
-server.ssl.key-store-password = tomcat
-server.ssl.key-password = tomcat
-</code></pre><p>Of course, update the key-store path to your home directory. For the server, we also need to install a certificate for our use. </p>
-<blockquote><p>I am not a security certificate expert, so from here on out I will state that this stuff works in development but I make no claims that this is suitable for production use. Proceed at your own risk!</p>
-</blockquote><p>From the <a href="http://tomcat.apache.org/tomcat-8.0-doc/ssl-howto.html">Tomcat 8 SSL How To</a>, run the <code>keytool -genkey -alias tomcat -keyalg RSA</code> and run through the questions answering everything with 'localhost' (there seems to be a reason for this).</p><p>At this point you should be able to restart the server and hit it via HTTPS (<a href="https://localhost:8443/greeting?name=Chris">https://localhost:8443/greeting?name=Chris</a>) to retrieve a successful response as before, though you will need to accept the self-signed certificate.</p><p>Now try the client. Update the URL to the new HTTPS version:</p>
-<pre><code>def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
-</code></pre><p>and give it a run. You should see something like:</p>
-<pre><code>Caught: javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
-javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated
-</code></pre><p>I will start with the simplest method of resolving this problem. HTTPBuilder provides a configuration method that will just ignore these types of SSL errors. If you add:</p>
-<pre><code>http.ignoreSSLIssues()
-</code></pre><p>before you make a request, it will succeed as normal. This should be used only as a development configuration, but there are times when you just want to get something workign for testing. If that's all you want here, you're done. From here on out I will show how to get the SSL configuration working for a more formal use case.</p><p>Still with me? Alright, let's have fun with certificates! The <a href="https://github.com/jgritman/httpbuilder/wiki/SSL">HTTPBuilder wiki page for SSL</a> gives us most of what we need. To summarize, we need to export our server certificate and then import it into a keyfile that our client can use. To export the server certificate, run:</p>
-<pre><code>keytool -exportcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore ~/.keystore -storepass tomcat
-</code></pre><p>which will export the "tomcat" certificate from the keystore at "~/.keystore" (the one we created earlier) and save it into "mytomcat.crt". Next, we need to import this certificate into the keystore that will be used by our client as follows:</p>
-<pre><code>keytool -importcert -alias &quot;tomcat&quot; -file mytomcat.crt -keystore clientstore.jks -storepass clientpass
-</code></pre><p>You will be asked to trust this certificate, which you should answer "yes" to continue.</p><p>Now that we have our certificate ready, we can update the client script to use it. The client script becomes:</p>
-<pre><code class="groovy">@Grapes(
-    @Grab(group=&#39;org.codehaus.groovy.modules.http-builder&#39;, module=&#39;http-builder&#39;, version=&#39;0.7.1&#39;)
-)
-
-import groovyx.net.http.HTTPBuilder
-import static groovyx.net.http.Method.GET
-import java.security.KeyStore
-import org.apache.http.conn.scheme.Scheme
-import org.apache.http.conn.ssl.SSLSocketFactory
-
-def http = new HTTPBuilder( &#39;https://localhost:8443/&#39; )
-
-def keyStore = KeyStore.getInstance( KeyStore.defaultType )
-
-new File( args[0] ).withInputStream {
-   keyStore.load( it, args[1].toCharArray() )
-}
-
-http.client.connectionManager.schemeRegistry.register(new Scheme(&quot;https&quot;, new SSLSocketFactory(keyStore), 443) )
-
-http.get( path: &#39;greeting&#39;, query:[name:&#39;Chris&#39;] ) { resp, json -&gt;
-    println &quot;Status: ${resp.status}&quot;
-    println &quot;Content: $json&quot;
-}
-</code></pre><p>The main changes from the previous version are the loading and use of the keystore by the connection manager. When you run this version of the script, with:</p>
-<pre><code>groovy rest-client.groovy clientstore.jks clientpass
-</code></pre><p>you get:</p>
-<pre><code>Status: 200
-Content: [content:Hello, Chris!, id:1]
-</code></pre><p>We are now using HTTPS on both the server and client for our rest service. It's not all that bad to setup once you figure out the steps, but in general the information seems to be tough to find.</p></p>
   	
 	
 	<hr />

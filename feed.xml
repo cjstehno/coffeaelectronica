@@ -6,9 +6,244 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sat, 12 Mar 2016 15:50:59 -0600</pubDate>
-    <lastBuildDate>Sat, 12 Mar 2016 15:50:59 -0600</lastBuildDate>
+    <pubDate>Sat, 12 Mar 2016 18:19:03 -0600</pubDate>
+    <lastBuildDate>Sat, 12 Mar 2016 18:19:03 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Groovy Dependency Injection</title>
+      <link>http://coffeaelectronica.com/blog/2016/groovy-di.html</link>
+      <pubDate>Sat, 19 Mar 2016 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2016/groovy-di.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Dependency Injection frameworks were a dime a dozen for a while - everybody had their own and probably a spare just in case. For the most part the field has settled down to a few big players, the &lt;a href=&quot;http://springframework.org&quot;&gt;Spring Framework&lt;/a&gt; and &lt;a href=&quot;https://github.com/google/guice&quot;&gt;Google Guice&lt;/a&gt; are the only two that come to mind. While both of these have their pluses and minuses, they both have a certain level of overhead in libraries and understanding. Sometimes you want to throw something together quickly or you are in a scenario where you can&amp;#8217;t use one of these off the shelf libraries. I had to do this recently and while I still wanted to do something spring/guice-like, I could not use either of them, but I did have Groovy available.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+I want to preface the further discussion here to say that I am not suggesting you stop using Spring or Guice or whatever you are using now in favor of rolling your own Groovy DI - this is purely a sharing of information about how you can if you ever need to.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s use as an example a batch application used to process some game scores and report on the min/max/average values. We will use a database (H2) just to show a little more configuration depth and I will use the &lt;code&gt;TextFileReader&lt;/code&gt; class from my &lt;a href=&quot;http://stehno.com/vanilla&quot;&gt;Vanilla&lt;/a&gt; project to keep things simple and focussed on DI rather than logic.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;First, we need the heart of our DI framework, the configuration class. Let&amp;#8217;s call it &lt;code&gt;Config&lt;/code&gt;; we will also need a means of loading external configuration properties and this is where our first Groovy helper comes in, the &lt;code&gt;ConfigSlurper&lt;/code&gt;. The &lt;code&gt;ConfigSlurper&lt;/code&gt; does what it sounds like, it slurps up a configuration file with a Groovy-like syntax and converts it to a &lt;code&gt;ConfigObject&lt;/code&gt;. To start with, our &lt;code&gt;Config&lt;/code&gt; class looks something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class Config {
+    private final ConfigObject config
+
+    Config(final URL configLocation) {
+        config = new ConfigSlurper().parse(configLocation)
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The backing configuration file we will use, looks like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;inputFile = &apos;classpath:/scores.csv&apos;
+
+datasource {
+    url = &apos;jdbc:h2:mem:test&apos;
+    user = &apos;sa&apos;
+    pass = &apos;&apos;
+}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This will live in a file named &lt;code&gt;application.cfg&lt;/code&gt; and as can be seen, it will store our externalized config properties.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Next, let&amp;#8217;s configure our &lt;code&gt;DataSource&lt;/code&gt;. Both Spring and Guice have a similar &quot;bean definition&quot; style, and what I am sure is based on those influences, I came up with something similar here:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice that I used the &lt;code&gt;@Memoized&lt;/code&gt; Groovy transformation annotation. This ensures that once the &quot;bean&quot; is created, the same instance is reused, and since I will only ever have one, I can limit the cache size and make sure it sicks around. As an interesting side-item, I created a collected annotation version of the memoized functionality and named it &lt;code&gt;@OneInstance&lt;/code&gt; since &lt;code&gt;@Singleton&lt;/code&gt; was alread taken.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Memoized(protectedCacheSize = 1, maxCacheSize = 1)
+@AnnotationCollector
+@interface OneInstance {}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It just keeps things a little cleaner:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@OneInstance DataSource dataSource() {
+    JdbcConnectionPool.create(
+        config.datasource.url,
+        config.datasource.user,
+        config.datasource.pass
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Lastly, notice how the &lt;code&gt;ConfigObject&lt;/code&gt; is used to retrieve the configuration property values, very clean and concise.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Next, we need to an input file to read and a &lt;code&gt;TextFileReader&lt;/code&gt; to read it so we will configure those as well.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@OneInstance Path inputFilePath() {
+    if (config.inputFile.startsWith(&apos;classpath:&apos;)) {
+        return Paths.get(Config.getResource(config.inputFile - &apos;classpath:&apos;).toURI())
+    } else {
+        return new File(config.inputFile).toPath()
+    }
+}
+
+@OneInstance TextFileReader fileReader() {
+    new TextFileReader(
+        filePath: inputFilePath(),
+        firstLine: 2,
+        lineParser: new CommaSeparatedLineParser(
+            (0): { v -&amp;gt; v as long },
+            (2): { v -&amp;gt; v as int }
+        )
+    )
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I added a little configuration sugar so that you can define the input file as a classpath file or an external file. The &lt;code&gt;TextFileReader&lt;/code&gt; is setup to convert the data csv file as three columns of data, an id (long), a username (string) and a score (int). The data file looks like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;# id,username,score
+100,bhoser,4523
+200,ripplehauer,235
+300,jegenflur,576
+400,bobknows,997&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The last thing we need in the configuration is our service which will do that data management and the stat calculations, we&amp;#8217;ll call it the &lt;code&gt;StatsService&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@TypeChecked
+class StatsService {
+
+    private Sql sql
+
+    StatsService(DataSource dataSource) {
+        sql = new Sql(dataSource)
+    }
+
+    StatsService init() {
+        sql.execute(&apos;create table scores (id bigint PRIMARY KEY, username VARCHAR(20) NOT NULL, score int NOT NULL )&apos;)
+        this
+    }
+
+    void input(long id, String username, int score) {
+        sql.executeUpdate(
+            &apos;insert into scores (id,username,score) values (?,?,?)&apos;,
+            id,
+            username,
+            score
+        )
+    }
+
+    void report() {
+        def row = sql.firstRow(
+            &apos;&apos;&apos;
+            select
+                count(*) as score_count,
+                avg(score) as average_score,
+                min(score) as min_score,
+                max(score) as max_score
+            from scores
+            &apos;&apos;&apos;
+        )
+
+        println &quot;Count  : ${row.score_count}&quot;
+        println &quot;Min    : ${row.min_score}&quot;
+        println &quot;Max    : ${row.max_score}&quot;
+        println &quot;Average: ${row.average_score}&quot;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I&amp;#8217;m just going to dump it out there since it&amp;#8217;s mostly SQL logic to load the data into the table and then report the stats out to the standard output. We will wire this in like the others in &lt;code&gt;Config&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@OneInstance StatsService statsService() {
+    new StatsService(dataSource()).init()
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;With that, our configuration is done. Now we need to use it in an application, which we&amp;#8217;ll call &lt;code&gt;Application&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class Application {
+
+    static void main(args){
+        Config config = Config.fromClasspath(&apos;/application.cfg&apos;)
+
+        StatsService stats = config.statsService()
+        TextFileReader reader = config.fileReader()
+
+        reader.eachLine { Object[] line-&amp;gt;
+            stats.input(line[0], line[1], line[2])
+        }
+
+        stats.report()
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We instantiate a &lt;code&gt;Config&lt;/code&gt; object, call the bean accessor methods and use the beans to do the desired work. I added the &lt;code&gt;fromClasspath(String)&lt;/code&gt; helper method to simplify loading config from the classpath.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Like I said, this is no fulltime replacement for a real DI framework; however, when I was in a pinch, this came in pretty handy and worked really well. Also, it was easy to extend the &lt;code&gt;Config&lt;/code&gt; class in the testing source so that certain parts of the configuration could be overridden and mocked as needed during testing.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+The demo code for this post is on &lt;a href=&quot;https://github.com/cjstehno/groovy-di&quot;&gt;GitHub: cjstehno/groovy-di&lt;/a&gt;.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Dependency Duplication Checking</title>
