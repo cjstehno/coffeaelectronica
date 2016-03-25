@@ -87,6 +87,49 @@
 
 
 	
+		<a href="blog/2016/custom-shell-banner.html"><h1>Custom Spring Boot Shell Banner</h1></a>
+		<p><em>25 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/spring.html'>spring</a></p>
+		<p><div class="paragraph">
+<p>I did a <a href="http://dfw2gug.org/blog/2016/march-2016.html">Groovy User Group talk</a> recently related to my <a href="http://coffeaelectronica.com/blog/2015/spring-shell.html">Spring Boot Remote Shell</a> blog post and while putting the talk together I stumbled across a bug in the integration between Spring Boot and the Crash shell (see <a href="https:///github.com/spring-projects/spring-boot/issues/3988">Spring-Boot-3988</a>). The custom banner you can add to your Spring Boot application (as /resources/banner.txt) is not applied by default to your crash shell, so you get the boring Spring logo every time you startup the shell. I had worked with the Crash shell previously and I remember that the banner was customizable so I did a little digging and figured out how to code a work-around - I also added this information to the bug ticket; I considered contributing a pull request, but I am not sure how this would be coded into the default application framework.</p>
+</div>
+<div class="paragraph">
+<p>The work-around is pretty simple and straight-forward if you have worked with the crash shell before. You use their method of customization and then have it pull in your Spring Boot custom banner. In your <code>/src/main/resources/commands</code> directory you add a <code>login.groovy</code> file, which Crash will load with every shell connection. The file allows the customization of the banner and the prompt. We can then load our spring banner from the classpath. The basic code is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">login.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">welcome = { -&gt;
+    def hostName;
+    try {
+        hostName = java.net.InetAddress.getLocalHost().getHostName();
+    } catch (java.net.UnknownHostException ignore) {
+        hostName = 'localhost';
+    }
+
+    String banner = YourApplication.getResourceAsStream('/banner.txt').text
+
+    return """
+${banner}
+Logged into $hostName @ ${new Date()}
+"""
+}
+
+prompt = { -&gt;
+    return "% ";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s a silly little thing to worry about, but sometimes it&#8217;s the little things that make an application feel more like your own.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>I have created a <a href="https://github.com/spring-projects/spring-boot/pull/5453">pull request</a> in the spring-boot project to address this issue&#8230;&#8203; we&#8217;ll see what happens.</p>
+</div>
+</blockquote>
+</div></p>
+  	
 		<a href="blog/2016/groovy-di.html"><h1>Groovy Dependency Injection</h1></a>
 		<p><em>19 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
 		<p><div class="paragraph">
@@ -1564,52 +1607,6 @@ Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, sco
     }
 }
 </code></pre><p>The fixture mapper accepts <code>PropertyRandomizer</code> instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.</p><p>One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the <code>asImmutable()</code> method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.</p><p>Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.</p></p>
-  	
-		<a href="blog/2015/property-randomization.html"><h1>Property Randomization for Testing</h1></a>
-		<p><em>06 May 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a></p>
-		<p><p>Unit tests are great, but sometimes you end up creating a lot of test objects requiring data, such as DTOs and domain objects. Generally, I have always come up with movie quotes or other interesting content for test data. Recently, while working on a Groovy project, I thought it would be interesting to have a way to randomly generate and populate the data for these objects. The randomization would provide a simpler approach to test data as well as providing the potential for stumbling on test data that would break your code in interesting ways.</p><p>My <a href="http://github.com/cjstehno/vanilla">Vanilla</a> project now has a <code>PropertyRandomizer</code> class, which provides this property randomization functionality in two ways. You can use it as a builder or as a DSL.</p><p>Say you have a <code>Person</code> domain class, defined as:</p>
-<pre><code class="groovy">@ToString
-class Person {
-    String name
-    Date birthDate
-}
-</code></pre><p>You could generate a random instance of it using:</p>
-<pre><code class="groovy">def rando = randomize(Person).typeRandomizers( (Date):{ new Date() } )
-def instance = rando.one()
-</code></pre><p>Note, that there is no default randomizer for <code>Date</code> so we had to provide one. The other fields, <code>name</code> in this case would be randomized by the default randomizer.</p><p>The DSL usage style for the use case above would be:</p>
-<pre><code class="groovy">def rando = randomize(Person){
-    typeRandomizers( 
-        (Date):{ new Date() } 
-    )
-}
-def instance = rando.one()
-</code></pre><p>Not really much difference, but sometimes a DSL style construct is cleaner to work with.</p><p>What if you need three random instances for the same class, all different? You just ask for them:</p>
-<pre><code class="groovy">def instances = rando.times(3)
-
-// or 
-
-instances = rando * 3
-</code></pre><p>The multiplication operator is overridden to provide a nice shortcut for requesting multiple random instances.</p><p>You can customize the randomizers at either the type or property level or you can configure certain properties to be ignored by the randomization. This allows for nested randomized objects. Say your <code>Person</code> has a new <code>pet</code> property.</p>
-<pre><code class="groovy">@ToString
-class Person {
-    String name
-    Date birthDate
-    Pet pet
-}
-
-@ToString
-class Pet {
-    String name
-}
-</code></pre><p>You can easily provide randomized pets for your randomized people:</p>
-<pre><code class="groovy">def rando = randomize(Person){
-    typeRandomizers( 
-        (Date):{ new Date() },
-        (Pet): { randomize(Pet).one() }
-    )
-}
-def instance = rando.one()
-</code></pre><p>I have started using this in some of my testing, at it comes in pretty handy. My Vanilla library is not yet available via any public repositories; however, it will be soon, and if there is expressed interest, I can speed this up.</p></p>
   	
 	
 	<hr />

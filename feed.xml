@@ -6,9 +6,58 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sat, 12 Mar 2016 18:19:03 -0600</pubDate>
-    <lastBuildDate>Sat, 12 Mar 2016 18:19:03 -0600</lastBuildDate>
+    <pubDate>Fri, 25 Mar 2016 06:16:25 -0500</pubDate>
+    <lastBuildDate>Fri, 25 Mar 2016 06:16:25 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Custom Spring Boot Shell Banner</title>
+      <link>http://coffeaelectronica.com/blog/2016/custom-shell-banner.html</link>
+      <pubDate>Fri, 25 Mar 2016 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2016/custom-shell-banner.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I did a &lt;a href=&quot;http://dfw2gug.org/blog/2016/march-2016.html&quot;&gt;Groovy User Group talk&lt;/a&gt; recently related to my &lt;a href=&quot;http://coffeaelectronica.com/blog/2015/spring-shell.html&quot;&gt;Spring Boot Remote Shell&lt;/a&gt; blog post and while putting the talk together I stumbled across a bug in the integration between Spring Boot and the Crash shell (see &lt;a href=&quot;https:///github.com/spring-projects/spring-boot/issues/3988&quot;&gt;Spring-Boot-3988&lt;/a&gt;). The custom banner you can add to your Spring Boot application (as /resources/banner.txt) is not applied by default to your crash shell, so you get the boring Spring logo every time you startup the shell. I had worked with the Crash shell previously and I remember that the banner was customizable so I did a little digging and figured out how to code a work-around - I also added this information to the bug ticket; I considered contributing a pull request, but I am not sure how this would be coded into the default application framework.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The work-around is pretty simple and straight-forward if you have worked with the crash shell before. You use their method of customization and then have it pull in your Spring Boot custom banner. In your &lt;code&gt;/src/main/resources/commands&lt;/code&gt; directory you add a &lt;code&gt;login.groovy&lt;/code&gt; file, which Crash will load with every shell connection. The file allows the customization of the banner and the prompt. We can then load our spring banner from the classpath. The basic code is as follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;login.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;welcome = { -&amp;gt;
+    def hostName;
+    try {
+        hostName = java.net.InetAddress.getLocalHost().getHostName();
+    } catch (java.net.UnknownHostException ignore) {
+        hostName = &apos;localhost&apos;;
+    }
+
+    String banner = YourApplication.getResourceAsStream(&apos;/banner.txt&apos;).text
+
+    return &quot;&quot;&quot;
+${banner}
+Logged into $hostName @ ${new Date()}
+&quot;&quot;&quot;
+}
+
+prompt = { -&amp;gt;
+    return &quot;% &quot;;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s a silly little thing to worry about, but sometimes it&amp;#8217;s the little things that make an application feel more like your own.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;quoteblock&quot;&gt;
+&lt;blockquote&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I have created a &lt;a href=&quot;https://github.com/spring-projects/spring-boot/pull/5453&quot;&gt;pull request&lt;/a&gt; in the spring-boot project to address this issue&amp;#8230;&amp;#8203; we&amp;#8217;ll see what happens.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Groovy Dependency Injection</title>

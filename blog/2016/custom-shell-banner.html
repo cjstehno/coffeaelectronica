@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>When GStrings Attack</title>
+    <title>Custom Spring Boot Shell Banner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Christopher J. Stehno">
@@ -87,44 +87,51 @@
 
 	
 	<div class="page-header">
-		<h1>When GStrings Attack</h1>
+		<h1>Custom Spring Boot Shell Banner</h1>
 	</div>
 
-	<p><em>28 March 2012</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+	<p><em>25 March 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/spring.html'>spring</a></p>
 
-	<p><p>I have run into this behavior a few times now, so I decided to dig into it a bit. Basically, if you have a map using "string" keys in <a href="http://groovy.codehaus.org">Groovy</a>, they can provide unexpected (or at least non-intuitive results).</p><p>Groovy has two object types of "string"... the standard Java String, which is denoted by single-quotes, and the dynamic GString, which is denoted by double-quotes _(Note: the current version of the documentation has a nice outline of <a href="http://groovy.codehaus.org/Strings+and+GString">Strings vs GStrings</a>). From a developer perspective these generally seem interchangable other than the dynamic nature of GStrings; however, there is a more fundamental difference when you are working with hashes (Sets and Maps) since these are not the same class.</p><p>Let's consider the following two strings:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;&lt;br/&gt;def gstr = &quot;foo${1+1}&quot;
-</code></pre><p>Yes, the 1+1 is a bit contrived, but it's where the fun comes in. If you check them for equality:</p>
-<pre><code class="groovy">println( str == gstr )&lt;br/&gt;println( str.equals( gstr ) )
-</code></pre><p>The first line (==), will print "true", while the second line (equals) will print "false". But, wait, there's more...</p>
-<pre><code class="groovy">println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>will print "false". They are two different instances of two different classes, lightly hidden by a layer of similarity. As a developer, you can get used to not thinking about the differences, especially when they are not always visible. Consider the case when both strings have the same non-dynamic content:</p>
-<pre><code class="groovy">def str = &#39;foo2&#39;
-def gstr = &quot;foo2&quot;
+	<p><div class="paragraph">
+<p>I did a <a href="http://dfw2gug.org/blog/2016/march-2016.html">Groovy User Group talk</a> recently related to my <a href="http://coffeaelectronica.com/blog/2015/spring-shell.html">Spring Boot Remote Shell</a> blog post and while putting the talk together I stumbled across a bug in the integration between Spring Boot and the Crash shell (see <a href="https:///github.com/spring-projects/spring-boot/issues/3988">Spring-Boot-3988</a>). The custom banner you can add to your Spring Boot application (as /resources/banner.txt) is not applied by default to your crash shell, so you get the boring Spring logo every time you startup the shell. I had worked with the Crash shell previously and I remember that the banner was customizable so I did a little digging and figured out how to code a work-around - I also added this information to the bug ticket; I considered contributing a pull request, but I am not sure how this would be coded into the default application framework.</p>
+</div>
+<div class="paragraph">
+<p>The work-around is pretty simple and straight-forward if you have worked with the crash shell before. You use their method of customization and then have it pull in your Spring Boot custom banner. In your <code>/src/main/resources/commands</code> directory you add a <code>login.groovy</code> file, which Crash will load with every shell connection. The file allows the customization of the banner and the prompt. We can then load our spring banner from the classpath. The basic code is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">login.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">welcome = { -&gt;
+    def hostName;
+    try {
+        hostName = java.net.InetAddress.getLocalHost().getHostName();
+    } catch (java.net.UnknownHostException ignore) {
+        hostName = 'localhost';
+    }
 
-println( str == gstr )
-println( str.equals( gstr ))
-println( str.hashCode() == gstr.hashCode() )
-</code></pre><p>In this scenario, all three lines print "true". So really what it comes down to is the cases when there is actually dynamic content in the GString. These will be considered differently than a seemingly equivalent static string. This is can be a dangerous difference when working with maps:</p>
-<pre><code class="groovy">def map = [:]
-map.put( &#39;foo2&#39;, 1 )
-map.put( &quot;foo${1+1}&quot; as String, 2 )
-map.put( &quot;foo${1+1}&quot;, 3 )
+    String banner = YourApplication.getResourceAsStream('/banner.txt').text
 
-println &quot;map.size() -&amp;gt; ${map.size()}&quot;
-map.each {k,v-&gt; println &quot;$k = $v&quot; }
+    return """
+${banner}
+Logged into $hostName @ ${new Date()}
+"""
+}
 
-println map[&#39;foo2&#39;] // 2
-println map[&quot;foo2&quot;] // 2
-println map[&quot;foo${1+1}&quot;] // 2
-</code></pre><p>If you add a similar string in three different ways (static string, GString cast as String, and GString), you will see that it results in:</p>
-<pre><code class="groovy">map.size() -&gt; 2
-foo2 = 2
-foo2 = 3
-2
-2
-2
-</code></pre><p>You end up with two unique entries in the map, though only one of them is accessible directly.</p><p>I don't really feel that this is a bug in Groovy; however, more of an unexpected behavior that can play against what a developer might feel is intuitive (e.g. a string is a string). This is just something to beware of while developing in Groovy.</p></p>
+prompt = { -&gt;
+    return "% ";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s a silly little thing to worry about, but sometimes it&#8217;s the little things that make an application feel more like your own.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>I have created a <a href="https://github.com/spring-projects/spring-boot/pull/5453">pull request</a> in the spring-boot project to address this issue&#8230;&#8203; we&#8217;ll see what happens.</p>
+</div>
+</blockquote>
+</div></p>
 
 	<hr />
 	
