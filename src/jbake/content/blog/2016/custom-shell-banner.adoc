@@ -1,5 +1,5 @@
 title=Custom Spring Boot Shell Banner
-date=2016-03-24
+date=2016-03-25
 type=post
 tags=blog,groovy,spring
 status=published
@@ -33,3 +33,6 @@ prompt = { ->
 ----
 
 It's a silly little thing to worry about, but sometimes it's the little things that make an application feel more like your own.
+
+> I have created a https://github.com/spring-projects/spring-boot/pull/5453[pull request] in the spring-boot project to address this issue... we'll see what happens.
+
