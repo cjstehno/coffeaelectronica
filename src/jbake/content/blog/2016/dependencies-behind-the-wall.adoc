@@ -1,0 +1,30 @@
+title=Gradle Dependencies Behind the Wall
+date=2016-07-10
+type=post
+tags=blog,groovy,gradle
+status=published
+~~~~~~
+Some companies like to take full control of their build environments and disallow builds that pull artifacts from external sources so that only approved internal artifact repositories are used containing only approved artifacts. While the validity of this is debatable, it exists and in my experience tends to add roadblocks to development, especially when working with new frameworks and libraries.
+
+Consider the scenario where you are working on a poject that uses a newer version of the Spring Framework than has been previously used in the company. Now you need to get the new Spring artifacts into your approved repository, which requires an issue ticket of some sort and at least one or two architects to approve it. I am sure I am not shocking you when I say that Spring has numerous dependencies if you are doing anything interesting with it and they are all transient. How do you get a list of the dependencies that you need to have added without an arduous catalogging of artifacts and their dependencies or numerous iterations of the list-ticket-approval work flow( which is not generally speedy)? You write a Gradle plugin to do it for you.
+
+I have added a `checkAvailability` task to my http://stehno.com/dependency-checker/[Dependency Checker Plugin]. This task allows you to do your development work using the standard `jcenter` or `mavenCentral` artifact repositories so that you can get things working, but when you are ready to lock down your dependencies you can run:
+
+    ./gradlew checkAvailability -PrepoUrls=http://artifacts.mycompany.com/repository
+
+Which will list out the dependencies missing from the specified repository without affecting your build. The reported console entries will look something like:
+
+    Availability check for (commons-lang:commons-lang:2.1.2): FAILED
+
+You can provide additional configuration to futher configure the task:
+
+    checkAvailability {
+        repoUrls = ['http://artifacts.mycompany.com/repository']
+        configurations = ['runtime']
+        ignored = ['com.something:thingifier:1.2.3']
+        failOnMissing = true
+    }
+
+This configuration will specify the default `repoUrls` to be used, which may still be overridden on the command line. The `configurations` property allows you to limit the dependency configurations searched (to only `runtime` in this case). The `ignored` property allows specified artifacts to be ignored even if they are missing. And finally, the `failOnMissing` property will cause the build to fail when set to `true` after reporting all the missing dependencies - the default is `false` so that it will only list the status of the dependencies and allow the build to continue.
+
+Now, armed with a full list of the dependencies missing from your internal artifact repository, you can create your issue ticket and get the approvals once and get back to actual work faster.
