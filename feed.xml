@@ -6,9 +6,59 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 25 Mar 2016 06:16:25 -0500</pubDate>
-    <lastBuildDate>Fri, 25 Mar 2016 06:16:25 -0500</lastBuildDate>
+    <pubDate>Sun, 10 Jul 2016 07:57:40 -0500</pubDate>
+    <lastBuildDate>Sun, 10 Jul 2016 07:57:40 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Gradle Dependencies Behind the Wall</title>
+      <link>http://coffeaelectronica.com/blog/2016/dependencies-behind-the-wall.html</link>
+      <pubDate>Sun, 10 Jul 2016 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2016/dependencies-behind-the-wall.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Some companies like to take full control of their build environments and disallow builds that pull artifacts from external sources so that only approved internal artifact repositories are used containing only approved artifacts. While the validity of this is debatable, it exists and in my experience tends to add roadblocks to development, especially when working with new frameworks and libraries.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Consider the scenario where you are working on a poject that uses a newer version of the Spring Framework than has been previously used in the company. Now you need to get the new Spring artifacts into your approved repository, which requires an issue ticket of some sort and at least one or two architects to approve it. I am sure I am not shocking you when I say that Spring has numerous dependencies if you are doing anything interesting with it and they are all transient. How do you get a list of the dependencies that you need to have added without an arduous catalogging of artifacts and their dependencies or numerous iterations of the list-ticket-approval work flow( which is not generally speedy)? You write a Gradle plugin to do it for you.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I have added a &lt;code&gt;checkAvailability&lt;/code&gt; task to my &lt;a href=&quot;http://stehno.com/dependency-checker/&quot;&gt;Dependency Checker Plugin&lt;/a&gt;. This task allows you to do your development work using the standard &lt;code&gt;jcenter&lt;/code&gt; or &lt;code&gt;mavenCentral&lt;/code&gt; artifact repositories so that you can get things working, but when you are ready to lock down your dependencies you can run:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;./gradlew checkAvailability -PrepoUrls=http://artifacts.mycompany.com/repository&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which will list out the dependencies missing from the specified repository without affecting your build. The reported console entries will look something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;Availability check for (commons-lang:commons-lang:2.1.2): FAILED&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You can provide additional configuration to futher configure the task:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;checkAvailability {
+    repoUrls = [&apos;http://artifacts.mycompany.com/repository&apos;]
+    configurations = [&apos;runtime&apos;]
+    ignored = [&apos;com.something:thingifier:1.2.3&apos;]
+    failOnMissing = true
+}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This configuration will specify the default &lt;code&gt;repoUrls&lt;/code&gt; to be used, which may still be overridden on the command line. The &lt;code&gt;configurations&lt;/code&gt; property allows you to limit the dependency configurations searched (to only &lt;code&gt;runtime&lt;/code&gt; in this case). The &lt;code&gt;ignored&lt;/code&gt; property allows specified artifacts to be ignored even if they are missing. And finally, the &lt;code&gt;failOnMissing&lt;/code&gt; property will cause the build to fail when set to &lt;code&gt;true&lt;/code&gt; after reporting all the missing dependencies - the default is &lt;code&gt;false&lt;/code&gt; so that it will only list the status of the dependencies and allow the build to continue.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, armed with a full list of the dependencies missing from your internal artifact repository, you can create your issue ticket and get the approvals once and get back to actual work faster.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Custom Spring Boot Shell Banner</title>
