@@ -6,9 +6,379 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Sun, 10 Jul 2016 07:57:40 -0500</pubDate>
-    <lastBuildDate>Sun, 10 Jul 2016 07:57:40 -0500</lastBuildDate>
+    <pubDate>Thu, 11 Aug 2016 19:19:39 -0500</pubDate>
+    <lastBuildDate>Thu, 11 Aug 2016 19:19:39 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Apache Commons Math - RealMatrix</title>
+      <link>http://coffeaelectronica.com/blog/2016/commons-math-matrix.html</link>
+      <pubDate>Thu, 11 Aug 2016 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2016/commons-math-matrix.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I have been reading &lt;a href=&quot;https://www.manning.com/books/machine-learning-in-action&quot;&gt;Machine Learning in Action&lt;/a&gt;, which is a great book; however, all of the examples are in Python. While Python seems like a decent language, it is not one of my primary languages. With that in mind, I have been converting the Python examples into Groovy so that a few months from now when I come back and try to understand what I learned, I will be able to decipher the code.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;What I have found is that, at least in the examples for this book, there are numerous Matrix-based operations. My Linear Algebra was a long time ago, but I think I remember some of the basics; however, it&amp;#8217;s nice to have a Java-based implementation in the &lt;a href=&quot;http://commons.apache.org/proper/commons-math/&quot;&gt;Apache Commons Math&lt;/a&gt; &lt;code&gt;RealMatrix&lt;/code&gt; implementations (there are others but this is what I have been focussing on). It took me a little time to get back up to speed, especially since the Python examples will have something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;someMatrix = someMatrix * anotherMatrix + thirdMatrix * number&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;where the resulting matrix is the product of two matrices added to the product of a matrix and a scalar number. Conceptually, this boils down to:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;olist arabic&quot;&gt;
+&lt;ol class=&quot;arabic&quot;&gt;
+&lt;li&gt;
+&lt;p&gt;Multiply &lt;code&gt;someMatrix&lt;/code&gt; by &lt;code&gt;anotherMatrix&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Multiply every element of &lt;code&gt;thirdMatrix&lt;/code&gt; by the scalar &lt;code&gt;number&lt;/code&gt; value&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add every element of the matrix in step 1 with the element at the same position of the matrix from step 2.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Not hard to grasp, and not even all that hard to code; however, this is something I&amp;#8217;d rather push off to someone else&amp;#8217;s implementation instead of writing it myself. That is where the Commons Math library comes into play. The &lt;code&gt;RealMatrix&lt;/code&gt; interface defines matrix support for &lt;code&gt;double&lt;/code&gt; values - there is also a more flexible &lt;code&gt;FieldMatrix&amp;lt;T&amp;gt;&lt;/code&gt; interface, but &lt;code&gt;double&lt;/code&gt; values work well as an example. Let&amp;#8217;s start by setting up a simple Groovy script for playing with matrices. Create a file named &lt;code&gt;matrix-math.groovy&lt;/code&gt; and add the following to it:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;matrix-math.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Grapes(
+   @Grab(&apos;org.apache.commons:commons-math3:3.6.1&apos;)
+)
+
+import org.apache.commons.math3.linear.*
+
+def mat = new Array2DRowRealMatrix(4,3)
+
+println mat&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This script will download the artifacts for the Apache Commons Math library and create a simple &lt;code&gt;RealMatrix&lt;/code&gt; with 4 rows and 3 columns. It will then be printed to the console. When you run it, you should see&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;Array2DRowRealMatrix{{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which represents our empty 4x3 matrix. While this is not a bad representation, it would be nicer if we could get a better representation of the rows and columns of data for our poor human eyes. The library provides a &lt;code&gt;RealMatrixFormat&lt;/code&gt; for this. Add the following to the script:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def formatter = new RealMatrixFormat(&apos;{&apos;, &apos;}&apos;, &apos;{&apos;, &apos;}&apos;, &apos;,\n &apos;, &apos;,\t&apos;)
+
+println formatter.format(mat)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Note that the &lt;code&gt;println&lt;/code&gt; line replaces the existing one. Now we get a better, more human-readable representation:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{0,    0,      0},
+ {0,    0,      0},
+ {0,    0,      0},
+ {0,    0,      0}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Interesting so far, but we would really like some data. With the existing matrix, you can add data in rows or columns by index, similar to an array:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;mat.setRow(0, [1.0, 2.0, 3.0] as double[])
+mat.setColumn(1, [9.0, 8.0, 7.0, 6.0] as double[])&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now when you run the code, notice that you get the first row and the second column populated with the provided data:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{1,    9,      3},
+ {0,    8,      0},
+ {0,    7,      0},
+ {0,    6,      0}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Also notice that the column data overwrote the row data we set for the second column (index 1). In our row data it was &lt;code&gt;2.0&lt;/code&gt;, but the &lt;code&gt;9.0&lt;/code&gt; value from the column was applied after and is the final value. The other main method of creating a matrix is by providing the data directly in the constructor. Say we want to create a matrix with the same dimensions, but with a sequential collection of values, such as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;1  2  3
+4  5  6
+7  8  9
+10 11 12&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You can do the following in the code:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def seqMat = new Array2DRowRealMatrix([
+    [1.0, 2.0, 3.0] as double[],
+    [4.0, 5.0, 6.0] as double[],
+    [7.0, 8.0, 9.0] as double[],
+    [10.0, 11.0, 12.0] as double[]
+] as double[][])
+
+println formatter.format(seqMat)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This code creates a matrix with an array of arrays, where the inner arrays are the rows of data. When printed out, you get the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{1,    2,      3},
+ {4,    5,      6},
+ {7,    8,      9},
+ {10,   11,     12}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, let&amp;#8217;s do some operations on our matrices. You can do common math operations on two matrices. Adding two matrices:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def sum = mat.add(seqMat)
+println formatter.format(sum)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This gives you the element-by-element sum of the values and yields:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{2,    11,     6},
+ {4,    13,     6},
+ {7,    15,     9},
+ {10,   17,     12}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Subtracting one matrix from another:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def diff = seqMat.subtract(mat)
+println formatter.format(diff)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Gives:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{0,    -7,     0},
+ {4,    -3,     6},
+ {7,    1,      9},
+ {10,   5,      12}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Multiplication of matrices is not what you might intuitively think it is, unless you are up on your Linear Algebra. Since there are whole wiki pages devoted to &lt;a href=&quot;https://en.wikipedia.org/wiki/Matrix_multiplication&quot;&gt;Matrix Multiplication&lt;/a&gt;, I won&amp;#8217;t go into it here beyond stating that it can be done when you have square matrices (ours are not). Not being a tutorial on Linear Algebra, I am going to leave it at that. You can also multiply a matrix by a scalar number:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def prod = mat.scalarMultiply(2)
+println formatter.format(prod)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which multiplies every element by the given value and results in:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{2,    18,     6},
+ {0,    16,     0},
+ {0,    14,     0},
+ {0,    12,     0}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Similarly, there is a &lt;code&gt;scalarAdd(double)&lt;/code&gt; method.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Other useful operations may be performed on matrices. You can &quot;transpose&quot; the matrix:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def trans = seqMat.transpose()
+println formatter.format(trans)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This rotates the values of the matrix to turn rows into columns, as in our example:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{1,    2,      3},
+ {4,    5,      6},
+ {7,    8,      9},
+ {10,   11,     12}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;becomes&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{1,    4,      7,      10},
+ {2,    5,      8,      11},
+ {3,    6,      9,      12}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;There are a handful of other built-in operations available to matrices that are probably useful if you know what you are doing, but at this point, I do not. Another useful construct is the set of &quot;walker&quot; methods that allow you to walk through the elements of the matrix in various ways, allowing you to modify the elements or simply read them. Let&amp;#8217;s take our initial matrix as an example and multiply every element by &lt;code&gt;2.0&lt;/code&gt; both in place and in an external collection.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the in-place modification we need a &lt;code&gt;RealMatrixChangingVisitor&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class MultiplicationVisitor extends DefaultRealMatrixChangingVisitor {
+
+    double factor
+
+    double visit(int row, int column, double value){
+        value * factor
+    }
+}
+
+mat.walkInOptimizedOrder(new MultiplicationVisitor(factor:2.0))
+println formatter.format(mat)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This visitor simply multiplies each value by the provided &lt;code&gt;factor&lt;/code&gt; and returns it, which will update the value in the matrix. The resulting matrix has the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;{{2,    18,     6},
+ {0,    16,     0},
+ {0,    14,     0},
+ {0,    12,     0}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You can also walk a matrix without the ability to change the internal values. This requires a &lt;code&gt;RealMatrixPreservingVisitor&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class CollectingVisitor extends DefaultRealMatrixPreservingVisitor {
+
+    List values = []
+
+    void visit(int row, int column, double value){
+        values &amp;lt;&amp;lt; value
+    }
+}
+
+def collectingVisitor = new CollectingVisitor()
+mat.walkInOptimizedOrder(collectingVisitor)
+println collectingVisitor.values&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;In this case, the values are collected into a list and no matrix value is modified. You get the following result:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;[2.0, 18.0, 6.0, 0.0, 16.0, 0.0, 0.0, 14.0, 0.0, 0.0, 12.0, 0.0]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This contains a list of all the values from our original matrix after the previous visitor has modified it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Matrix operations can seem quite complicated; however, they are not bad with a helpful library. So far the Commons Math API seems pretty useful for these more advanced math concepts.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The entire script for this tutorial is provided below for completeness:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;matrix-math.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Grapes(
+   @Grab(&apos;org.apache.commons:commons-math3:3.6.1&apos;)
+)
+
+import org.apache.commons.math3.linear.*
+
+def formatter = new RealMatrixFormat(&apos;{&apos;, &apos;}&apos;, &apos;{&apos;, &apos;}&apos;, &apos;,\n &apos;, &apos;,\t&apos;)
+
+def mat = new Array2DRowRealMatrix(4,3)
+mat.setRow(0, [1.0, 2.0, 3.0] as double[])
+mat.setColumn(1, [9.0, 8.0, 7.0, 6.0] as double[])
+
+println formatter.format(mat)
+println()
+
+def seqMat = new Array2DRowRealMatrix([
+    [1.0, 2.0, 3.0] as double[],
+    [4.0, 5.0, 6.0] as double[],
+    [7.0, 8.0, 9.0] as double[],
+    [10.0, 11.0, 12.0] as double[]
+] as double[][])
+
+println formatter.format(seqMat)
+println()
+
+def sum = mat.add(seqMat)
+println formatter.format(sum)
+println()
+
+def diff = seqMat.subtract(mat)
+println formatter.format(diff)
+println()
+
+def prod = mat.scalarMultiply(2)
+println formatter.format(prod)
+println()
+
+def trans = seqMat.transpose()
+println formatter.format(trans)
+println()
+
+class MultiplicationVisitor extends DefaultRealMatrixChangingVisitor {
+
+    double factor
+
+    double visit(int row, int column, double value){
+        value * factor
+    }
+}
+
+mat.walkInOptimizedOrder(new MultiplicationVisitor(factor:2.0))
+println formatter.format(mat)
+println()
+
+class CollectingVisitor extends DefaultRealMatrixPreservingVisitor {
+
+    List values = []
+
+    void visit(int row, int column, double value){
+        values &amp;lt;&amp;lt; value
+    }
+}
+
+def collectingVisitor = new CollectingVisitor()
+mat.walkInOptimizedOrder(collectingVisitor)
+println collectingVisitor.values
+println()&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Gradle Dependencies Behind the Wall</title>
