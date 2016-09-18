@@ -1,0 +1,179 @@
+title=HTTP Builder NG for Groovy and Java
+date=2016-09-18
+type=post
+tags=blog,groovy
+status=published
+~~~~~~
+The https://github.com/jgritman/httpbuilder[`HttpBuilder`] project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly
+died. A friend of mine (https://github.com/dwclark[Dave Clark]) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The
+https://github.com/dwclark/http-builder-ng[HTTP Builder NG] project is a major update and refactor of the original project. I joined on to help with development, documentation and testing. In my opinion,
+this effort has brought the library back from the dead, better than ever. In this post, I will walk through accessing a simple REST service using the `HttpBuilder` with both Groovy and Java examples -
+yes, the new version of the library supports standard Java 8 coding.
+
+First, we need a REST service to work with. I have thrown together a simple set of endpoints using the http://sparkjava.com[Spark Web Framework] to make a "message of the day" service. There are three
+endpoints:
+
+* `GET /message` - retrieves the current stored message
+* `POST /message` - saves the `text` field of the JSON body content as the new message
+* `DELETE /message` - deletes the current message
+
+There is not much to it, but it should be enough to play with. You can find the code in the [repo for this post](https://github.com/cjstehno/httpb-demo). Startup the server by running:
+
+    ./gradlew run
+
+In the root of the project. The server will be running on http://localhost:4567.
+
+Let's start off by retrieving the current message from the server. We need a base configured `HttpBuilder` object to make requests from:
+
+[source,groovy]
+----
+HttpBuilder http = HttpBuilder.configure {
+    request.uri = 'http://localhost:4567'
+}
+----
+
+Then, we need to make a `GET` request to the `/message` path:
+
+[source,groovy]
+----
+def result = http.get {
+    request.uri.path = '/message'
+}
+----
+
+When you run this code, you will get the following:
+
+    [text:n/a, timestamp:2016-09-16T12:47:55+0000]
+
+which is a `Map` of the parsed JSON data coming back from the server - the `HttpBuilder` recognizes the `application/json` response content and parses it for you. In this case
+all we really want is the text, so let's transform the response data a bit:
+
+[source,groovy]
+----
+String text = http.get(String){
+    request.uri.path = '/message'
+    response.success { FromServer from, Object body->
+        body.text
+    }
+}
+----
+
+We have added an expected result type of `String` and a `response.success()` handler. This handler will be called when a successful response code is received (code < 400). When
+it is called it will pull the text field out of our body object, which in this case, is the already-parsed JSON data. The return value from the `success()` method is returned
+as the result - the text of the current message. When you run this version of the code you get the current message text:
+
+    n/a
+
+This is the default "empty" message content. How do we update the message to something more interesting? The service exposes `POST /message` which will take the `text` field of the request body
+content and use it as the new message. We can write a `POST` request just as easily as our `GET` request:
+
+[source,groovy]
+----
+String updated = http.post(String) {
+    request.uri.path = '/message'
+    request.contentType = 'application/json'
+    request.body = { text 'HttpBuilder is alive!' }
+    response.success { FromServer from, Object body ->
+        body.text
+    }
+}
+----
+
+Again, we will expect the text of the new message back from the server, but this time we are calling the `post()` method with a JSON content type. Note that our body content is using the Groovy
+`JsonBuilder` closure format, it could have just as easily been a `Map` of the data to be encoded. Similar to the response decoding, the request body is automatically encoded based on the content
+type.
+
+If you run the code now, you will get:
+
+    HttpBuilder is alive!
+
+You could also call the `get()` method again and verify that it is the current message.
+
+As a final example with our service, let's call the `DELETE /message` endpoint to reset the message back to it's "empty" state. A `DELETE` request is just as simple:
+
+[source,groovy]
+----
+String deleted = http.delete(String){
+    request.uri.path = '/message'
+    response.success { FromServer from, Object body ->
+        body.text
+    }
+}
+----
+
+The result will be the new message after deletion:
+
+    n/a
+
+which is the "empty" state.
+
+One thing we notice now that we have written all of the verb calls is that there are a lot of similarities between them. They all call the same `path` and they all handle the successful response
+content in the same manner. I am not a fan of duplication, so we can move the common configuration up into the main `configure` method:
+
+[source,groovy]
+----
+HttpBuilder http = HttpBuilder.configure {
+    request.uri = 'http://localhost:4567/message'
+    response.success { FromServer from, Object body ->
+        body.text
+    }
+}
+----
+
+and our verb methods, now contain only what they need to do their work:
+
+[source,groovy]
+----
+String message = http.get(String) {}
+
+String updated = http.post(String) {
+    request.contentType = 'application/json'
+    request.body = { text 'HttpBuilder is alive!' }
+}
+
+String deleted = http.delete(String) {}
+----
+
+Nice and clean. Now wait, I know, I promised something similar in plain old Java, well Java 8 anyway... ok, you can do the same operations in Java with a fairly similar expressiveness:
+
+[source,java]
+----
+HttpBuilder http = HttpBuilder.configure(config -> {
+    config.getRequest().setUri("http://localhost:4567/message");
+    config.getResponse().success(new BiFunction<FromServer, Object, String>() {
+        @Override public String apply(FromServer fromServer, Object body) {
+            return ((Map<String, Object>) body).get("text").toString();
+        }
+    });
+});
+
+String message = http.get(String.class, config -> {});
+
+System.out.println("Starting content: " + message);
+
+// update the content
+
+String updated = http.post(String.class, config -> {
+    config.getRequest().setContentType("application/json");
+    config.getRequest().setBody(singletonMap("text", "HttpBuilder works from Java too!"));
+});
+
+System.out.println("Updated content: " + updated);
+
+// delete the content
+
+String deleted = http.delete(String.class, config -> {});
+
+System.out.println("Post-delete content: " + deleted);
+----
+
+Notice that the Java 8 lambdas make the syntax about as simple as the Groovy DSL. When you run this version of the client you get:
+
+----
+Starting content: n/a
+Updated content: HttpBuilder works from Java too!
+Post-delete content: n/a
+----
+
+In Java or Groovy, the library makes HTTP interactions much easier to work with. Check out the https://github.com/dwclark/http-builder-ng[project] and feel free to submit bug reports and feature
+requests, or even suggested details to be documented.
