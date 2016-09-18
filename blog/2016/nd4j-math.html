@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>ND4J Matrix Math</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>ND4J Matrix Math</h1>
+	</div>
+
+	<p><em>12 August 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
+
+	<p><div class="paragraph">
+<p>In my last post (<a href="http://coffeaelectronica.com/blog/2016/commons-math-matrix.html">Commons Math - RealMatrix</a>), I discussed the matrix operations support provided by the Apache Commons Math API. In doing my research I also stumbled on a library that is much closer in functionality to the Python NumPy library (commonly used in Machine Learning examples). The <a href="http://nd4j.org/">ND4J</a> library is a scientific computing library for the JVM, meant to be used in production environments, which means routines are designed to run fast with minimum RAM requirements.</p>
+</div>
+<div class="paragraph">
+<p>The main draw I had at this point was that their support for array-style element-by-element operations was much deeper than the matrix operations provided by the Apache Commons Math API and much closer to what I was seeing in the Python code I was working with, which makes conversion simpler.</p>
+</div>
+<div class="paragraph">
+<p>With NumPy in Python you can multiply two arrays such that the result is the multiplication of each value of the array by the corresponding value in the second array. This is not so simple with matrices (as shown in my last post). With ND4J, it becomes much simpler:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def arrA = Nd4j.create([1.0, 2.0, 3.0] as double[])
+def arrB = Nd4j.create([2.0, 4.0, 6.0] as double[])
+def arrC = arrA.mul(arrB)
+println "$arrA + $arrB = $arrC"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>will result in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[1.00, 2.00, 3.00] * [2.00, 4.00, 6.00] = [ 2.00,  8.00, 18.00]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which is as we would expect from the Python case. ND4J also has the ability to do two-dimensional (matrix-style) arrays:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def matA = Nd4j.create([
+    [1.0, 2.0, 3.0] as double[],
+    [4.0, 5.0, 6.0] as double[]
+] as double[][])
+println "Matrix: $matA\n"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which will produce:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Matrix: [[1.00, 2.00, 3.00],
+ [4.00, 5.00, 6.00]]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All of the other mathematical operations I mentioned in the previous post are available and with data structures that feel a lot more rich and refined for general use. This is barely scratching the surface of the available functionality. Also, the underlying code is native-based and has support for running on CUDA cores for higher performance. This library is definitely one to keep in mind for cases when you have a lot of array and matrix-based operations.</p>
+</div></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>
