@@ -1,0 +1,188 @@
+title=Gradle Natives Plugin Update
+date=2016-09-19
+type=post
+tags=blog,java,groovy,gradle
+status=published
+~~~~~~
+A few years ago I wrote a post about my [Gradle-Natives plugin](https://github.com/cjstehno/gradle-natives), called "[Going Native with Gradle](http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html)". The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.
+
+With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the 
+LWJGL [Getting Started Guide](https://www.lwjgl.org/guide) we have: 
+
+[source,java]
+----
+import org.lwjgl.*;
+import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.*;
+
+import static org.lwjgl.glfw.Callbacks.*;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryUtil.*;
+
+public class HelloWorld {
+
+	// The window handle
+	private long window;
+
+	public void run() {
+		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+
+		try {
+			init();
+			loop();
+
+			// Free the window callbacks and destroy the window
+			glfwFreeCallbacks(window);
+			glfwDestroyWindow(window);
+		} finally {
+			// Terminate GLFW and free the error callback
+			glfwTerminate();
+			glfwSetErrorCallback(null).free();
+		}
+	}
+
+	private void init() {
+		// Setup an error callback. The default implementation
+		// will print the error message in System.err.
+		GLFWErrorCallback.createPrint(System.err).set();
+
+		// Initialize GLFW. Most GLFW functions will not work before doing this.
+		if ( !glfwInit() )
+			throw new IllegalStateException("Unable to initialize GLFW");
+
+		// Configure our window
+		glfwDefaultWindowHints(); // optional, the current window hints are already the default
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+
+		int WIDTH = 300;
+		int HEIGHT = 300;
+
+		// Create the window
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World!", NULL, NULL);
+		if ( window == NULL )
+			throw new RuntimeException("Failed to create the GLFW window");
+
+		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
+		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
+				glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
+		});
+
+		// Get the resolution of the primary monitor
+		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		// Center our window
+		glfwSetWindowPos(
+			window,
+			(vidmode.width() - WIDTH) / 2,
+			(vidmode.height() - HEIGHT) / 2
+		);
+
+		// Make the OpenGL context current
+		glfwMakeContextCurrent(window);
+		// Enable v-sync
+		glfwSwapInterval(1);
+
+		// Make the window visible
+		glfwShowWindow(window);
+	}
+
+	private void loop() {
+		// This line is critical for LWJGL's interoperation with GLFW's
+		// OpenGL context, or any context that is managed externally.
+		// LWJGL detects the context that is current in the current thread,
+		// creates the GLCapabilities instance and makes the OpenGL
+		// bindings available for use.
+		GL.createCapabilities();
+
+		// Set the clear color
+		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+
+		// Run the rendering loop until the user has attempted to close
+		// the window or has pressed the ESCAPE key.
+		while ( !glfwWindowShouldClose(window) ) {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+
+			glfwSwapBuffers(window); // swap the color buffers
+
+			// Poll for window events. The key callback above will only be
+			// invoked during this call.
+			glfwPollEvents();
+		}
+	}
+
+	public static void main(String[] args) {
+		new HelloWorld().run();
+	}
+
+}
+----
+
+If we put this in a simple Gradle project with `build.gradle` as:
+
+[source,groovy]
+----
+plugins {
+    id 'com.stehno.natives' version '0.2.4'
+    id 'java'
+    id 'application'
+}
+
+version = "0.0.1"
+group = "com.stehno"
+mainClassName = 'hello.HelloWorld'
+    
+sourceCompatibility = 8
+targetCompatibility = 8
+
+repositories {
+    jcenter()
+}
+
+dependencies {   
+    compile 'org.lwjgl:lwjgl:3.0.0'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-windows'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-linux'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-osx'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.14"
+}
+----
+
+We can view the native libraries for all platforms using `./gradlew listNatives`:
+
+----
+:listNatives
+Native libraries found for configurations (compile, runtime)...
+ - lwjgl-platform-3.0.0-natives-linux.jar:
+        [LINUX] libjemalloc.so
+        [LINUX] liblwjgl.so
+        [LINUX] libglfw.so
+        [LINUX] libopenal.so
+ - lwjgl-platform-3.0.0-natives-osx.jar:
+        [MAC] liblwjgl.dylib
+        [MAC] libjemalloc.dylib
+        [MAC] libglfw.dylib
+        [MAC] libopenal.dylib
+ - lwjgl-platform-3.0.0-natives-windows.jar:
+        [WINDOWS] lwjgl.dll
+        [WINDOWS] lwjgl32.dll
+        [WINDOWS] OpenAL.dll
+        [WINDOWS] jemalloc.dll
+        [WINDOWS] glfw.dll
+        [WINDOWS] glfw32.dll
+        [WINDOWS] jemalloc32.dll
+        [WINDOWS] OpenAL32.dll
+----
+
+and we can build and run the `HelloWorld` application with `./gradlew clean build run`, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.
+
+You can inlude the native libraries in the build using `./gradlew clean build includeNatives` which will unpack the native libraries into the project
+`build` directory.
+
+There are still a number of configuration options available through the `natives` DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the `compile` and `runtime` configurations for all platforms unpacked into the `build/natives` directory.
+
+This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.

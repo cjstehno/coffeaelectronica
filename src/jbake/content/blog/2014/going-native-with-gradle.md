@@ -20,16 +20,16 @@ public class HelloWorld {
         try {
             Display.setTitle("Hello World");
             Display.create();
-			
-			while(!Display.isCloseRequested()){
-				Thread.sleep(100);      
-			}
-		
+            
+            while(!Display.isCloseRequested()){
+                Thread.sleep(100);      
+            }
+        
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-			Display.destroy();
-		}
+            Display.destroy();
+        }
     }
 }
 ```
@@ -42,11 +42,11 @@ with a standard Gradle build file as a starting point:
 apply plugin:'java'
 
 repositories {
-	jcenter()
+    jcenter()
 }
 
 dependencies {
-	compile 'org.lwjgl.lwjgl:lwjgl:2.9.1'
+    compile 'org.lwjgl.lwjgl:lwjgl:2.9.1'
 }
 ```
 
@@ -88,11 +88,11 @@ And then you will need to apply the custom configuration for your specific nativ
 
 ```groovy
 natives {
-	jars = [
-		'lwjgl-platform-2.9.1-natives-windows', 
-		'lwjgl-platform-2.9.1-natives-osx', 
-		'lwjgl-platform-2.9.1-natives-linux'
-	]
+    jars = [
+        'lwjgl-platform-2.9.1-natives-windows', 
+        'lwjgl-platform-2.9.1-natives-osx', 
+        'lwjgl-platform-2.9.1-natives-linux'
+    ]
 }
 ```
 
@@ -124,12 +124,12 @@ Lastly, you can also specify the platforms whose library files are to be copied 
 
 ```groovy
 natives {
-	jars = [
-		'lwjgl-platform-2.9.1-natives-windows', 
-		'lwjgl-platform-2.9.1-natives-osx', 
-		'lwjgl-platform-2.9.1-natives-linux'
-	]
-	platforms = 'windows'
+    jars = [
+        'lwjgl-platform-2.9.1-natives-windows', 
+        'lwjgl-platform-2.9.1-natives-osx', 
+        'lwjgl-platform-2.9.1-natives-linux'
+    ]
+    platforms = 'windows'
 }
 ```
 
