@@ -4,10 +4,10 @@ type=post
 tags=blog,java,groovy,gradle
 status=published
 ~~~~~~
-A few years ago I wrote a post about my [Gradle-Natives plugin](https://github.com/cjstehno/gradle-natives), called "[Going Native with Gradle](http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html)". The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.
+A few years ago I wrote a post about my https://github.com/cjstehno/gradle-natives[Gradle-Natives plugin], called http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html["Going Native with Gradle"]. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.
 
 With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the 
-LWJGL [Getting Started Guide](https://www.lwjgl.org/guide) we have: 
+LWJGL https://www.lwjgl.org/guide[Getting Started Guide] we have: 
 
 [source,java]
 ----
