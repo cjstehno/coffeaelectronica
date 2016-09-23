@@ -104,16 +104,16 @@ public class HelloWorld {
         try {
             Display.setTitle(&quot;Hello World&quot;);
             Display.create();
-			
-			while(!Display.isCloseRequested()){
-				Thread.sleep(100);      
-			}
-		
+            
+            while(!Display.isCloseRequested()){
+                Thread.sleep(100);      
+            }
+        
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-			Display.destroy();
-		}
+            Display.destroy();
+        }
     }
 }
 </code></pre><p>with a standard Gradle build file as a starting point: </p>
@@ -122,11 +122,11 @@ public class HelloWorld {
 apply plugin:&#39;java&#39;
 
 repositories {
-	jcenter()
+    jcenter()
 }
 
 dependencies {
-	compile &#39;org.lwjgl.lwjgl:lwjgl:2.9.1&#39;
+    compile &#39;org.lwjgl.lwjgl:lwjgl:2.9.1&#39;
 }
 </code></pre><p>At this point, the project will build, but will not run without jumping through some extra hoops. Let's do some of that hoop-jumping in Gradle with the <code>application</code> plugin. Add the following to the <code>build.gradle</code> file:</p>
 <pre><code class="groovy">apply plugin:&#39;application&#39;
@@ -152,11 +152,11 @@ gradle build install
 apply plugin:&#39;natives&#39;
 </code></pre><p>And then you will need to apply the custom configuration for your specific native libraries. You will need to add an entry in the jars list for each dependency jar containing native libraries. These are the jars that will be searched on the classpath for native libraries by platform.</p>
 <pre><code class="groovy">natives {
-	jars = [
-		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
-		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
-		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
-	]
+    jars = [
+        &#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+        &#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+        &#39;lwjgl-platform-2.9.1-natives-linux&#39;
+    ]
 }
 </code></pre><p>This will allow the associated native libraries to be unpacked into the build directory with:</p><p><code>gradle unpackNatives</code></p><p>Which will copy the libraries into a directory for each platform under <code>build/natives/PLATFORM</code>. Then we need one more step to allow it to be run. The <code>java.library.path</code> needs to be set before the run:</p>
 <pre><code class="groovy">run {
@@ -168,12 +168,12 @@ apply plugin:&#39;natives&#39;
 gradle test
 </code></pre><p>Lastly, you can also specify the platforms whose library files are to be copied over using the <code>platforms</code> configuration property, for example:</p>
 <pre><code class="groovy">natives {
-	jars = [
-		&#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
-		&#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
-		&#39;lwjgl-platform-2.9.1-natives-linux&#39;
-	]
-	platforms = &#39;windows&#39;
+    jars = [
+        &#39;lwjgl-platform-2.9.1-natives-windows&#39;, 
+        &#39;lwjgl-platform-2.9.1-natives-osx&#39;, 
+        &#39;lwjgl-platform-2.9.1-natives-linux&#39;
+    ]
+    platforms = &#39;windows&#39;
 }
 </code></pre><p>Will only copy the windows libraries into the build.</p><p>Feel free to create an issue for any bugs you find or features you would like to see. Also, I am open to bug fixes and pull requests from others.</p></p>
 

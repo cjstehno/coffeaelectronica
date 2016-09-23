@@ -87,6 +87,201 @@
 
 
 	
+		<a href="blog/2016/gradle-natives-update.html"><h1>Gradle Natives Plugin Update</h1></a>
+		<p><em>19 September 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+		<p><div class="paragraph">
+<p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p>
+</div>
+<div class="paragraph">
+<p>With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the
+LWJGL <a href="https://www.lwjgl.org/guide">Getting Started Guide</a> we have:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">import org.lwjgl.*;
+import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.*;
+
+import static org.lwjgl.glfw.Callbacks.*;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.system.MemoryUtil.*;
+
+public class HelloWorld {
+
+	// The window handle
+	private long window;
+
+	public void run() {
+		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+
+		try {
+			init();
+			loop();
+
+			// Free the window callbacks and destroy the window
+			glfwFreeCallbacks(window);
+			glfwDestroyWindow(window);
+		} finally {
+			// Terminate GLFW and free the error callback
+			glfwTerminate();
+			glfwSetErrorCallback(null).free();
+		}
+	}
+
+	private void init() {
+		// Setup an error callback. The default implementation
+		// will print the error message in System.err.
+		GLFWErrorCallback.createPrint(System.err).set();
+
+		// Initialize GLFW. Most GLFW functions will not work before doing this.
+		if ( !glfwInit() )
+			throw new IllegalStateException("Unable to initialize GLFW");
+
+		// Configure our window
+		glfwDefaultWindowHints(); // optional, the current window hints are already the default
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+
+		int WIDTH = 300;
+		int HEIGHT = 300;
+
+		// Create the window
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World!", NULL, NULL);
+		if ( window == NULL )
+			throw new RuntimeException("Failed to create the GLFW window");
+
+		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
+		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -&gt; {
+			if ( key == GLFW_KEY_ESCAPE &amp;&amp; action == GLFW_RELEASE )
+				glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
+		});
+
+		// Get the resolution of the primary monitor
+		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		// Center our window
+		glfwSetWindowPos(
+			window,
+			(vidmode.width() - WIDTH) / 2,
+			(vidmode.height() - HEIGHT) / 2
+		);
+
+		// Make the OpenGL context current
+		glfwMakeContextCurrent(window);
+		// Enable v-sync
+		glfwSwapInterval(1);
+
+		// Make the window visible
+		glfwShowWindow(window);
+	}
+
+	private void loop() {
+		// This line is critical for LWJGL's interoperation with GLFW's
+		// OpenGL context, or any context that is managed externally.
+		// LWJGL detects the context that is current in the current thread,
+		// creates the GLCapabilities instance and makes the OpenGL
+		// bindings available for use.
+		GL.createCapabilities();
+
+		// Set the clear color
+		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+
+		// Run the rendering loop until the user has attempted to close
+		// the window or has pressed the ESCAPE key.
+		while ( !glfwWindowShouldClose(window) ) {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+
+			glfwSwapBuffers(window); // swap the color buffers
+
+			// Poll for window events. The key callback above will only be
+			// invoked during this call.
+			glfwPollEvents();
+		}
+	}
+
+	public static void main(String[] args) {
+		new HelloWorld().run();
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If we put this in a simple Gradle project with <code>build.gradle</code> as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    id 'com.stehno.natives' version '0.2.4'
+    id 'java'
+    id 'application'
+}
+
+version = "0.0.1"
+group = "com.stehno"
+mainClassName = 'hello.HelloWorld'
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.lwjgl:lwjgl:3.0.0'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-windows'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-linux'
+    compile 'org.lwjgl:lwjgl-platform:3.0.0:natives-osx'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.14"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can view the native libraries for all platforms using <code>./gradlew listNatives</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>:listNatives
+Native libraries found for configurations (compile, runtime)...
+ - lwjgl-platform-3.0.0-natives-linux.jar:
+        [LINUX] libjemalloc.so
+        [LINUX] liblwjgl.so
+        [LINUX] libglfw.so
+        [LINUX] libopenal.so
+ - lwjgl-platform-3.0.0-natives-osx.jar:
+        [MAC] liblwjgl.dylib
+        [MAC] libjemalloc.dylib
+        [MAC] libglfw.dylib
+        [MAC] libopenal.dylib
+ - lwjgl-platform-3.0.0-natives-windows.jar:
+        [WINDOWS] lwjgl.dll
+        [WINDOWS] lwjgl32.dll
+        [WINDOWS] OpenAL.dll
+        [WINDOWS] jemalloc.dll
+        [WINDOWS] glfw.dll
+        [WINDOWS] glfw32.dll
+        [WINDOWS] jemalloc32.dll
+        [WINDOWS] OpenAL32.dll</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and we can build and run the <code>HelloWorld</code> application with <code>./gradlew clean build run</code>, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.</p>
+</div>
+<div class="paragraph">
+<p>You can inlude the native libraries in the build using <code>./gradlew clean build includeNatives</code> which will unpack the native libraries into the project
+<code>build</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>There are still a number of configuration options available through the <code>natives</code> DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the <code>compile</code> and <code>runtime</code> configurations for all platforms unpacked into the <code>build/natives</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.</p>
+</div></p>
+  	
 		<a href="blog/2016/httpbuilder-ng-demo.html"><h1>HTTP Builder NG for Groovy and Java</h1></a>
 		<p><em>18 September 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a></p>
 		<p><div class="paragraph">
@@ -1864,186 +2059,6 @@ println "P$page : $gathered"</code></pre>
 <div class="paragraph">
 <p>It&#8217;s not a scenario I have run into often, but it was a bit of a tricky one to unravel. The pre-computation steps ended up being the key to keeping it simple and stable.</p>
 </div>
-</div>
-</div></p>
-  	
-		<a href="blog/2015/gsp-view-resolver.html"><h1>Spring ViewResolver for "GSP"</h1></a>
-		<p><em>26 October 2015</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/vanilla.html'>vanilla</a>, <a href='/tags/spring.html'>spring</a></p>
-		<p><div class="paragraph">
-<p>Recently, while working on a <a href="http://springframework.org">Spring MVC</a> application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy <a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html">GStringTemplateEngine</a>. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a
-nightmare to maintain, and your designers would kill you if they ever had to work with them.</p>
-</div>
-<div class="paragraph">
-<p>This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try&#8230;&#8203; and I was right, it was not hard at all.</p>
-</div>
-<div class="paragraph">
-<p>The <code>ViewResolver</code> implementation I came up with is an extension of the <code>AbstractTemplateViewResolver</code> with one main method of interest, the <code>buildView(String)</code> method
-which contains the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
-    GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView <b class="conum">(1)</b>
-
-    URL templateUrl = applicationContext.getResource(view.url).getURL() <b class="conum">(2)</b>
-
-    view.template = templateEngine.createTemplate(
-        applicationContext.getResource(view.url).getURL()
-    ) <b class="conum">(3)</b>
-
-    view.encoding = defaultEncoding
-
-    return view
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Call the super class to create a configured instance of the <code>View</code></p>
-</li>
-<li>
-<p>Load the template from the <code>ApplicationContext</code> using the <code>url</code> property of the <code>View</code></p>
-</li>
-<li>
-<p>Create the <code>Template</code> from the contents of the URL</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>This method basically just uses the view resolver framework to find the template file
-and load it with the <code>GSTringTemplateEngine</code> - the framework takes care of the
-caching and model attribute management.</p>
-</div>
-<div class="paragraph">
-<p>The <code>View</code> implementation is also quite simple; it is an extension of the <code>AbstractTemplateview</code>, with the only implmented method being the <code>renderMergedTemplateModel()</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected void renderMergedTemplateModel(
-    Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse res
-) throws Exception {
-    res.contentType = contentType
-    res.characterEncoding = encoding
-
-    res.writer.withPrintWriter { PrintWriter out -&gt;
-        out.write(template.make(model) as String)
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>Template</code> content is rendered using the configured model data and then written to the <code>PrintWriter</code> from the <code>HttpServletResponse</code>, which sends it to the client.</p>
-</div>
-<div class="paragraph">
-<p>Lastly, you need to configure the resolver in your application:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Bean ViewResolver viewResolver() {
-    new GroovyTemplateViewResolver(
-        contentType: 'text/html',
-        cache: true,
-        prefix: '/WEB-INF/gsp/',
-        suffix: '.gsp'
-    )
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>One thing to notice here is all the functionality you get by default from the Spring <code>ViewResolver</code> framework for very little added code on your part.</p>
-</div>
-<div class="paragraph">
-<p>Another thing to note is that "GSP" file in this case is not really a true GSP; however, you have all the functionality provided by the <code>GStringTemplateEngine</code>, which is quite similar. An example template could be something like:</p>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">hello.gsp</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-gsp" data-lang="gsp">&lt;html&gt;
-    &lt;head&gt;&lt;title&gt;Hello&lt;/title&gt;&lt;/head&gt;
-    &lt;body&gt;
-        [${new Date()}] Hello, ${name ?: 'stranger'}
-
-        &lt;% if(personService.seen(name)){ %&gt;
-            You have been here ${personService.visits(name)} times.
-        &lt;% } %&gt;
-    &lt;/body&gt;
-&lt;/html&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It&#8217;s definitely a nice clean template language if you are already coding everything else in Groovy anyway.</p>
-</div>
-<div class="paragraph">
-<p>I will be adding a spring helper library to my vanilla project; the "vanilla-spring"
-project will have the final version of this code, though it should be similar to
-what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.</p>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">GroovyTemplateViewResolver.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
-
-// imports removed...
-
-@TypeChecked
-class GroovyTemplateViewResolver extends AbstractTemplateViewResolver {
-
-    /**
-     * The default character encoding to be used by the template views. Defaults to UTF-8 if not specified.
-     */
-    String defaultEncoding = StandardCharsets.UTF_8.name()
-
-    private final TemplateEngine templateEngine = new GStringTemplateEngine()
-
-    GroovyTemplateViewResolver() {
-        viewClass = requiredViewClass()
-    }
-
-    @Override
-    protected Class&lt;?&gt; requiredViewClass() {
-        GroovyTemplateView
-    }
-
-    @Override
-    protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
-        GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView
-
-        view.template = templateEngine.createTemplate(
-            applicationContext.getResource(view.url).getURL()
-        )
-
-        view.encoding = defaultEncoding
-        return view
-    }
-}</code></pre>
-</div>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">GroovyTemplateView.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
-
-// imports removed...
-
-@TypeChecked
-class GroovyTemplateView extends AbstractTemplateView {
-
-    Template template
-    String encoding
-
-    @Override
-    protected void renderMergedTemplateModel(
-        Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse res
-    ) throws Exception {
-        res.contentType = contentType
-        res.characterEncoding = encoding
-
-        res.writer.withPrintWriter { PrintWriter out -&gt;
-            out.write(template.make(model) as String)
-        }
-    }
-}</code></pre>
 </div>
 </div></p>
   	
