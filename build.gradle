@@ -1,6 +1,9 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
     dependencies {
@@ -8,16 +11,22 @@ buildscript {
         classpath 'org.jbake:jbake-core:2.3.2'
         classpath 'org.pegdown:pegdown:1.4.2'
         classpath 'org.asciidoctor:asciidoctorj:1.5.2'
+        classpath "gradle.plugin.com.stehno.gradle:webpreview:0.1.1"
     }
 }
 
 apply plugin: 'me.champeau.jbake'
+apply plugin: "com.stehno.gradle.webpreview"
 
-task publish(type: GradleBuild) {           
+task publish(type: GradleBuild) {
     buildFile = 'publish.gradle'
     tasks = ['publishGhPages']
 }
 
+webPreview {
+    resourceDir = file('build/jbake')
+}
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '3.1'
 }

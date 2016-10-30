@@ -1,0 +1,299 @@
+title=Gradle: A Gentle Introduction
+date=2016-11-02
+type=post
+tags=blog,groovy,gradle
+status=published
+~~~~~~
+The http://gradle.org[Gradle] build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
+it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
+into doing some actual work with Gradle. With that being said, let's dig in!
+
+I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let's assume you have Gradle installed,
+preferably a current version. If you run `gradle --version` you should see something like:
+
+----
+------------------------------------------------------------
+Gradle 3.1
+------------------------------------------------------------
+
+Build time:   2016-09-19 10:53:53 UTC
+Revision:     13f38ba699afd86d7cdc4ed8fd7dd3960c0b1f97
+
+Groovy:       2.4.7
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_102 (Oracle Corporation 25.102-b14)
+OS:           Linux 4.8.0-26-generic amd64
+----
+
+First, create a directory for your project and `cd` into it:
+
+    mkdir hellogradle
+    cd hellogradle
+
+Every Gradle project needs at least a `build.gradle` file so we will start with the minimal requirement. Create the following file in your project
+directory:
+
+[source,groovy]
+.build.gradle
+----
+plugins {
+    id 'groovy'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
+}
+----
+
+The `plugins` block is used to specify the Gradle plugins used in the build; in this case we just need `groovy` since we are making a Groovy project.
+The `groovy` plugin extends the `java` plugin so we get its functionality as well.
+
+The `repositories` block specifies which repositories are available for resolving dependency artifacts - in most cases `jcenter()` (the Bintray
+repository) is enough to start with.
+
+Lastly, the `dependencies` block is where the project dependencies are defined as `<configuration> '<group>:<artifact>:<version>'`.
+
+At this point you have a working Gradle project. You can build it:
+
+    gradle clean build
+
+You should see something like the following:
+
+----
+> hellogradle gradle clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.492 secs
+----
+
+You can see that it is already doing quite a bit for so few lines of build code. You can run `gradle tasks` to see a list of the tasks available to your
+project.
+
+So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows
+the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new
+developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.
+
+Add the following to the bottom of the `build.gradle` file:
+
+[source,groovy]
+----
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
+----
+
+Then, whenever you add the wrapper or change the supported version, you need to execute the `gradle wrapper` task to regenerate the configuration. Once
+the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the `gradlew`
+or `gradlew.bat` scripts provided in the root of your project. Now let's do a clean build again with the wrapper:
+
+----
+> hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.678 secs
+----
+
+We end up with the same result as before.
+
+This project doesn't do anything at this point - there is no code. Let's add some Groovy code; create the directories for `src/main/groovy/demo` and
+then add the file:
+
+[source,groovy]
+.HelloGradle.groovy
+----
+package demo
+
+class HelloGradle {
+
+    String greet(final String name){
+        "Hello, ${name ?: 'Gradle'}!"
+    }
+}
+----
+
+This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let's add support
+for the http://spockframework.org/spock/docs/1.1-rc-2/index.html[Spock testing framework]. Add the following to your `dependencies` closure:
+
+[source,groovy]
+----
+testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+----
+
+We now have Spock available, so let's write a unit test for our code. Create the test directories: `src/test/groovy/demo` and then create the file:
+
+[source,groovy]
+.HelloGradleSpec.groovy
+----
+package demo
+
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class HelloGradleSpec extends Specification {
+
+    private final HelloGradle greeter = new HelloGradle()
+
+    @Unroll def 'say hello #name'(){
+        expect:
+        greeter.greet(name) == result
+
+        where:
+        name    | result
+        null    | 'Hello, Gradle!'
+        ''      | 'Hello, Gradle!'
+        'Chris' | 'Hello, Chris!'
+    }
+}
+----
+
+This test will verify that our greeter returns the expected values for `null`-ish inputs as well as when a name is provided. I won't go into the details
+of the Spock test at this point. Now, when you build the project, you will also run the tests by default:
+
+----
+> hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy
+:processTestResources UP-TO-DATE
+:testClasses
+:test
+:check
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 1.789 secs
+----
+
+Notice `:test` near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the `build/reports` directory
+and will look something like the following image:
+
+image::/images/gradle-test-report.png[]
+
+Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the http://www.eclemma.org/jacoco/[jacoco]
+code coverage library. You can add the plugin by adding `id 'jacoco'` to the `plugins` block of your `build.gradle` file, which allows you to run:
+
+    ./gradlew clean build jacocoTestReport
+
+to build the project with tests and a generated test coverage report. Again, the report is generated in the `build/reports` directory - it will look
+something like:
+
+image::/images/gradle-coverage-report.png[]
+
+The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.
+
+Testing your code is nice, but you need a way to run your application outside of testing. Let's first add a `main` method to our Groovy code:
+
+[source,groovy]
+----
+static void main(args){
+    println new HelloGradle().greet(args ? args[0] : null)
+}
+----
+
+Nothing fancy, just instantiate the `HelloGradle` class and call the `greet(String)` method with the first argument, if there is one. To make the project
+runnable, we need to add the `application` plugin and specify a "main class". To do this:
+
+* Add `id 'application'` to the `plugins` block
+* Add `group = 'demo'` to give the project an artifact group
+* Add `version = '0.0.1'` to give your project a version
+* Add `mainClassName = 'demo.HelloGradle'` to the `build.gradle` file outside of other configuration blocks.
+
+With that, you now have a new task `run` which will run the application for you:
+
+----
+> hellogradle ./gradlew run
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:run
+Hello, Gradle!
+
+BUILD SUCCESSFUL
+
+Total time: 1.526 secs
+----
+
+It also generates `.tar` and `.zip` distributions of the project which contain starter scripts and all required dependencies to deploy and run your
+application outside of the project itself.
+
+Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is http://codenarc.sourceforge.net/[CodeNarc]
+which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding `id 'codenarc'` to the
+`plugins` block and adding some additional config to `build.gradle`:
+
+[soruce,groovy]
+----
+codenarcMain {
+    ignoreFailures false
+    configFile file('config/codenarc-main.rules')
+
+    maxPriority1Violations 0
+    maxPriority2Violations 5
+    maxPriority3Violations 10
+}
+
+codenarcTest {
+    ignoreFailures true
+    configFile file('config/codenarc-test.rules')
+}
+----
+
+Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested
+configurations, personal preference and experience - I generally use the files from my Vanilla project
+(https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules[main], https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules[test])
+for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the
+violations for test classes. The build will now run the codenarc checks when a build is executed.
+
+The build will let you know if violations were found, and in any case will generate a report in the `build/reports/codenarc` directory. The report will
+look something like the following:
+
+image::/images/gradle-codenarc-report.png[]
+
+At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all
+ with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you
+ should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best
+ reference for finding how-tos or 3rd-party plugins; however, there is an official https://plugins.gradle.org/[plugin repository] that is starting to catch on.
+
+Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like
+Maven and Ant.
