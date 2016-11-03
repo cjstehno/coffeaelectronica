@@ -6,9 +6,377 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-gb</language>
-    <pubDate>Fri, 23 Sep 2016 11:35:45 -0500</pubDate>
-    <lastBuildDate>Fri, 23 Sep 2016 11:35:45 -0500</lastBuildDate>
+    <pubDate>Sun, 30 Oct 2016 10:56:04 -0500</pubDate>
+    <lastBuildDate>Sun, 30 Oct 2016 10:56:04 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Gradle: A Gentle Introduction</title>
+      <link>http://coffeaelectronica.com/blog/2016/gradle-introduction.html</link>
+      <pubDate>Wed, 2 Nov 2016 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2016/gradle-introduction.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;a href=&quot;http://gradle.org&quot;&gt;Gradle&lt;/a&gt; build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
+it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
+into doing some actual work with Gradle. With that being said, let&amp;#8217;s dig in!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let&amp;#8217;s assume you have Gradle installed,
+preferably a current version. If you run &lt;code&gt;gradle --version&lt;/code&gt; you should see something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;------------------------------------------------------------
+Gradle 3.1
+------------------------------------------------------------
+
+Build time:   2016-09-19 10:53:53 UTC
+Revision:     13f38ba699afd86d7cdc4ed8fd7dd3960c0b1f97
+
+Groovy:       2.4.7
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_102 (Oracle Corporation 25.102-b14)
+OS:           Linux 4.8.0-26-generic amd64&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;First, create a directory for your project and &lt;code&gt;cd&lt;/code&gt; into it:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;mkdir hellogradle
+cd hellogradle&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Every Gradle project needs at least a &lt;code&gt;build.gradle&lt;/code&gt; file so we will start with the minimal requirement. Create the following file in your project
+directory:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;plugins {
+    id &apos;groovy&apos;
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile &apos;org.codehaus.groovy:groovy-all:2.4.6&apos;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;plugins&lt;/code&gt; block is used to specify the Gradle plugins used in the build; in this case we just need &lt;code&gt;groovy&lt;/code&gt; since we are making a Groovy project.
+The &lt;code&gt;groovy&lt;/code&gt; plugin extends the &lt;code&gt;java&lt;/code&gt; plugin so we get its functionality as well.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;repositories&lt;/code&gt; block specifies which repositories are available for resolving dependency artifacts - in most cases &lt;code&gt;jcenter()&lt;/code&gt; (the Bintray
+repository) is enough to start with.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Lastly, the &lt;code&gt;dependencies&lt;/code&gt; block is where the project dependencies are defined as &lt;code&gt;&amp;lt;configuration&amp;gt; &apos;&amp;lt;group&amp;gt;:&amp;lt;artifact&amp;gt;:&amp;lt;version&amp;gt;&apos;&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;At this point you have a working Gradle project. You can build it:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;gradle clean build&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You should see something like the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; hellogradle gradle clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.492 secs&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;You can see that it is already doing quite a bit for so few lines of build code. You can run &lt;code&gt;gradle tasks&lt;/code&gt; to see a list of the tasks available to your
+project.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows
+the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new
+developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Add the following to the bottom of the &lt;code&gt;build.gradle&lt;/code&gt; file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;task wrapper(type: Wrapper) {
+    gradleVersion = &apos;3.1&apos;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Then, whenever you add the wrapper or change the supported version, you need to execute the &lt;code&gt;gradle wrapper&lt;/code&gt; task to regenerate the configuration. Once
+the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the &lt;code&gt;gradlew&lt;/code&gt;
+or &lt;code&gt;gradlew.bat&lt;/code&gt; scripts provided in the root of your project. Now let&amp;#8217;s do a clean build again with the wrapper:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.678 secs&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We end up with the same result as before.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This project doesn&amp;#8217;t do anything at this point - there is no code. Let&amp;#8217;s add some Groovy code; create the directories for &lt;code&gt;src/main/groovy/demo&lt;/code&gt; and
+then add the file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;HelloGradle.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;package demo
+
+class HelloGradle {
+
+    String greet(final String name){
+        &quot;Hello, ${name ?: &apos;Gradle&apos;}!&quot;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let&amp;#8217;s add support
+for the &lt;a href=&quot;http://spockframework.org/spock/docs/1.1-rc-2/index.html&quot;&gt;Spock testing framework&lt;/a&gt;. Add the following to your &lt;code&gt;dependencies&lt;/code&gt; closure:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;testCompile &apos;org.spockframework:spock-core:1.0-groovy-2.4&apos;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We now have Spock available, so let&amp;#8217;s write a unit test for our code. Create the test directories: &lt;code&gt;src/test/groovy/demo&lt;/code&gt; and then create the file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;HelloGradleSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;package demo
+
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class HelloGradleSpec extends Specification {
+
+    private final HelloGradle greeter = new HelloGradle()
+
+    @Unroll def &apos;say hello #name&apos;(){
+        expect:
+        greeter.greet(name) == result
+
+        where:
+        name    | result
+        null    | &apos;Hello, Gradle!&apos;
+        &apos;&apos;      | &apos;Hello, Gradle!&apos;
+        &apos;Chris&apos; | &apos;Hello, Chris!&apos;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This test will verify that our greeter returns the expected values for &lt;code&gt;null&lt;/code&gt;-ish inputs as well as when a name is provided. I won&amp;#8217;t go into the details
+of the Spock test at this point. Now, when you build the project, you will also run the tests by default:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy
+:processTestResources UP-TO-DATE
+:testClasses
+:test
+:check
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 1.789 secs&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice &lt;code&gt;:test&lt;/code&gt; near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the &lt;code&gt;build/reports&lt;/code&gt; directory
+and will look something like the following image:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;imageblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;img src=&quot;/images/gradle-test-report.png&quot; alt=&quot;gradle test report&quot;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the &lt;a href=&quot;http://www.eclemma.org/jacoco/&quot;&gt;jacoco&lt;/a&gt;
+code coverage library. You can add the plugin by adding &lt;code&gt;id &apos;jacoco&apos;&lt;/code&gt; to the &lt;code&gt;plugins&lt;/code&gt; block of your &lt;code&gt;build.gradle&lt;/code&gt; file, which allows you to run:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;./gradlew clean build jacocoTestReport&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;to build the project with tests and a generated test coverage report. Again, the report is generated in the &lt;code&gt;build/reports&lt;/code&gt; directory - it will look
+something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;imageblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;img src=&quot;/images/gradle-coverage-report.png&quot; alt=&quot;gradle coverage report&quot;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Testing your code is nice, but you need a way to run your application outside of testing. Let&amp;#8217;s first add a &lt;code&gt;main&lt;/code&gt; method to our Groovy code:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;static void main(args){
+    println new HelloGradle().greet(args ? args[0] : null)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Nothing fancy, just instantiate the &lt;code&gt;HelloGradle&lt;/code&gt; class and call the &lt;code&gt;greet(String)&lt;/code&gt; method with the first argument, if there is one. To make the project
+runnable, we need to add the &lt;code&gt;application&lt;/code&gt; plugin and specify a &quot;main class&quot;. To do this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Add &lt;code&gt;id &apos;application&apos;&lt;/code&gt; to the &lt;code&gt;plugins&lt;/code&gt; block&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add &lt;code&gt;group = &apos;demo&apos;&lt;/code&gt; to give the project an artifact group&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add &lt;code&gt;version = &apos;0.0.1&apos;&lt;/code&gt; to give your project a version&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add &lt;code&gt;mainClassName = &apos;demo.HelloGradle&apos;&lt;/code&gt; to the &lt;code&gt;build.gradle&lt;/code&gt; file outside of other configuration blocks.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;With that, you now have a new task &lt;code&gt;run&lt;/code&gt; which will run the application for you:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; hellogradle ./gradlew run
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:run
+Hello, Gradle!
+
+BUILD SUCCESSFUL
+
+Total time: 1.526 secs&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It also generates &lt;code&gt;.tar&lt;/code&gt; and &lt;code&gt;.zip&lt;/code&gt; distributions of the project which contain starter scripts and all required dependencies to deploy and run your
+application outside of the project itself.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is &lt;a href=&quot;http://codenarc.sourceforge.net/&quot;&gt;CodeNarc&lt;/a&gt;
+which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding &lt;code&gt;id &apos;codenarc&apos;&lt;/code&gt; to the
+&lt;code&gt;plugins&lt;/code&gt; block and adding some additional config to &lt;code&gt;build.gradle&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;codenarcMain {
+    ignoreFailures false
+    configFile file(&apos;config/codenarc-main.rules&apos;)
+
+    maxPriority1Violations 0
+    maxPriority2Violations 5
+    maxPriority3Violations 10
+}
+
+codenarcTest {
+    ignoreFailures true
+    configFile file(&apos;config/codenarc-test.rules&apos;)
+}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested
+configurations, personal preference and experience - I generally use the files from my Vanilla project
+(&lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules&quot;&gt;main&lt;/a&gt;, &lt;a href=&quot;https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules&quot;&gt;test&lt;/a&gt;)
+for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the
+violations for test classes. The build will now run the codenarc checks when a build is executed.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The build will let you know if violations were found, and in any case will generate a report in the &lt;code&gt;build/reports/codenarc&lt;/code&gt; directory. The report will
+look something like the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;imageblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;img src=&quot;/images/gradle-codenarc-report.png&quot; alt=&quot;gradle codenarc report&quot;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all
+ with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you
+ should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best
+ reference for finding how-tos or 3rd-party plugins; however, there is an official &lt;a href=&quot;https://plugins.gradle.org/&quot;&gt;plugin repository&lt;/a&gt; that is starting to catch on.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like
+Maven and Ant.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Gradle Natives Plugin Update</title>

@@ -87,6 +87,368 @@
 
 
 	
+		<a href="blog/2016/gradle-introduction.html"><h1>Gradle: A Gentle Introduction</h1></a>
+		<p><em>02 November 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+		<p><div class="paragraph">
+<p>The <a href="http://gradle.org">Gradle</a> build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
+it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
+into doing some actual work with Gradle. With that being said, let&#8217;s dig in!</p>
+</div>
+<div class="paragraph">
+<p>I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let&#8217;s assume you have Gradle installed,
+preferably a current version. If you run <code>gradle --version</code> you should see something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>------------------------------------------------------------
+Gradle 3.1
+------------------------------------------------------------
+
+Build time:   2016-09-19 10:53:53 UTC
+Revision:     13f38ba699afd86d7cdc4ed8fd7dd3960c0b1f97
+
+Groovy:       2.4.7
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_102 (Oracle Corporation 25.102-b14)
+OS:           Linux 4.8.0-26-generic amd64</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>First, create a directory for your project and <code>cd</code> into it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mkdir hellogradle
+cd hellogradle</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Every Gradle project needs at least a <code>build.gradle</code> file so we will start with the minimal requirement. Create the following file in your project
+directory:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    id 'groovy'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>plugins</code> block is used to specify the Gradle plugins used in the build; in this case we just need <code>groovy</code> since we are making a Groovy project.
+The <code>groovy</code> plugin extends the <code>java</code> plugin so we get its functionality as well.</p>
+</div>
+<div class="paragraph">
+<p>The <code>repositories</code> block specifies which repositories are available for resolving dependency artifacts - in most cases <code>jcenter()</code> (the Bintray
+repository) is enough to start with.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, the <code>dependencies</code> block is where the project dependencies are defined as <code>&lt;configuration&gt; '&lt;group&gt;:&lt;artifact&gt;:&lt;version&gt;'</code>.</p>
+</div>
+<div class="paragraph">
+<p>At this point you have a working Gradle project. You can build it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>gradle clean build</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see something like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle gradle clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.492 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see that it is already doing quite a bit for so few lines of build code. You can run <code>gradle tasks</code> to see a list of the tasks available to your
+project.</p>
+</div>
+<div class="paragraph">
+<p>So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows
+the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new
+developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.</p>
+</div>
+<div class="paragraph">
+<p>Add the following to the bottom of the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, whenever you add the wrapper or change the supported version, you need to execute the <code>gradle wrapper</code> task to regenerate the configuration. Once
+the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the <code>gradlew</code>
+or <code>gradlew.bat</code> scripts provided in the root of your project. Now let&#8217;s do a clean build again with the wrapper:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.678 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We end up with the same result as before.</p>
+</div>
+<div class="paragraph">
+<p>This project doesn&#8217;t do anything at this point - there is no code. Let&#8217;s add some Groovy code; create the directories for <code>src/main/groovy/demo</code> and
+then add the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HelloGradle.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+
+class HelloGradle {
+
+    String greet(final String name){
+        "Hello, ${name ?: 'Gradle'}!"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let&#8217;s add support
+for the <a href="http://spockframework.org/spock/docs/1.1-rc-2/index.html">Spock testing framework</a>. Add the following to your <code>dependencies</code> closure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We now have Spock available, so let&#8217;s write a unit test for our code. Create the test directories: <code>src/test/groovy/demo</code> and then create the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HelloGradleSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class HelloGradleSpec extends Specification {
+
+    private final HelloGradle greeter = new HelloGradle()
+
+    @Unroll def 'say hello #name'(){
+        expect:
+        greeter.greet(name) == result
+
+        where:
+        name    | result
+        null    | 'Hello, Gradle!'
+        ''      | 'Hello, Gradle!'
+        'Chris' | 'Hello, Chris!'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This test will verify that our greeter returns the expected values for <code>null</code>-ish inputs as well as when a name is provided. I won&#8217;t go into the details
+of the Spock test at this point. Now, when you build the project, you will also run the tests by default:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy
+:processTestResources UP-TO-DATE
+:testClasses
+:test
+:check
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 1.789 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice <code>:test</code> near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the <code>build/reports</code> directory
+and will look something like the following image:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-test-report.png" alt="gradle test report">
+</div>
+</div>
+<div class="paragraph">
+<p>Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the <a href="http://www.eclemma.org/jacoco/">jacoco</a>
+code coverage library. You can add the plugin by adding <code>id 'jacoco'</code> to the <code>plugins</code> block of your <code>build.gradle</code> file, which allows you to run:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>./gradlew clean build jacocoTestReport</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to build the project with tests and a generated test coverage report. Again, the report is generated in the <code>build/reports</code> directory - it will look
+something like:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-coverage-report.png" alt="gradle coverage report">
+</div>
+</div>
+<div class="paragraph">
+<p>The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.</p>
+</div>
+<div class="paragraph">
+<p>Testing your code is nice, but you need a way to run your application outside of testing. Let&#8217;s first add a <code>main</code> method to our Groovy code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">static void main(args){
+    println new HelloGradle().greet(args ? args[0] : null)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nothing fancy, just instantiate the <code>HelloGradle</code> class and call the <code>greet(String)</code> method with the first argument, if there is one. To make the project
+runnable, we need to add the <code>application</code> plugin and specify a "main class". To do this:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add <code>id 'application'</code> to the <code>plugins</code> block</p>
+</li>
+<li>
+<p>Add <code>group = 'demo'</code> to give the project an artifact group</p>
+</li>
+<li>
+<p>Add <code>version = '0.0.1'</code> to give your project a version</p>
+</li>
+<li>
+<p>Add <code>mainClassName = 'demo.HelloGradle'</code> to the <code>build.gradle</code> file outside of other configuration blocks.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With that, you now have a new task <code>run</code> which will run the application for you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew run
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:run
+Hello, Gradle!
+
+BUILD SUCCESSFUL
+
+Total time: 1.526 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It also generates <code>.tar</code> and <code>.zip</code> distributions of the project which contain starter scripts and all required dependencies to deploy and run your
+application outside of the project itself.</p>
+</div>
+<div class="paragraph">
+<p>Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is <a href="http://codenarc.sourceforge.net/">CodeNarc</a>
+which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding <code>id 'codenarc'</code> to the
+<code>plugins</code> block and adding some additional config to <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>codenarcMain {
+    ignoreFailures false
+    configFile file('config/codenarc-main.rules')
+
+    maxPriority1Violations 0
+    maxPriority2Violations 5
+    maxPriority3Violations 10
+}
+
+codenarcTest {
+    ignoreFailures true
+    configFile file('config/codenarc-test.rules')
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested
+configurations, personal preference and experience - I generally use the files from my Vanilla project
+(<a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules">main</a>, <a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules">test</a>)
+for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the
+violations for test classes. The build will now run the codenarc checks when a build is executed.</p>
+</div>
+<div class="paragraph">
+<p>The build will let you know if violations were found, and in any case will generate a report in the <code>build/reports/codenarc</code> directory. The report will
+look something like the following:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-codenarc-report.png" alt="gradle codenarc report">
+</div>
+</div>
+<div class="paragraph">
+<p>At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all
+ with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you
+ should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best
+ reference for finding how-tos or 3rd-party plugins; however, there is an official <a href="https://plugins.gradle.org/">plugin repository</a> that is starting to catch on.</p>
+</div>
+<div class="paragraph">
+<p>Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like
+Maven and Ant.</p>
+</div></p>
+  	
 		<a href="blog/2016/gradle-natives-update.html"><h1>Gradle Natives Plugin Update</h1></a>
 		<p><em>19 September 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/java.html'>java</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
 		<p><div class="paragraph">
@@ -1804,262 +2166,6 @@ Date             Message
 </div>
 <div class="paragraph">
 <p>The remote shell support is one of the more interesting, but underused features in Spring Boot. Before Spring Boot was around, I was working on a project where we did a similar integration of CRaSH shell with a Spring-based server project and it provided a wealth of interesting and useful opportunities to dig into our running system and observe or make changes. Very powerful.</p>
-</div></p>
-  	
-		<a href="blog/2015/multi-pagination.html"><h1>Multi-Collection Pagination</h1></a>
-		<p><em>31 October 2015</em> ~ <a href='/tags/blog.html'>blog</a></p>
-		<p><div class="paragraph">
-<p>A few years ago, I was working on a project where we had collections of data spread across multiple rows of data&#8230;&#8203; and then we had to provide a paginated view of that data. This research was the result of those efforts. The discussion here is a bit more rigorous than I usually go into, so if you just want the implementation code jump to the bottom.</p>
-</div>
-<div class="sect1">
-<h2 id="_introduction">Introduction</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Consider that you have a data set representing a collection of collections:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[
-    [ A0, A1, A2, A3, A4, A5 ],
-    [ B0, B1, B2, B3, B4, B5 ],
-    [ C0, C1, C2, C3, C4, C5 ]
-]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We want to retrieve the data in a paginated fashion where the subset (page) with index <code>P</code> and subset size (page size) <code>S</code> is used to retrieve only the desired elements in the most efficient means possible.</p>
-</div>
-<div class="paragraph">
-<p>Consider also that the data sets may be very large and that the internal collections may not be directly associated with the enclosing collection (e.g. two different databases).</p>
-</div>
-<div class="paragraph">
-<p>Also consider that the subsets may cross collection boundaries or contain fewer than the desired number of elements.</p>
-</div>
-<div class="paragraph">
-<p>Lastly, requests for data subsets will be more likely discrete events – one subset per request, rather than iterating over all results.</p>
-</div>
-<div class="paragraph">
-<p>For a page size of four (<code>S = 4</code>) you would have the following five pages:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>P0 : [ A0, A1, A2, A3 ]
-P1 : [ A4, A5, B0, B1 ]
-P2 : [ B2, B3, B4, B5 ]
-P3 : [ C0, C1, C2, C3 ]
-P4 : [ C4, C5 ]</pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_computations">Computations</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The overall collection is traversed to determine how many elements are contained within each sub-collection; this may be pre-computed or done at runtime. Three counts are calculated or derived for each sub-collection:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Count (<code>CI</code>) - the number of elements in the sub-collection.</p>
-</li>
-<li>
-<p>Count-before (<code>CB</code>) - the total count of all sub-collection elements counted before this collection, but not including this collection.</p>
-</li>
-<li>
-<p>Count-with (<code>CW</code>) - the total count of all sub-collection elements counted before and including this collection.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>For our example data set we would have:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[
-    { CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
-    { CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] },
-    { CI:6, CB:12, CW:18 [ C0, C1, C2, C3, C4, C5 ] }
-]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This allows for a simple means of selecting only the sub-collections we are interested in; those containing the desired elements based on the starting and ending indices for the subset (<code>START</code> and <code>END</code> respectively). These indices can easily be calculated as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>START = P * S
-
-END = START + S – 1</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-The indices referenced here are for the overall collection, not the individual sub-collections.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The desired elements will reside in sub-collections whose inclusive count (<code>CW</code>) is greater than the starting index and whose preceding count (<code>CB</code>) is less than or equal to the ending index, or:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>CW &gt; START and CB ≤ END</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For the case of selecting the second subset of data (<code>P = 1</code>) with a page size of four (<code>S = 4</code>) we would have:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>START = 4
-
-END = 7</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This will select the first two or the three sub-collections as "interesting" sub-collections containing at least some of our desired elements, namely:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{ CI:6, CB:0, CW:6 [ A0, A1, A2, A3, A4, A5 ] },
-{ CI:6, CB:6, CW:12 [ B0, B1, B2, B3, B4, B5 ] }</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>What remains is to gather from these sub-collections (call them <code>SC[0]</code>, <code>SC[1]</code>) the desired number of elements (<code>S</code>).</p>
-</div>
-<div class="paragraph">
-<p>To achieve this, a local starting and ending index must be calculated while iterating through the "interesting" sub-collections to gather the elements until either the desired amount is obtained (<code>S</code>) or there are no more elements available.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Calculate the initial local starting index (<code>LOCAL_START</code>) by subtracting the non-inclusive preceding count value of the first selected collection (<code>SC[0]</code>) from the overall starting index.</p>
-</li>
-<li>
-<p>Iterate the selected collections (in order) until the desired amount has been gathered</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>This is more clearly represented in pseudo code as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>LOCAL_START = START – SC[0].CB
-REMAINING = S
-
-for-each sc in SC while REMAINING &gt; 0
-
-    if( REMAINING &lt; (sc.size() - LOCAL_START) )
-        LOCAL_END = LOCAL_START + REMAINING - 1
-    else
-        LOCAL_END = sc.size()-1
-
-    FOUND = sc.sub( LOCAL_START, LOCAL_END )
-    G.addAll( FOUND )
-    REMAINING = REMAINING – FOUND.size()
-    LOCAL_START = 0
-
-end</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Where the gathered collection of elements (<code>G</code>) is your resulting data set containing the elements for the specified data page.</p>
-</div>
-<div class="paragraph">
-<p>It must be stated that the ordering of the overall collection and the sub-collections must be consistent across multiple data requests for this procedure to work properly.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_implementation">Implementation</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Ok now, enough discussion. Let&#8217;s see what this looks like with some real Groovy code. First, we need our collections of collections data to work with:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def data = [
-    [ 'A0', 'A1', 'A2', 'A3', 'A4', 'A5' ],
-    [ 'B0', 'B1', 'B2', 'B3', 'B4', 'B5' ],
-    [ 'C0', 'C1', 'C2', 'C3', 'C4', 'C5' ]
-]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Next, we need to implement the algorithm in Groovy:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">int page = 1
-int pageSize = 4
-
-// pre-computation
-
-int before = 0
-def prepared = data.collect {d -&gt;
-    def result = [
-        countIn: d.size(),
-        countBefore: before,
-        countWith: before + d.size(),
-        values:d
-    ]
-
-    before += d.size()
-
-    return result
-}
-
-// main computation
-
-def localStart = (page * pageSize ) - prepared[0].countBefore
-def remaining = pageSize
-
-def gathered = []
-
-prepared.each { sc-&gt;
-    if( remaining ){
-        def localEnd
-        if( remaining &lt; (sc.values.size() - localStart) ){
-            localEnd = localStart + remaining - 1
-        } else {
-            localEnd = sc.values.size() - 1
-        }
-
-        def found = sc.values[localStart..localEnd]
-        gathered.addAll(found)
-
-        remaining -= found.size()
-        localStart = 0
-    }
-}
-
-println "P$page : $gathered"</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which yields</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>P1 : [A4, A5, B0, B1]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and if you look all the way back up to the beginning of the article, you see that this is the expected data set for page 1 of the example data.</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s not a scenario I have run into often, but it was a bit of a tricky one to unravel. The pre-computation steps ended up being the key to keeping it simple and stable.</p>
-</div>
-</div>
 </div></p>
   	
 	

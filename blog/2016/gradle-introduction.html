@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Gradle: A Gentle Introduction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Gradle: A Gentle Introduction</h1>
+	</div>
+
+	<p><em>02 November 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+
+	<p><div class="paragraph">
+<p>The <a href="http://gradle.org">Gradle</a> build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
+it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
+into doing some actual work with Gradle. With that being said, let&#8217;s dig in!</p>
+</div>
+<div class="paragraph">
+<p>I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let&#8217;s assume you have Gradle installed,
+preferably a current version. If you run <code>gradle --version</code> you should see something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>------------------------------------------------------------
+Gradle 3.1
+------------------------------------------------------------
+
+Build time:   2016-09-19 10:53:53 UTC
+Revision:     13f38ba699afd86d7cdc4ed8fd7dd3960c0b1f97
+
+Groovy:       2.4.7
+Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
+JVM:          1.8.0_102 (Oracle Corporation 25.102-b14)
+OS:           Linux 4.8.0-26-generic amd64</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>First, create a directory for your project and <code>cd</code> into it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mkdir hellogradle
+cd hellogradle</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Every Gradle project needs at least a <code>build.gradle</code> file so we will start with the minimal requirement. Create the following file in your project
+directory:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    id 'groovy'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>plugins</code> block is used to specify the Gradle plugins used in the build; in this case we just need <code>groovy</code> since we are making a Groovy project.
+The <code>groovy</code> plugin extends the <code>java</code> plugin so we get its functionality as well.</p>
+</div>
+<div class="paragraph">
+<p>The <code>repositories</code> block specifies which repositories are available for resolving dependency artifacts - in most cases <code>jcenter()</code> (the Bintray
+repository) is enough to start with.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, the <code>dependencies</code> block is where the project dependencies are defined as <code>&lt;configuration&gt; '&lt;group&gt;:&lt;artifact&gt;:&lt;version&gt;'</code>.</p>
+</div>
+<div class="paragraph">
+<p>At this point you have a working Gradle project. You can build it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>gradle clean build</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see something like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle gradle clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.492 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see that it is already doing quite a bit for so few lines of build code. You can run <code>gradle tasks</code> to see a list of the tasks available to your
+project.</p>
+</div>
+<div class="paragraph">
+<p>So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows
+the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new
+developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.</p>
+</div>
+<div class="paragraph">
+<p>Add the following to the bottom of the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, whenever you add the wrapper or change the supported version, you need to execute the <code>gradle wrapper</code> task to regenerate the configuration. Once
+the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the <code>gradlew</code>
+or <code>gradlew.bat</code> scripts provided in the root of your project. Now let&#8217;s do a clean build again with the wrapper:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.678 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We end up with the same result as before.</p>
+</div>
+<div class="paragraph">
+<p>This project doesn&#8217;t do anything at this point - there is no code. Let&#8217;s add some Groovy code; create the directories for <code>src/main/groovy/demo</code> and
+then add the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HelloGradle.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+
+class HelloGradle {
+
+    String greet(final String name){
+        "Hello, ${name ?: 'Gradle'}!"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let&#8217;s add support
+for the <a href="http://spockframework.org/spock/docs/1.1-rc-2/index.html">Spock testing framework</a>. Add the following to your <code>dependencies</code> closure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We now have Spock available, so let&#8217;s write a unit test for our code. Create the test directories: <code>src/test/groovy/demo</code> and then create the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HelloGradleSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class HelloGradleSpec extends Specification {
+
+    private final HelloGradle greeter = new HelloGradle()
+
+    @Unroll def 'say hello #name'(){
+        expect:
+        greeter.greet(name) == result
+
+        where:
+        name    | result
+        null    | 'Hello, Gradle!'
+        ''      | 'Hello, Gradle!'
+        'Chris' | 'Hello, Chris!'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This test will verify that our greeter returns the expected values for <code>null</code>-ish inputs as well as when a name is provided. I won&#8217;t go into the details
+of the Spock test at this point. Now, when you build the project, you will also run the tests by default:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew clean build
+:clean
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy
+:processTestResources UP-TO-DATE
+:testClasses
+:test
+:check
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 1.789 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice <code>:test</code> near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the <code>build/reports</code> directory
+and will look something like the following image:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-test-report.png" alt="gradle test report">
+</div>
+</div>
+<div class="paragraph">
+<p>Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the <a href="http://www.eclemma.org/jacoco/">jacoco</a>
+code coverage library. You can add the plugin by adding <code>id 'jacoco'</code> to the <code>plugins</code> block of your <code>build.gradle</code> file, which allows you to run:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>./gradlew clean build jacocoTestReport</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to build the project with tests and a generated test coverage report. Again, the report is generated in the <code>build/reports</code> directory - it will look
+something like:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-coverage-report.png" alt="gradle coverage report">
+</div>
+</div>
+<div class="paragraph">
+<p>The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.</p>
+</div>
+<div class="paragraph">
+<p>Testing your code is nice, but you need a way to run your application outside of testing. Let&#8217;s first add a <code>main</code> method to our Groovy code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">static void main(args){
+    println new HelloGradle().greet(args ? args[0] : null)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nothing fancy, just instantiate the <code>HelloGradle</code> class and call the <code>greet(String)</code> method with the first argument, if there is one. To make the project
+runnable, we need to add the <code>application</code> plugin and specify a "main class". To do this:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add <code>id 'application'</code> to the <code>plugins</code> block</p>
+</li>
+<li>
+<p>Add <code>group = 'demo'</code> to give the project an artifact group</p>
+</li>
+<li>
+<p>Add <code>version = '0.0.1'</code> to give your project a version</p>
+</li>
+<li>
+<p>Add <code>mainClassName = 'demo.HelloGradle'</code> to the <code>build.gradle</code> file outside of other configuration blocks.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With that, you now have a new task <code>run</code> which will run the application for you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; hellogradle ./gradlew run
+:compileJava UP-TO-DATE
+:compileGroovy
+:processResources UP-TO-DATE
+:classes
+:run
+Hello, Gradle!
+
+BUILD SUCCESSFUL
+
+Total time: 1.526 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It also generates <code>.tar</code> and <code>.zip</code> distributions of the project which contain starter scripts and all required dependencies to deploy and run your
+application outside of the project itself.</p>
+</div>
+<div class="paragraph">
+<p>Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is <a href="http://codenarc.sourceforge.net/">CodeNarc</a>
+which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding <code>id 'codenarc'</code> to the
+<code>plugins</code> block and adding some additional config to <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>codenarcMain {
+    ignoreFailures false
+    configFile file('config/codenarc-main.rules')
+
+    maxPriority1Violations 0
+    maxPriority2Violations 5
+    maxPriority3Violations 10
+}
+
+codenarcTest {
+    ignoreFailures true
+    configFile file('config/codenarc-test.rules')
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested
+configurations, personal preference and experience - I generally use the files from my Vanilla project
+(<a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules">main</a>, <a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules">test</a>)
+for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the
+violations for test classes. The build will now run the codenarc checks when a build is executed.</p>
+</div>
+<div class="paragraph">
+<p>The build will let you know if violations were found, and in any case will generate a report in the <code>build/reports/codenarc</code> directory. The report will
+look something like the following:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/gradle-codenarc-report.png" alt="gradle codenarc report">
+</div>
+</div>
+<div class="paragraph">
+<p>At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all
+ with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you
+ should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best
+ reference for finding how-tos or 3rd-party plugins; however, there is an official <a href="https://plugins.gradle.org/">plugin repository</a> that is starting to catch on.</p>
+</div>
+<div class="paragraph">
+<p>Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like
+Maven and Ant.</p>
+</div></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>
