@@ -4,8 +4,7 @@ type=post
 tags=blog,groovy,gradle
 status=published
 ~~~~~~
-In my last post, http://coffeaelectronica.com/blog/2016/gradle-introduction.html[Gradle: A Gentle Introduction], I discussed the basics of Gradle and
-how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.
+In my last post, http://coffeaelectronica.com/blog/2016/gradle-introduction.html[Gradle: A Gentle Introduction], I discussed the basics of Gradle and how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.
 
 First, we need a project to work with. Let's say that we want to add a custom banner to our build output - who doesn't love banners? Something like:
 
@@ -26,32 +25,34 @@ We need to create a directory named `banner-build` and then create a `build.grad
 plugins {
     id 'groovy'
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
-}
 ----
 
-We just need a basic starting point. Run `./gradle wrapper` to generate the wrapper and we are ready to start (we can run `/gradlew` from here on out).
+We just need a basic starting point. Run `./gradle wrapper --gradle-version=3.2` to generate the wrapper and we are ready to start (we can run `/gradlew` from here on out).
 
 Now, in order to write out a banner we need to create a custom task that will render it for us:
 
 [source,groovy]
 ----
 task banner {
-    if( !project.hasProperty('noBanner') ){
-        file('banner.txt').eachLine { line->
-            logger.lifecycle line
+    doFirst {
+        if( !project.hasProperty('noBanner') ){
+            file('banner.txt').eachLine { line->
+                logger.lifecycle line
+            }
         }
     }
 }
+
+gradle.startParameter.taskNames = [':banner'] + gradle.startParameter.taskNames
 ----
 
-We will read our banner from a file, `banner.txt` in the root of the project - so we will need to create that with the banner content from above. Then,
-when you run `./gradlew build` you will see something like the following:
+This task will add our action to the top of the execution list (the `startPrameter` modification makes it always run) so that if the `noBanner` property is not specified, our banner will be loaded from the specified file and displayed to the output log.
+
+We will read our banner from a file, `banner.txt` in the root of the project - so we will need to create that with the banner content from above. Then, when you run `./gradlew build` you will see something like the following:
 
 ----
 > ./gradlew build
+:banner
   _______ _            ____        _ _     _
  |__   __| |          |  _ \      (_) |   | |
     | |  | |__   ___  | |_) |_   _ _| | __| |
@@ -62,37 +63,29 @@ when you run `./gradlew build` you will see something like the following:
 :compileGroovy UP-TO-DATE
 :processResources UP-TO-DATE
 :classes UP-TO-DATE
-:jar UP-TO-DATE
-:assemble UP-TO-DATE
+:jar
+:assemble
 :compileTestJava UP-TO-DATE
 :compileTestGroovy UP-TO-DATE
 :processTestResources UP-TO-DATE
 :testClasses UP-TO-DATE
 :test UP-TO-DATE
 :check UP-TO-DATE
-:build UP-TO-DATE
+:build
 
 BUILD SUCCESSFUL
 
-Total time: 0.444 secs
+Total time: 0.559 secs
 ----
 
-But, wait, why did our task run? We didn't run it. Unless you wrap the task body in one of the task ordering closures (e.g. `doLast`), it will be
-executed on every Gradle execution. In our case, we want this behavior; however another approach to this would be to wrap the body in `doLast` and
-then make the `build` task depend on our task by adding `project.tasks.build.dependsOn = ['banner']`.
+Notice also, that we can turn off the banner, passing the `-PnoBanner` option on the command line or as a property in your `gradle.properties` file, if you have one - if you run under one of those conditions, the banner will not be printed.
 
-Notice also, that we can turn off the banner, passing the `-PnoBanner` option on the command line or as a property in your `gradle.properties` file,
-if you have one - if you run under one of those conditions, the banner will not be printed.
+At this point, we have accomplished our original goal and we can go on with our lives... until the next project comes along and you need the same sort of functionality. You could just copy and paste this code into your project, but you don't do that... right? That's where plugins come into play; they allow us to share functionality across different project builds.
 
-At this point, we have accomplished our original goal and we can go on with our lives... until the next project comes along and you need the same sort
-of functionality. You could just copy and paste this code into your project, but you don't do that... right? That's where plugins come into play; they
-allow us to share functionality across different project builds.
-
-To create the plugin, first we need a separate Gradle project for it; create a directory (outside of the one for our demo project), called
-`build-banner-plugin` and add a `build.gradle` file to it with:
+To create the plugin, first we need a separate Gradle project for it; create a directory (outside of the one for our demo project), called `banner-plugin` and add a `build.gradle` file to it with:
 
 [source,groovy]
-.build-banner-plugins/build.gradle
+.banner-plugin/build.gradle
 ----
 plugins {
     id 'groovy'
@@ -117,28 +110,20 @@ dependencies {
         exclude module: 'groovy-all'
     }
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = "3.1"
-}
 ----
 
-and run `gradle wrapper` in it to generate our wrapper. The build file for a plugin project is a standard Gradle build file, but with the `java-gradle-plugin`
-plugin to provide extra tools needed for plugins, as well as dependencies for the Gradle API and it's associated Groovy distribution. With plugins,
-the project name is used as part of the unique plugin ID, so it's generally a good practice to be explicit about the project name using a `settings.gradle`
-file:
+and run `gradle wrapper --gradle-version=3.2` in it to generate our wrapper. The build file for a plugin project is a standard Gradle build file, but with the `java-gradle-plugin` plugin to provide extra tools needed for plugins, as well as dependencies for the Gradle API and it's associated Groovy distribution. With plugins, the project name is used as part of the unique plugin ID, so it's generally a good practice to be explicit about the project name using a `settings.gradle` file:
 
 [source,groovy]
-.build-banner-plugin/settings.gradle
+.banner-plugin/settings.gradle
 ----
-rootProject.name = 'build-banner'
+rootProject.name = 'banner-plugin'
 ----
 
-The last piece of plugin-specific configuration is the plugin properties file, which is a file in the `resources/META-INF/gradle-plugins` directory named
- `<group>.<name>.properties`, for this example:
+The last piece of plugin-specific configuration is the plugin properties file, which is a file in the `resources/META-INF/gradle-plugins` directory named `<group>.<name>.properties`, for this example:
 
 [source,properties]
-.build-banner-plugin/src/main/resources/META-INF/gradle-plugins/com.stehno.gradle.build-banner.properties
+.banner-plugin/src/main/resources/META-INF/gradle-plugins/com.stehno.gradle.banner-plugin.properties
 ----
 implementation-class=com.stehno.gradle.banner.BannerPlugin
 ----
@@ -146,7 +131,7 @@ implementation-class=com.stehno.gradle.banner.BannerPlugin
 Now we can create the basic skeleton for our plugin, which is an implementation of the Gradle `Plugin<Project>` interface:
 
 [source,groovy]
-.build-banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerPlugin.groovy
+.banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerPlugin.groovy
 ----
 package com.stehno.gradle.banner
 
@@ -161,12 +146,11 @@ class BannerPlugin implements Plugin<Project> {
 }
 ----
 
-This is the main entry point for our plugin. When it is "applied" to the project, the `apply(Project)` method will be called. If we do a `clean build`
-of the project at this point, it will pass, but it does nothing. We need to transfer our functionality (the `banner` task) from our original `build.gradle`
+This is the main entry point for our plugin. When it is "applied" to the project, the `apply(Project)` method will be called. If we do a `clean build` of the project at this point, it will pass, but it does nothing. We need to transfer our functionality (the `banner` task) from our original `build.gradle`
 file to the plugin. Let's create the plugin task skeleton:
 
 [source,groovy]
-.build-banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerTask.groovy
+.banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerTask.groovy
 ----
 package com.stehno.gradle.banner
 
@@ -188,24 +172,21 @@ void displayBanner(){
 }
 ----
 
-Once we have a task, we need to wire it into the plugin so that it is applied to the project. Change the `apply(Project)` method of our `BannerPlugin`
- class to the following:
+Once we have a task, we need to wire it into the plugin so that it is applied to the project. Change the `apply(Project)` method of our `BannerPlugin` class to the following:
 
 [source,groovy]
 ----
 @Override void apply(final Project project) {
     project.task 'banner', type:BannerTask
 
-    project.tasks.build.dependsOn = ['banner']
+    project.gradle.startParameter.taskNames = [':banner'] + project.gradle.startParameter.taskNames
 }
 ----
 
-This will apply our new task and then cause it to be called whenever the `build` task is run. Now, how do we check our progress? We could build the
-plugin and deploy it to our original project but that would be quite a lot of round-trip time every time we wanted to test a change, but there is no
-need for that, Gradle provides a rich test framework which works well with Spock. Let's create a Spock test for our task:
+This will apply our new task and then cause it to be called whenever the build is run. Now, how do we check our progress? We could build the plugin and deploy it to our original project but that would be quite a lot of round-trip time every time we wanted to test a change, but there is no need for that, Gradle provides a rich test framework which works well with Spock. Let's create a Spock test for our task:
 
 [source,groovy]
-.build-banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
+.banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
 ----
 package com.stehno.gradle.banner
 
@@ -227,7 +208,7 @@ class BannerTaskSpec extends Specification {
         buildFile.text = '''
             plugins {
                 id 'groovy'
-                id 'com.stehno.gradle.build-banner'
+                id 'com.stehno.gradle.banner-plugin'
             }
         '''.stripIndent()
 
@@ -246,25 +227,33 @@ class BannerTaskSpec extends Specification {
 }
 ----
 
-It's a bit of code, but it's not too bad once you dig in. We have a standard Spock test, with a `TemporaryFolder` rule - this will be our test project
- directory. Then, we create a `build.gradle` file for our test with our plugin and the `groovy` plugin, similar to what our original Gradle file looked
- like. Next, we use the `GradleRunner` to create and configure a Gradle environment using our file, which is then executed as a build. The results
- are then printed out to the command line. If you run `./gradlew test` on the project now and view the test output (in the report standard out), you
+It's a bit of code, but it's not too bad once you dig in. We have a standard Spock test, with a `TemporaryFolder` rule - this will be our test project directory. Then, we create a `build.gradle` file for our test with our plugin and the `groovy` plugin, similar to what our original Gradle file looked like. Next, we use the `GradleRunner` to create and configure a Gradle environment using our file, which is then executed as a build. The results are then printed out to the command line. If you run `./gradlew test` on the project now and view the test output (in the report standard out), you
  will see:
 
 ----
-:clean UP-TO-DATE
-:status
+:banner
 Doing something!
+:clean UP-TO-DATE
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
 :build
 
 BUILD SUCCESSFUL
 
-Total time: 1.983 secs
+Total time: 2.019 secs
 ----
 
-where we can see our output and we have a way to quickly test our new task. So, moving onward, we need to add the real functionality to our task.
-Update the `displayBanner()` method to:
+where we can see our output and we have a way to quickly test our new task. So, moving onward, we need to add the real functionality to our task. Update the `displayBanner()` method to:
 
 [source,groovy]
 ----
@@ -278,22 +267,32 @@ void displayBanner(){
 }
 ----
 
-Notice that we prefixed `project.` before the `file()` call since we are no longer directly in the "project" scope, but other than
-that this code was copied right from our original build file. If you run the test, you see our message in the test output:
+Notice that we prefixed `project.` before the `file()` call since we are no longer directly in the "project" scope, but other than that this code was copied right from our original build file. If you run the test, you see our message in the test output:
 
 ----
-:clean UP-TO-DATE
 :banner
-Awesome Banner!
+Awesome banner!
+:clean UP-TO-DATE
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
 :build
 
 BUILD SUCCESSFUL
 
-Total time: 1.841 secs
+Total time: 2.019 secs
 ----
 
-Our test is good, but it doesn't really verify anything, it just prints out the build output. Let's make it verify that the build passed and that our
-expected message is in the output - the `then:` block becomes:
+Our test is good, but it doesn't really verify anything, it just prints out the build output. Let's make it verify that the build passed and that our expected message is in the output - the `then:` block becomes:
 
 [source,groovy]
 ----
@@ -310,7 +309,7 @@ The test will no longer generate the build output to the command line, but we ar
 We can test the `noBanner` property support as well, but we should also refactor the test a bit so that shared code is reused - now our test looks like:
 
 [source,groovy]
-.build-banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
+.banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
 ----
 package com.stehno.gradle.banner
 
@@ -333,7 +332,7 @@ class BannerTaskSpec extends Specification {
         buildFile.text = '''
             plugins {
                 id 'groovy'
-                id 'com.stehno.gradle.build-banner'
+                id 'com.stehno.gradle.banner-plugin'
             }
         '''.stripIndent()
 
@@ -379,8 +378,7 @@ class BannerTaskSpec extends Specification {
 
 Mostly I just extracted the `setup` code and the `buildPassed` check, then added a test for the `noBanner` property support.
 
-Wouldn't it be nice to make the banner file location configurable? Gradle plugins have a "extension" construct that allows for rich configuration of
-plugins by adding functionality to the Gradle DSL. For our plugin, we would like to support something like the following:
+Wouldn't it be nice to make the banner file location configurable? Gradle plugins have a "extension" construct that allows for rich configuration of plugins by adding functionality to the Gradle DSL. For our plugin, we would like to support something like the following:
 
 [source,groovy]
 ----
@@ -390,13 +388,13 @@ banner {
 }
 ----
 
-which would be used to toggle the banner display on and off and also provide a means of configuring the banner file location. This structure and both of
-its properties are optional, but allow additional configuration. Adding them to the plugin is fairly simple. The extension itself is just a POGO class,
-which for our case would be:
+which would be used to toggle the banner display on and off and also provide a means of configuring the banner file location. This structure and both of its properties are optional, but allow additional configuration. Adding them to the plugin is fairly simple. The extension itself is just a POGO class, which for our case would be:
 
 [source,groovy]
-.build-banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerExtension.groovy
+.banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerExtension.groovy
 ----
+package com.stehno.gradle.banner
+
 class BannerExtension {
 
     boolean enabled = true
@@ -423,6 +421,7 @@ void displayBanner(){
     boolean enabled = project.hasProperty('bannerEnabled') ? project.property('bannerEnabled').equalsIgnoreCase('true') : extension.enabled
 
     File bannerFile = project.hasProperty('bannerFile') ? new File(project.property('bannerFile')) : (extension.location ?: project.file('banner.txt'))
+
 
     if( enabled ){
         bannerFile.eachLine { line->
@@ -463,7 +462,7 @@ def 'extension run'(){
     buildFile.text = '''
         plugins {
             id 'groovy'
-            id 'com.stehno.gradle.build-banner'
+            id 'com.stehno.gradle.banner-plugin'
         }
 
         banner {
@@ -494,9 +493,7 @@ projectRoot.newFile('other-banner.txt').text = 'Awesome-er Banner!'
 
 Now, run the tests again and see that our extension works as expected.
 
-With our newly minted Gradle plugin we should be able to use it in our original project as a local test before deployment. An easy way to do this is to
-publish it to your local maven repository and then configure the other project to use it. In the plugin project, add `id 'maven-publish'` to the `plugins`
-block, which will allow us to publish to the local maven repo. Then run `./gradlew publishToMavenLocal`, which does what it says.
+With our newly minted Gradle plugin we should be able to use it in our original project as a local test before deployment. An easy way to do this is to publish it to your local maven repository and then configure the other project to use it. In the plugin project, add `id 'maven-publish'` to the `plugins` block, which will allow us to publish to the local maven repo. Then run `./gradlew publishToMavenLocal`, which does what it says.
 
 In the original external `build.gradle` file we need to add bootstrapping code to bring in the local plugin and also remove the old `banner` task. The
 updated `build.gradle` file will look like this:
@@ -509,7 +506,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath "com.stehno.gradle:build-banner:0.1.0"
+        classpath "com.stehno.gradle:banner-plugin:0.1.0"
     }
 }
 
@@ -517,11 +514,7 @@ plugins {
     id 'groovy'
 }
 
-apply plugin: "com.stehno.gradle.build-banner"
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
-}
+apply plugin: "com.stehno.gradle.banner-plugin"
 ----
 
 Notice that we are pulling the plugin from the local maven repository. If you run the build now, you get your expected banner:
@@ -577,14 +570,14 @@ for your project. In our case this would be something like:
 [source,groovy]
 ----
 pluginBundle {
-    website = 'http://yourdomain.com/build-banner'
-    vcsUrl = 'https://github.com/cjstehno/build-banner'
+    website = 'http://yourdomain.com/banner-plugin'
+    vcsUrl = 'https://github.com/cjstehno/banner-plugin'
     description = 'Gradle plugin to add a fancy banner to your build log.'
     tags = ['gradle', 'groovy']
 
     plugins {
         webpreviewPlugin {
-            id = 'com.stehno.gradle.build-banner'
+            id = 'com.stehno.gradle.banner-plugin'
             displayName = 'Gradle Build Banner Plugin'
         }
     }
