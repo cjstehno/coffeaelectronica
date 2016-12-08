@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Writing Gradle Plugins</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+  </head>
+  <body onload="prettyPrint()">
+    <div id="wrap">
+   
+	
+		<!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">CoffeaElectronica.com</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/archive.html">Archive</a></li>
+            
+             <li role="presentation" class="dropdown">
+	      <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+		Tags <span class="caret"></span>
+	      </a>
+	      <ul class="dropdown-menu" role="menu">
+		
+		  <li><a href="/tags/ant.html">ant</a></li>
+		
+		  <li><a href="/tags/blog.html">blog</a></li>
+		
+		  <li><a href="/tags/gradle.html">gradle</a></li>
+		
+		  <li><a href="/tags/groovy.html">groovy</a></li>
+		
+		  <li><a href="/tags/java.html">java</a></li>
+		
+		  <li><a href="/tags/javascript.html">javascript</a></li>
+		
+		  <li><a href="/tags/maven.html">maven</a></li>
+		
+		  <li><a href="/tags/python.html">python</a></li>
+		
+		  <li><a href="/tags/spring.html">spring</a></li>
+		
+		  <li><a href="/tags/testing.html">testing</a></li>
+		
+		  <li><a href="/tags/vanilla.html">vanilla</a></li>
+		
+		
+	      </ul>
+	    </li>
+            
+            <li><a href="/feed.xml">Subscribe</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container">
+    
+
+	
+	<div class="page-header">
+		<h1>Writing Gradle Plugins</h1>
+	</div>
+
+	<p><em>07 December 2016</em> ~ <a href='/tags/blog.html'>blog</a>, <a href='/tags/groovy.html'>groovy</a>, <a href='/tags/gradle.html'>gradle</a></p>
+
+	<p><div class="paragraph">
+<p>In my last post, <a href="http://coffeaelectronica.com/blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a>, I discussed the basics of Gradle and how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.</p>
+</div>
+<div class="paragraph">
+<p>First, we need a project to work with. Let&#8217;s say that we want to add a custom banner to our build output - who doesn&#8217;t love banners? Something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  _______ _            ____        _ _     _
+ |__   __| |          |  _ \      (_) |   | |
+    | |  | |__   ___  | |_) |_   _ _| | __| |
+    | |  | '_ \ / _ \ |  _ &lt;| | | | | |/ _` |
+    | |  | | | |  __/ | |_) | |_| | | | (_| |_ _ _
+    |_|  |_| |_|\___| |____/ \__,_|_|_|\__,_(_|_|_)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We need to create a directory named <code>banner-build</code> and then create a <code>build.gradle</code> file in it with the following starting content:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    id 'groovy'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We just need a basic starting point. Run <code>./gradle wrapper --gradle-version=3.2</code> to generate the wrapper and we are ready to start (we can run <code>/gradlew</code> from here on out).</p>
+</div>
+<div class="paragraph">
+<p>Now, in order to write out a banner we need to create a custom task that will render it for us:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task banner {
+    doFirst {
+        if( !project.hasProperty('noBanner') ){
+            file('banner.txt').eachLine { line-&gt;
+                logger.lifecycle line
+            }
+        }
+    }
+}
+
+gradle.startParameter.taskNames = [':banner'] + gradle.startParameter.taskNames</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This task will add our action to the top of the execution list (the <code>startPrameter</code> modification makes it always run) so that if the <code>noBanner</code> property is not specified, our banner will be loaded from the specified file and displayed to the output log.</p>
+</div>
+<div class="paragraph">
+<p>We will read our banner from a file, <code>banner.txt</code> in the root of the project - so we will need to create that with the banner content from above. Then, when you run <code>./gradlew build</code> you will see something like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; ./gradlew build
+:banner
+  _______ _            ____        _ _     _
+ |__   __| |          |  _ \      (_) |   | |
+    | |  | |__   ___  | |_) |_   _ _| | __| |
+    | |  | '_ \ / _ \ |  _ &lt;| | | | | |/ _` |
+    | |  | | | |  __/ | |_) | |_| | | | (_| |_ _ _
+    |_|  |_| |_|\___| |____/ \__,_|_|_|\__,_(_|_|_)
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.559 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice also, that we can turn off the banner, passing the <code>-PnoBanner</code> option on the command line or as a property in your <code>gradle.properties</code> file, if you have one - if you run under one of those conditions, the banner will not be printed.</p>
+</div>
+<div class="paragraph">
+<p>At this point, we have accomplished our original goal and we can go on with our lives&#8230;&#8203; until the next project comes along and you need the same sort of functionality. You could just copy and paste this code into your project, but you don&#8217;t do that&#8230;&#8203; right? That&#8217;s where plugins come into play; they allow us to share functionality across different project builds.</p>
+</div>
+<div class="paragraph">
+<p>To create the plugin, first we need a separate Gradle project for it; create a directory (outside of the one for our demo project), called <code>banner-plugin</code> and add a <code>build.gradle</code> file to it with:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+version = "0.1.0"
+group = "com.stehno.gradle"
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and run <code>gradle wrapper --gradle-version=3.2</code> in it to generate our wrapper. The build file for a plugin project is a standard Gradle build file, but with the <code>java-gradle-plugin</code> plugin to provide extra tools needed for plugins, as well as dependencies for the Gradle API and it&#8217;s associated Groovy distribution. With plugins, the project name is used as part of the unique plugin ID, so it&#8217;s generally a good practice to be explicit about the project name using a <code>settings.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/settings.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">rootProject.name = 'banner-plugin'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last piece of plugin-specific configuration is the plugin properties file, which is a file in the <code>resources/META-INF/gradle-plugins</code> directory named <code>&lt;group&gt;.&lt;name&gt;.properties</code>, for this example:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/main/resources/META-INF/gradle-plugins/com.stehno.gradle.banner-plugin.properties</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-properties" data-lang="properties">implementation-class=com.stehno.gradle.banner.BannerPlugin</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we can create the basic skeleton for our plugin, which is an implementation of the Gradle <code>Plugin&lt;Project&gt;</code> interface:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerPlugin.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class BannerPlugin implements Plugin&lt;Project&gt; {
+
+    @Override void apply(final Project project) {
+        // your config here...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the main entry point for our plugin. When it is "applied" to the project, the <code>apply(Project)</code> method will be called. If we do a <code>clean build</code> of the project at this point, it will pass, but it does nothing. We need to transfer our functionality (the <code>banner</code> task) from our original <code>build.gradle</code>
+file to the plugin. Let&#8217;s create the plugin task skeleton:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerTask.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+
+class BannerTask extends DefaultTask {
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and give it something to do:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+void displayBanner(){
+    logger.lifecycle 'Doing something!'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once we have a task, we need to wire it into the plugin so that it is applied to the project. Change the <code>apply(Project)</code> method of our <code>BannerPlugin</code> class to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Override void apply(final Project project) {
+    project.task 'banner', type:BannerTask
+
+    project.gradle.startParameter.taskNames = [':banner'] + project.gradle.startParameter.taskNames
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will apply our new task and then cause it to be called whenever the build is run. Now, how do we check our progress? We could build the plugin and deploy it to our original project but that would be quite a lot of round-trip time every time we wanted to test a change, but there is no need for that, Gradle provides a rich test framework which works well with Spock. Let&#8217;s create a Spock test for our task:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+
+import spock.lang.Specification
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
+
+class BannerTaskSpec extends Specification {
+
+    @Rule TemporaryFolder projectRoot = new TemporaryFolder()
+
+    def 'simple run'(){
+        given:
+        File buildFile = projectRoot.newFile('build.gradle')
+        buildFile.text = '''
+            plugins {
+                id 'groovy'
+                id 'com.stehno.gradle.banner-plugin'
+            }
+        '''.stripIndent()
+
+        projectRoot.newFile('banner.txt').text = 'Awesome Banner!'
+
+        when:
+        BuildResult result = GradleRunner.create()
+            .withPluginClasspath()
+            .withProjectDir(projectRoot.root)
+            .withArguments('clean build'.split(' '))
+            .build()
+
+        then:
+        println result.output
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It&#8217;s a bit of code, but it&#8217;s not too bad once you dig in. We have a standard Spock test, with a <code>TemporaryFolder</code> rule - this will be our test project directory. Then, we create a <code>build.gradle</code> file for our test with our plugin and the <code>groovy</code> plugin, similar to what our original Gradle file looked like. Next, we use the <code>GradleRunner</code> to create and configure a Gradle environment using our file, which is then executed as a build. The results are then printed out to the command line. If you run <code>./gradlew test</code> on the project now and view the test output (in the report standard out), you
+ will see:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>:banner
+Doing something!
+:clean UP-TO-DATE
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 2.019 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where we can see our output and we have a way to quickly test our new task. So, moving onward, we need to add the real functionality to our task. Update the <code>displayBanner()</code> method to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+void displayBanner(){
+    if( !project.hasProperty('noBanner') ){
+        project.file('banner.txt').eachLine { line-&gt;
+            logger.lifecycle line
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that we prefixed <code>project.</code> before the <code>file()</code> call since we are no longer directly in the "project" scope, but other than that this code was copied right from our original build file. If you run the test, you see our message in the test output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>:banner
+Awesome banner!
+:clean UP-TO-DATE
+:compileJava UP-TO-DATE
+:compileGroovy UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:compileTestGroovy UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 2.019 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Our test is good, but it doesn&#8217;t really verify anything, it just prints out the build output. Let&#8217;s make it verify that the build passed and that our expected message is in the output - the <code>then:</code> block becomes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">then:
+result.tasks.every { BuildTask task -&gt;
+    task.outcome == TaskOutcome.SUCCESS || task.outcome == TaskOutcome.UP_TO_DATE
+}
+
+result.output.contains('Awesome Banner!')</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The test will no longer generate the build output to the command line, but we are actually verifying the expected behavior.</p>
+</div>
+<div class="paragraph">
+<p>We can test the <code>noBanner</code> property support as well, but we should also refactor the test a bit so that shared code is reused - now our test looks like:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+
+import spock.lang.Specification
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
+
+class BannerTaskSpec extends Specification {
+
+    @Rule TemporaryFolder projectRoot = new TemporaryFolder()
+
+    private File buildFile
+
+    def setup(){
+        buildFile = projectRoot.newFile('build.gradle')
+        buildFile.text = '''
+            plugins {
+                id 'groovy'
+                id 'com.stehno.gradle.banner-plugin'
+            }
+        '''.stripIndent()
+
+        projectRoot.newFile('banner.txt').text = 'Awesome Banner!'
+    }
+
+    def 'simple run'(){
+        when:
+        BuildResult result = GradleRunner.create()
+            .withPluginClasspath()
+            .withProjectDir(projectRoot.root)
+            .withArguments('clean build'.split(' '))
+            .build()
+
+        then:
+        println result.output
+        buildPassed result
+
+        result.output.contains('Awesome Banner!')
+    }
+
+    def 'simple run with status hidden'(){
+        when:
+        BuildResult result = GradleRunner.create()
+            .withPluginClasspath()
+            .withProjectDir(projectRoot.root)
+            .withArguments('clean build -PnoBanner'.split(' '))
+            .build()
+
+        then:
+        buildPassed result
+
+        !result.output.contains('Awesome Banner!')
+    }
+
+    private boolean buildPassed(final BuildResult result){
+        result.tasks.every { BuildTask task -&gt;
+            task.outcome == TaskOutcome.SUCCESS || task.outcome == TaskOutcome.UP_TO_DATE
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mostly I just extracted the <code>setup</code> code and the <code>buildPassed</code> check, then added a test for the <code>noBanner</code> property support.</p>
+</div>
+<div class="paragraph">
+<p>Wouldn&#8217;t it be nice to make the banner file location configurable? Gradle plugins have a "extension" construct that allows for rich configuration of plugins by adding functionality to the Gradle DSL. For our plugin, we would like to support something like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
+    enabled = true
+    location = file('banner.txt')
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which would be used to toggle the banner display on and off and also provide a means of configuring the banner file location. This structure and both of its properties are optional, but allow additional configuration. Adding them to the plugin is fairly simple. The extension itself is just a POGO class, which for our case would be:</p>
+</div>
+<div class="listingblock">
+<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerExtension.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+
+class BannerExtension {
+
+    boolean enabled = true
+    File location
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To register the extension with the plugin, you add the following to the first line of the <code>BannerPlugin</code> <code>apply(Project)</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">project.extensions.create('banner', BannerExtension)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last part of adding the extension support is to have the task actually make use of it. The <code>displayBanner</code> method of the task will look like the
+following when we are done:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+void displayBanner(){
+    BannerExtension extension = project.extensions.getByType(BannerExtension)
+
+    boolean enabled = project.hasProperty('bannerEnabled') ? project.property('bannerEnabled').equalsIgnoreCase('true') : extension.enabled
+
+    File bannerFile = project.hasProperty('bannerFile') ? new File(project.property('bannerFile')) : (extension.location ?: project.file('banner.txt'))
+
+
+    if( enabled ){
+        bannerFile.eachLine { line-&gt;
+            logger.lifecycle line
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I modified the <code>noBanner</code> property and converted it to a flag so that now you would pass in <code>-PbannerEnabled=false</code> to disable it. I also added a means
+of configuring the banner file from the command line or via the extension, with the default still being <code>banner.txt</code>. The CLI and settings properties
+will override the extension values if they are present. We need to modify the <code>'simple run with status hidden'</code> test to handle the new parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'simple run with status hidden'(){
+    when:
+    BuildResult result = GradleRunner.create()
+        .withPluginClasspath()
+        .withProjectDir(projectRoot.root)
+        .withArguments('clean build -PbannerEnabled=false'.split(' '))
+        .build()
+
+    then:
+    buildPassed result
+
+    !result.output.contains('Awesome Banner!')
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, if you run the tests, everything still passes - so the defaults work as expected. Let&#8217;s add some tests using the extension to override the file
+location.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'extension run'(){
+    setup:
+    buildFile.text = '''
+        plugins {
+            id 'groovy'
+            id 'com.stehno.gradle.banner-plugin'
+        }
+
+        banner {
+            location = file('other-banner.txt')
+        }
+    '''.stripIndent()
+
+    when:
+    BuildResult result = GradleRunner.create()
+        .withPluginClasspath()
+        .withProjectDir(projectRoot.root)
+        .withArguments('clean build'.split(' '))
+        .build()
+
+    then:
+    buildPassed result
+
+    result.output.contains('Awesome-er Banner!')
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this test we have to override the default build file we created in <code>setup</code>. I also added the creation of the other banner file in the <code>setup</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">projectRoot.newFile('other-banner.txt').text = 'Awesome-er Banner!'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, run the tests again and see that our extension works as expected.</p>
+</div>
+<div class="paragraph">
+<p>With our newly minted Gradle plugin we should be able to use it in our original project as a local test before deployment. An easy way to do this is to publish it to your local maven repository and then configure the other project to use it. In the plugin project, add <code>id 'maven-publish'</code> to the <code>plugins</code> block, which will allow us to publish to the local maven repo. Then run <code>./gradlew publishToMavenLocal</code>, which does what it says.</p>
+</div>
+<div class="paragraph">
+<p>In the original external <code>build.gradle</code> file we need to add bootstrapping code to bring in the local plugin and also remove the old <code>banner</code> task. The
+updated <code>build.gradle</code> file will look like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">build-banner/build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath "com.stehno.gradle:banner-plugin:0.1.0"
+    }
+}
+
+plugins {
+    id 'groovy'
+}
+
+apply plugin: "com.stehno.gradle.banner-plugin"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that we are pulling the plugin from the local maven repository. If you run the build now, you get your expected banner:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; ./gradlew build
+:banner
+  _______ _            ____        _ _     _
+ |__   __| |          |  _ \      (_) |   | |
+    | |  | |__   ___  | |_) |_   _ _| | __| |
+    | |  | '_ \ / _ \ |  _ &lt;| | | | | |/ _` |
+    | |  | | | |  __/ | |_) | |_| | | | (_| |_ _ _
+    |_|  |_| |_|\___| |____/ \__,_|_|_|\__,_(_|_|_)
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.543 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, we should be able to use a different banner file. Create another banner file as <code>flag.txt</code> (with whatever you want in it) and configure the
+build to use it by adding:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
+    location = file('flag.txt')
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to the bottom of the build file. Now, with my new version, I get:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; ./gradlew build
+:banner
+This is GRADLE!!!
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 0.474 secs</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can also disable the banner via config, set <code>enabled = false</code> in the extension code, and it will not appear. But, you can force it on the command
+line by adding <code>-PbannerEnabled=true</code>.</p>
+</div>
+<div class="paragraph">
+<p>From here, you can distribute your plugin to friends and coworkers as long as you have some shared repository that you can point them to, but what if
+you came up with something cool enough to share to a larger audience? For that you want to publish to the <a href="http://plugins.gradle.com" class="bare">http://plugins.gradle.com</a> repo, which is
+what is used by the <code>plugins</code> block of the <code>build.gradle</code> file. I won&#8217;t go too far down that path in this post, but basically you will need to add the
+<code>id 'com.gradle.plugin-publish' version '0.9.4'</code> plugin to the plugin project, which will handle the actual publishing for you once you configure it
+for your project. In our case this would be something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">pluginBundle {
+    website = 'http://yourdomain.com/banner-plugin'
+    vcsUrl = 'https://github.com/cjstehno/banner-plugin'
+    description = 'Gradle plugin to add a fancy banner to your build log.'
+    tags = ['gradle', 'groovy']
+
+    plugins {
+        webpreviewPlugin {
+            id = 'com.stehno.gradle.banner-plugin'
+            displayName = 'Gradle Build Banner Plugin'
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have that in place and have signed up with the plugins portal (free) you run <code>./gradlew publishPlugins</code> and if all goes well, you have a
+publicly available plugin.</p>
+</div>
+<div class="paragraph">
+<p>This tutorial has really only scratched the surface of plugin development, there is a lot more there to work with and most of it is well documented in
+the Gradle User Guide or through some Google searches. It&#8217;s a powerful framework and well worth spending the time to learn if you are working in Gradle.</p>
+</div></p>
+
+	<hr />
+	
+		</div>
+		<div id="push"></div>
+    </div>
+    
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">&copy; 2015 <a href="https://plus.google.com/+ChristopherStehno">Christopher J. Stehno</a> | Mixed with <a href="http://getbootstrap.com/">Bootstrap v3.1.1</a> | Baked with <a href="http://jbake.org">JBake v2.3.2</a></p>
+      </div>
+    </div>
+    
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../js/jquery-1.11.1.min.js"></script>
+    <script src="../../js/bootstrap.min.js"></script>
+    <script src="../../js/prettify.js"></script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-27165855-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  </body>
+</html>
