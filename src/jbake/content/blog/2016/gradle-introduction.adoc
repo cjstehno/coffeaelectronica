@@ -262,7 +262,7 @@ Code quality analysis tools are also available as Gradle plugins. A common one f
 which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding `id 'codenarc'` to the
 `plugins` block and adding some additional config to `build.gradle`:
 
-[soruce,groovy]
+[source,groovy]
 ----
 codenarcMain {
     ignoreFailures false

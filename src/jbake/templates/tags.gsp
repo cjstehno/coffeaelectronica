@@ -1,26 +1,32 @@
 <%include "header.gsp"%>
 
-	<div class="page-header">
-		<h1>Tag: ${tag}</h1>
-	</div>
-	
-	<ul>
-		<%def last_month=null;%>
-		<%tag_posts.each {post ->%>
-		<%if (last_month) {%>
-			<%if (post.date.format("MMMM yyyy") != last_month) {%>
-				</ul>
-				<h4>${post.date.format("MMMM yyyy")}</h4>
-				<ul>
-			<%}%>
-		<%} else {%>
-			<h4>${post.date.format("MMMM yyyy")}</h4>
-			<ul>
-		<%}%>
-		
-		<li>${post.date.format("dd")} - <a href="/${post.uri}">${post.title}</a></li>
-		<% last_month = post.date.format("MMMM yyyy")%>
-		<%}%>
-	</ul>
+	<h1><span class="glyphicon glyphicon-tags"></span> Tag: ${tag}</h1>
+
+    <%
+        def months = [:]
+
+        tag_posts.each { post->
+            def month = post.date.format("MMMM yyyy")
+            def posts = months[month]
+            if( !posts ){
+                posts = []
+                months[month] = posts
+            }
+
+            posts << post
+        }
+
+        months.each { month, posts-> %>
+    <h2>${month}</h2>
+    <div>
+        <%     posts.each { p->
+            def tagString = p.tags.collect { t-> "<a href='/tags/${t}.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ${t}</span></a>" }.join(' ')
+        %>
+        <div>${p.date.format('MM/dd')}: <a href="${p.uri}">${p.title}</a> ~ ${tagString}</div>
+        <%     } %>
+    </div>
+    <%
+        }
+    %>
 	
 <%include "footer.gsp"%>

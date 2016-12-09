@@ -13,7 +13,7 @@
   	<%}%>
 
 <div class="well well-sm">
-    <p><span class="glyphicon glyphicon-hourglass"></span> Older posts are available in the <a href="/archive.html">archives</a>.</p>
+    <p><span class="glyphicon glyphicon-calendar"></span> Older posts are available in the <a href="/archive.html">archives</a>.</p>
 </div>
 
 

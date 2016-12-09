@@ -1,0 +1,77 @@
+title=Introducing Ersatz
+date=2016-12-10
+type=post
+tags=blog,groovy,testing
+status=published
+~~~~~~
+While working on tests for the https://http-builder-ng.github.io/http-builder-ng/[HttpBuilder-NG] project, I tried out a couple different mock server
+libraries, my old go-to http://www.mock-server.com/[Mock Server] and then the
+https://github.com/square/okhttp/tree/master/mockwebserver[OkHttp Mock Server], but both had their own issues and just didn't really fit the bill for
+what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the
+http://stehno.com/ersatz/[Ersatz Server].
+
+My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of
+any other mocking library. I used the http://undertow.io[Undertow] web server with both a Java 8 chained builder and a Groovy DSL approach to
+configuration to allow very simple and expressive expectation configuration.
+
+With the Groovy DSL you can define expectations such as:
+
+[source,groovy]
+----
+ErsatzServer ersatz = new ErsatzServer()
+
+server.expectations {
+    get('/say/hello'){
+        verifier once()
+        query 'name','Ersatz'
+        responder {
+            content 'Hello Ersatz','text/plain'
+        }
+    }
+}
+
+ersatz.start()
+
+URL url = "${ersatz.serverUrl}/say/hello?name=Ersatz".toURL()
+assert url.text == 'Hello Ersatz'
+
+assert ersatz.verify()
+
+ersatz.stop()
+----
+
+which will respond to a `GET` request to `/say/hello?name=Ersatz` with the text content `Hello Ersatz` and it will be expected that this request is
+called exactly once, or the `verify()` call will fail. This could also be written in standard Java:
+
+[source,java]
+----
+server.expectations( expect -> {
+    expect.get("/say/hello").verifier(once()).query("name","Ersatz").responds().content("Hello Ersatz","text/plain");
+});
+----
+
+The builder form and the DSL form are equivalent and may be used together when developing in Groovy.
+
+Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other
+custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent
+calls would respond with a 500 error status, such as:
+
+[source,groovy]
+----
+server.expectations {
+    post('/save'){
+        body data, 'application/json'
+        responder {
+            content outdata, 'application/json'
+        }
+        responder {
+            code 500
+        }
+    }
+}
+----
+
+This allows for some interesting and flexible configuration options.
+
+It's a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features
+that we can utilize going forward that were not present in the other mock server libraries. Give it a try.
