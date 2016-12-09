@@ -1,12 +1,10 @@
 <%include "header.gsp"%>
 	
-	<%include "menu.gsp"%>
-	
-	<div class="page-header">
-		<h1>${content.title}</h1>
-	</div>
+	<h1>${content.title}</h1>
 
-	<p><em>${content.date.format("dd MMMM yyyy")}</em> ~ <%= content.tags.collect { t-> "<a href='/tags/${t}.html'>$t</a>" }.join(', ') %></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> ${content.date.format("dd MMMM yyyy")}</em> ~ <%= content.tags.collect { t->
+		"<a href='/tags/${t}.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> $t</span></a>"
+	}.join(', ') %></p>
 
 	<p>${content.body}</p>
 

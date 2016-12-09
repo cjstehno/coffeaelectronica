@@ -1,7 +1,5 @@
 <%include 'header.gsp'%>
 
-	<%include 'menu.gsp'%>
-	
 	<div class="page-header">
 		<h1>Blog Archive</h1>
 	</div>
