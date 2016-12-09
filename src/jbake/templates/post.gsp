@@ -8,6 +8,4 @@
 
 	<p>${content.body}</p>
 
-	<hr />
-	
 <%include "footer.gsp"%>
