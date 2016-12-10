@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -84,6 +81,12 @@
                             
                         </ul>
                     </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -136,8 +139,6 @@
 <blockquote><p><em>Note:</em> Some un-important classes are not shown here. This is just to give you the general idea of the manager.</p>
 </blockquote><p>You will notice that the <code>ApplicationContext</code> is injected into the manager by Spring through the implementation<br/>of the <code>ApplicationContextAware</code> interface. Now, when your application needs to execute one of these commands,<br/>you simply pull the manager bean out of spring (which will load only the manager), call the execute(String) method with<br/>the desired command id. Then, only the desired command bean will be loaded and executed. This has come in very handy<br/>recently for handling front end interface actions. This laziness allows the system to start up faster, be more stable,<br/>and more memory efficient. Sometimes being lazy is a good thing.</p><p>In my development, I have created an abstract lazy mapping manager using this strategy... it works great. What I would like<br/>to come up with is a version of this that not only does lazy loading, but then unloads the bean after a period of idle<br/>time - I am not sure whether Spring currently supports this or not. Something to look into.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -150,9 +151,9 @@
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

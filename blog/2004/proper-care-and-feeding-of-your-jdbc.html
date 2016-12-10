@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,6 +82,12 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
@@ -94,8 +97,14 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 May 2004</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>If you've been developing very long, you have probably run across this numerous times, but for those of you that<br/>are new to JDBC, here is a quick tip that will help you greatly in the long run (I have seen it done wrong many times).<br/>When you perform your connection retrieval (directly or from a pool - use a pool as often as possible), make sure that<br/>you clean up your resources when you are done.</p>
-<pre><code class="java">Connection conn = null;
+	<p><div class="paragraph">
+<p>If you&#8217;ve been developing very long, you have probably run across this numerous times, but for those of you that are new to JDBC, here is a quick tip
+that will help you greatly in the long run (I have seen it done wrong many times). When you perform your connection retrieval (directly or from a pool
+- use a pool as often as possible), make sure that you clean up your resources when you are done.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">Connection conn = null;
 Statement st = null;
 ResultSet rs = null;
 try {
@@ -121,9 +130,22 @@ try {
     if(conn != null){
     try {conn.close();} catch(Exception e){}
     }
-}
-</code></pre><p>If you follow this format as a general rule, you will end up with fewer database related problems, especially if you<br/>use connection pooling. Connections that are not disposed of properly can cause very bad things to happen in your<br/>application. Also, note that I mention minimizing the code within the try/catch block. You want to use your<br/>connection and clean it up as soon as possible (again, especially if you are pooling) so that the resources are not<br/>hanging around needlessly. Another interesting point is the set of empty catch blocks. We have all been told that<br/>empty catch blocks are a bad thing; however, I have seen this style used in pretty much every description of this code.<br/>The JDBC developers (in their infinite wisdom) decided that every method should throw a <code>SQLException</code>, even<br/>though there is little you can really do about it when you are trying to close up the connection. That is why you just<br/>ignore them; though here I ignore them separately so that one does not affect the others. You can clean up this code<br/>even more if you use the <a href="http://commons.apache.org/dbutils">Jakarta Commons - DbUtils API</a>:</p>
-<pre><code class="java">Connection conn = null;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you follow this format as a general rule, you will end up with fewer database related problems, especially if you use connection pooling.
+Connections that are not disposed of properly can cause very bad things to happen in your application.   Also, note that I mention minimizing the code
+within the try/catch block. You want to use your connection and clean it up as soon as possible (again, especially if you are pooling) so that the
+resources are not hanging around needlessly.   Another interesting point is the set of empty catch blocks. We have all been told that empty catch
+blocks are a bad thing; however, I have seen this style used in pretty much every description of this code. The JDBC developers (in their infinite
+wisdom) decided that every method should throw a <code>SQLException</code>, even though there is little you can really do about it when you are trying to close
+up the connection. That is why you just ignore them; though here I ignore them separately so that one does not affect the others.  You can clean up
+this code even more if you use the <a href="http://commons.apache.org/dbutils">Jakarta Commons - DbUtils API</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">Connection conn = null;
 Statement st = null;
 ResultSet rs = null;
 try {
@@ -143,9 +165,18 @@ try {
     DbUtils.closeQuietly(rs);
     DbUtils.closeQuietly(st);
     DbUtils.closeQuietly(conn);
-}
-</code></pre><p>You are not really required to close the <code>ResultSet</code>, and the <code>Statement</code> if you close the <code>Connection</code> properly;<br/>however, it adds an extra level of assurance especially when you are using a driver that<br/>may not be fully compliant or properly implemented. The <a href="http://springframework.org/">Spring Framework</a> also provides<br/>some very useful APIs for working with JDBC such as template methods, row mappers, and callback<br/>closure-like structures, an example would be:</p>
-<pre><code class="java">new ConnectionCallback(){
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You are not really required to close the <code>ResultSet</code>, and the <code>Statement</code> if you close the <code>Connection</code> properly; however, it adds an extra level of
+assurance especially when you are using a driver that may not be fully compliant or properly implemented. The
+<a href="http://springframework.org/">Spring Framework</a> also provides some very useful APIs for working with JDBC such as template methods, row mappers, and
+callback closure-like structures, an example would be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">new ConnectionCallback(){
     public Object doInConnection(Connection conn) throws SQLException, DataAccessException {
         st = conn.createStatement();
         rs = st.executeQuery(sql);
@@ -155,11 +186,13 @@ try {
 
         // minimize code here to free conn ASAP.
     }
-}
-</code></pre><p>There are quite a few helpful constructs in the Spring JDBC API to make JDBC interaction easier to work with.</p></p>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are quite a few helpful constructs in the Spring JDBC API to make JDBC interaction easier to work with.</p>
+</div></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -172,9 +205,9 @@ try {
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

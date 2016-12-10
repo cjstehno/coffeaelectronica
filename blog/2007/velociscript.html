@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -84,6 +81,12 @@
                             
                         </ul>
                     </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -129,8 +132,6 @@ today is: ${model.getMonth()+1}/${model.getDate()}/${model.getFullYear()}
 &lt;/span&gt;
 </code></pre><p>When you enter a name and click "Go", the template string will be replaced by the evaluated string which contains the<br/>name value from the form field and the formatted date. The model object passed in was a JavaScript <code>Date</code> object,<br/>but it could have been any object. This still needs a little work and could use some regex love from a regex guru, but<br/>it works on both IE and FireFox. It might be interesting to expand this a bit more to create a Velociscript object<br/>engine similar to Velocity itself so that templates can be managed and cached... we'll see what happens when I start<br/>using this code.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -143,9 +144,9 @@ today is: ${model.getMonth()+1}/${model.getDate()}/${model.getFullYear()}
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

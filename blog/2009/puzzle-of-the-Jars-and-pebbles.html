@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,6 +82,12 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
@@ -98,8 +101,6 @@
 <blockquote><p>You have two types of pebbles, white and black, and three jars labeled white, black and black &amp; white, respectively.<br/>One jar contains all white pebbles, one contains all black pebbles and one contains a mixture of black and white pebbles.</p>
 </blockquote><p>The three jars a all mislabelled so that they will not contain the pebbles noted on the label. How many pebbles would you have to draw and from which jars in order to determine the true distribution?</p><p>Don't read any farther if you are going to try and solve this one for yourself. The next paragraph contains the<br/>answer.</p><p>The answer is one, from the jar labelled "black &amp; white". If you got it on your first try through, congratulations, I did not.<br/>I figured it out on my second run through it.</p><p>Basically, you draw one pebble from the "black &amp; white" jar. Say you draw a white one, you then know that the jar labelled "black &amp; white" is the jar containing the white pebbles. This leaves you with two unknown jars, one labelled "white" and one labelled "black". Since you know that both of these are incorrect and you have a white pebble, you know that the jar labelled "white" contains the black pebbles and the one labelled "black" contains the black and white pebble mixture.</p><p>It's an interesting problem, but honestly I have never felt that these sorts of problems are useful in a technical interview. We would<br/>usually have one question of this nature in our interviews more to see how they would go about solving it than looking<br/>for an actual answer. Google apparently loves this type of question in an interview, but asks very little of a technical<br/>nature.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -112,9 +113,9 @@
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

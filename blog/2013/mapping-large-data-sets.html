@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -84,6 +81,12 @@
                             
                         </ul>
                     </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -159,8 +162,6 @@
 })
 </code></pre><p>as can be seen in V4:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west.png" alt="V4 West""/></p><p>But, it is more apparent when you zoom in:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/mapping-large-data/src/main/webapp/img/v4_west_zoom.png" alt="V4 West Zoom""/></p><p>You can see now that the green markers are client-side clusters and the blue markers are server-side points (clusters or single locations).</p><p>At the end of all that you have a map with client-side clustering to handle visual density at the local level. You have server-side clustering at more-global zoom levels, with caching to remove jitter and reduce calculation time and you have actual location points being served filtered by bounds. It seems like a lot of effort, but overall the code itself is fairly simple and straight-forward... and now we can support a million data points with no real issues or loss of information.</p><p>One thing I have not mentioned here is the use of GIS databases or extensions. My goal here was more conceptual, but should you be faced with this kind of problem, you should look into the GIS support for your data storage solution since being able to run queries directly on the bounding shape can be more efficient with GIS solutions in place.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -173,9 +174,9 @@
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

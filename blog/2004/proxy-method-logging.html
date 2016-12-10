@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,6 +82,12 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
@@ -94,29 +97,55 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 February 2004</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Here's an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a <code>java.lang.reflect.Proxy</code> to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.</p><p>First off, you need an interface to do this, any interface that your modules implement will work.</p>
-<pre><code class="java">public interface SomeInterface {
+	<p><div class="paragraph">
+<p>Here&#8217;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you
+want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a <code>java.lang.reflect.Proxy</code> to do
+your method call logging. Basically, you build a wrapper around your module that does the logging for any module.</p>
+</div>
+<div class="paragraph">
+<p>First off, you need an interface to do this, any interface that your modules implement will work.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public interface SomeInterface {
 
     public void doSomethingA(String p1, int p2);
 
     public String[] doSomethingB(Map map);
-}
-</code></pre><p>Second, you will need an implementation of that interface, your module or plug-in class. This is the actual object doing the work whose method calls will be logged.</p>
-<pre><code class="java">public class SomeImplnterfaceImpl implements SomeInterface {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Second, you will need an implementation of that interface, your module or plug-in class. This is the actual object doing the work whose method calls will be logged.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class SomeImplnterfaceImpl implements SomeInterface {
 
     public SomeImplnterfaceImpl(){}
 
     public void doSomethingA(String p1, int p2){
-        System.out.println(&quot;doSomethingA with (&quot; + p1 + &quot; and &quot; + p2 + &quot;)&quot;);
+        System.out.println("doSomethingA with (" + p1 + " and " + p2 + ")");
     }
 
     public String[] doSomethingB(Map map){
-        System.out.println(&quot;doSomethingB with a Map: &quot; + map);
+        System.out.println("doSomethingB with a Map: " + map);
         return( (String[])map.values().toArray(new String[0]) );
     }
-}
-</code></pre><p>Both of the above items you should already have in your system. If not, in most cases, they can be easily added. Now we get into the good stuff. The Proxy class is an interesting little creature. It allows you to give it an array of interfaces that it is to "implement" by passing method calls to an instance of the <code>InvocationHandler</code> interface, which determines how the method calls are to be processed. Our proxy will simply log the method call and pass it along to the real implementation. We'll make a factory class to create our logging proxy. It will have one method with two arguments. The first is the interface that is to be logged, <code>SomeInterface</code> in our example, and the second is the implementation of that interface, <code>SomeInterfaceImpl</code> for our example.</p>
-<pre><code class="java">public final class LoggingProxyFactory {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both of the above items you should already have in your system. If not, in most cases, they can be easily added. Now we get into the good stuff. The
+Proxy class is an interesting little creature. It allows you to give it an array of interfaces that it is to "implement" by passing method calls to an
+instance of the <code>InvocationHandler</code> interface, which determines how the method calls are to be processed. Our proxy will simply log the method call
+and pass it along to the real implementation. We&#8217;ll make a factory class to create our logging proxy. It will have one method with two arguments. The
+first is the interface that is to be logged, <code>SomeInterface</code> in our example, and the second is the implementation of that interface,
+<code>SomeInterfaceImpl</code> for our example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public final class LoggingProxyFactory {
 
     private LoggingProxyFactory(){}
 
@@ -130,9 +159,18 @@
             )
         );
     }
-}
-</code></pre><p>You see that creating a proxy is pretty simple. You create a proxy instance using your interfaces, your class loader and your invocation handler. The invocation handler is where the action happens. Our <code>InvocationHandler</code> implementation is going to be a static inner class of the <code>LoggingProxyFactory</code> class. What it needs to do is logs the method calls as they come in and then pass along the call to the real implementation. Here is the code for the inner class.</p>
-<pre><code class="java">private static final class LoggingHandler implements InvocationHandler {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You see that creating a proxy is pretty simple. You create a proxy instance using your interfaces, your class loader and your invocation handler. The
+invocation handler is where the action happens. Our <code>InvocationHandler</code> implementation is going to be a static inner class of the
+<code>LoggingProxyFactory</code> class. What it needs to do is logs the method calls as they come in and then pass along the call to the real implementation.
+Here is the code for the inner class.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">private static final class LoggingHandler implements InvocationHandler {
 
     private Log log;
     private Object impl;
@@ -143,11 +181,11 @@
     }
 
     public Object invoke(Object obj,Method method,Object[] params) throws Throwable {
-        if(log.isInfoEnabled()) log.info(&quot;Entering: &quot; + method.getName();
+        if(log.isInfoEnabled()) log.info("Entering: " + method.getName();
 
         if(log.isDebugEnabled()){
             for(int p=0; p&amp;amp;tl;params.length;p++){
-                log.debug(method.getName() + &quot; Param[&quot; + p + &quot;]: &quot; + params[p].toString());
+                log.debug(method.getName() + " Param[" + p + "]: " + params[p].toString());
             }
         }
 
@@ -156,22 +194,36 @@
         try {ret = method.invoke(impl, params);}
         catch(Exception ex){
             if(log.isErrorEnabled()){
-                log.error(method.getName() + &quot; Exception: &quot; + ex.getMessage(), ex);
+                log.error(method.getName() + " Exception: " + ex.getMessage(), ex);
             }
             throw ex;
         }
 
-        if(log.isDebugEnabled()) log.debug(method.getName() + &quot; Returned: &quot; + ret);
+        if(log.isDebugEnabled()) log.debug(method.getName() + " Returned: " + ret);
 
-        if(log.isInfoEnabled()) log.info(&quot;Leaving&quot;);
+        if(log.isInfoEnabled()) log.info("Leaving");
 
         return(ret);
     }
-}
-</code></pre><p>I am using the <a href="http://commons.apache.org/logging">Jakarta Logging API</a> for the logging in this case; however, you could use any logging API or simple standard out statements as you see fit. The main thing to notice in the code above is the invocation of the method on the implementation object.</p></p>
-<pre><code class="java">ret = method.invoke(impl, params);
-</code></pre><p>It is this line that passes on the method call to the real implementation. The rest of the method is logging of the entering and leaving, parameters and return value. Exceptions are also logged. To test out the proxy and see it in action, you can run the following tester app:</p>
-<pre><code class="java">public class Tester {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I am using the <a href="http://commons.apache.org/logging">Jakarta Logging API</a> for the logging in this case; however, you could use any logging API or simple
+standard out statements as you see fit. The main thing to notice in the code above is the invocation of the method on the implementation object.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">ret = method.invoke(impl, params);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is this line that passes on the method call to the real implementation. The rest of the method is logging of the entering and leaving, parameters
+and return value. Exceptions are also logged. To test out the proxy and see it in action, you can run the following tester app:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class Tester {
     public static void main(String[] args){
         try {
             Object obj = LoggingProxyFactory.create(
@@ -179,23 +231,26 @@
                 new SomeImplnterfaceImpl()
             );
             SomeInterface siObj = (SomeInterface)obj;
-            siObj.doSomethingA(&quot;Hello&quot;,31);
+            siObj.doSomethingA("Hello",31);
 
             Map map = new HashMap();
-            map.put(&quot;a&quot;, &quot;Some data 1&quot;);
-            map.put(&quot;b&quot;, &quot;Some data 2&quot;);
-            map.put(&quot;c&quot;, &quot;Some data 3&quot;);
-            map.put(&quot;d&quot;, &quot;Some data 4&quot;);
+            map.put("a", "Some data 1");
+            map.put("b", "Some data 2");
+            map.put("c", "Some data 3");
+            map.put("d", "Some data 4");
             siObj.doSomethingB(map);
         } catch(Exception ex){
             ex.printStackTrace();
         }
     }
-}
-</code></pre><p>Which yields the method call results and their logging information. This was an interesting idea I have tossed around for a while now. It does work, though it has not been rigorously tested. If nothing else, it is a description of how to use the proxy class.</p></p>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which yields the method call results and their logging information. This was an interesting idea I have tossed around for a while now. It does work,
+though it has not been rigorously tested. If nothing else, it is a description of how to use the proxy class.</p>
+</div></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -208,9 +263,9 @@
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

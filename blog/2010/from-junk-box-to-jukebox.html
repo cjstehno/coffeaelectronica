@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,6 +82,12 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
@@ -104,8 +107,6 @@ def money( m ){ new java.text.DecimalFormat(&#39;$0.00&#39;).format( m )}
 println &quot;${money(costPerDay)}/day ==&gt; ${money(costPerMonth)}/month&quot;
 </code></pre><p>I found that the server uses roughly $0.13/day or $3.93/month on average based on the time duration I tested in which<br/>the server was under normal usage. Obviously, this number is very dependent on the system you build your server with.<br/>Given some of the new Atom-based boxes that are available, you could probably really cut that cost down even more. If<br/>you consider that most hosting with any useful functionality is at least $3-5 per month, and a lot of the cloud-based<br/>services that are coming out are in the range of $5-10 per month... $3-5 per month for your own server with unlimited<br/>possibilities is not bad at all. Also there is one cost-cutting measure you can do with your own server that you<br/>cannot do with hosting... turn it off.</p><p>Finally, I also found a useful tool for working with the server. If you<br/>have an Android phone you can install <a href="http://code.google.com/p/connectbot/">ConnectBot</a> which gives you SSH<br/>shell access to your server. I don't have my SSH port forwarded from the router so this only works inside my home<br/>network via wireless, but ConnectBot makes it very easy to check on the status of the box, do a shutdown or restart the<br/>web server without having to fire up your desktop box.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -118,9 +119,9 @@ println &quot;${money(costPerDay)}/day ==&gt; ${money(costPerMonth)}/month&quot;
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

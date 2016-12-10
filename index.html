@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,12 +82,105 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
 
 
 	
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <h1><a href="blog/2016/introducing-ersatz.html">Introducing Ersatz</a></h1>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 10 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a>
+                <p><div class="paragraph">
+<p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server
+libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the
+<a href="https://github.com/square/okhttp/tree/master/mockwebserver">OkHttp Mock Server</a>, but both had their own issues and just didn&#8217;t really fit the bill for
+what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the
+<a href="http://stehno.com/ersatz/">Ersatz Server</a>.</p>
+</div>
+<div class="paragraph">
+<p>My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of
+any other mocking library. I used the <a href="http://undertow.io">Undertow</a> web server with both a Java 8 chained builder and a Groovy DSL approach to
+configuration to allow very simple and expressive expectation configuration.</p>
+</div>
+<div class="paragraph">
+<p>With the Groovy DSL you can define expectations such as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">ErsatzServer ersatz = new ErsatzServer()
+
+server.expectations {
+    get('/say/hello'){
+        verifier once()
+        query 'name','Ersatz'
+        responder {
+            content 'Hello Ersatz','text/plain'
+        }
+    }
+}
+
+ersatz.start()
+
+URL url = "${ersatz.serverUrl}/say/hello?name=Ersatz".toURL()
+assert url.text == 'Hello Ersatz'
+
+assert ersatz.verify()
+
+ersatz.stop()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which will respond to a <code>GET</code> request to <code>/say/hello?name=Ersatz</code> with the text content <code>Hello Ersatz</code> and it will be expected that this request is
+called exactly once, or the <code>verify()</code> call will fail. This could also be written in standard Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">server.expectations( expect -&gt; {
+    expect.get("/say/hello").verifier(once()).query("name","Ersatz").responds().content("Hello Ersatz","text/plain");
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The builder form and the DSL form are equivalent and may be used together when developing in Groovy.</p>
+</div>
+<div class="paragraph">
+<p>Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other
+custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent
+calls would respond with a 500 error status, such as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">server.expectations {
+    post('/save'){
+        body data, 'application/json'
+        responder {
+            content outdata, 'application/json'
+        }
+        responder {
+            code 500
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This allows for some interesting and flexible configuration options.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features
+that we can utilize going forward that were not present in the other mock server libraries. Give it a try.</p>
+</div></p>
+            </div>
+        </div>
+  	
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-plugins-intro.html">Writing Gradle Plugins</a></h1>
@@ -1053,7 +1143,7 @@ which runs quality rules against your code to generate a report of possible issu
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>codenarcMain {
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">codenarcMain {
     ignoreFailures false
     configFile file('config/codenarc-main.rules')
 
@@ -1065,7 +1155,7 @@ which runs quality rules against your code to generate a report of possible issu
 codenarcTest {
     ignoreFailures true
     configFile file('config/codenarc-test.rules')
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2339,202 +2429,9 @@ tasks.build.dependsOn checkDependencies</pre>
             </div>
         </div>
   	
-        <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-                <h1><a href="blog/2016/text-file-read-write.html">Vanilla TextFileReader/Writer</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 06 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/vanilla.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> vanilla</span></a>
-                <p><div class="paragraph">
-<p>Something I have found myself doing quite often over my whole career as a developer is reading and writing simple text file data. Whether it is a quick data dump or a data set to be loaded from a 3rd party, it is something I end up doing a lot and usually it is something coded mostly from scratch since, surprisingly enough, there are very few tools available for working with formatted text files. Sure, there are a few for CSV, but quite often I get a reqest to read or write a format that is kind of similar to CSV, but just enough different that it breaks a standard CSV parser for whatever reason. Recently, I decided to add some utility components to my <a href="http://stehno.com/vanilla">Vanilla project</a> with the aim of making these readers and writers simpler to build.</p>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s start off with the <code>com.stehno.vanilla.text.TextFileWriter</code> and say we have a data source of <code>Person</code> objects in our application that the business wants dumped out to a text file (so they can import it into some business tools that only ever seem capable of importing simple text files). In the application, the data structure looks something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class Person {
-    String firstName
-    String middleName
-    String lastName
-    int age
-    float height
-    float weight
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>with the <code>TextFileWriter</code> you need to define a <code>LineFormatter</code> which will be used to format the generated lines of text, one per object written. The <code>LineFormatter</code> defines two methods, <code>String formatComment(String)</code> for formatting a comment line, and <code>String formatLine(Object)</code> for formatting a data line. A simple implementation is provided, the <code>CommaSeparatedLineFormatter</code> will generate comment lines prefixed with a <code>#</code> and will expect a <code>Collection</code> object to be formatted and will format it as a CSV line.</p>
-</div>
-<div class="paragraph">
-<p>The available implementation will not work for our case, so we will need to define our own <code>LineFormatter</code>. We want the formatted data lines to be of the form:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-text" data-lang="text"># Last-Name,First-Name-Middle-Initial,Attrs
-Smith,John Q,{age:42, height:5.9, weight:230.5}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Yes, that&#8217;s a bit of a convoluted format, but I have had to generate worse. Our <code>LineFormatter</code> ends up being something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonLineFormatter implements LineFormatter {
-
-    @Override
-    String formatComment(String text) {
-        "# $text" <b class="conum">(1)</b>
-    }
-
-    @Override
-    String formatLine(Object object) {
-        Person person = object as Person
-        "${person.lastName},${person.firstName} ${person.middleName[0]},{age:${person.age}, height:${person.height}, weight:${person.weight}}" <b class="conum">(2)</b>
-    }
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>We specify the comment as being prefixed by a <code>#</code> symbol.</p>
-</li>
-<li>
-<p>Write out the <code>Person</code> object as the formatted <code>String</code></p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>We see that implementing the <code>LineFormatter</code> keeps all the application specific logic isolated from the common operation of actually writing the file. Now we can use our formatter as follows:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">TextFileWriter writer = new TextFileWriter(
-    lineFormatter: new PersonLineFormatter(),
-    filePath: new File(outputDir, 'people.txt')
-)
-
-writer.writeComment('Last-Name,First-Name-Middle-Initial,Attrs')
-
-Collection&lt;Person&gt; people = peopleDao.listPeople()
-
-people.each { Person p-&gt;
-    writer.write(p)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This will write out the text file in the desired format with very little new coding required.</p>
-</div>
-<div class="paragraph">
-<p>Generally, writing out text representations of application data is not really all that challenging, since you have access to the data you need and some control over the formatting of the objects to be represented. The real challenge is usually going in the other direction, when you are reading in a data file from some external source, this is where the <code>com.stehno.vanilla.text.TextFileReader</code> becomes useful.</p>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s say you receive a request to import the data file we described above, maybe it was generated by the same business tools I mentioned earlier. We have something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-text" data-lang="text"># Last-Name,First-Name-Middle-Initial,Attrs
-Smith,John Q,{age:42, height:5.9, weight:230.5}
-Jones,Robert M,{age:38, height:5.6, weight:240.0}
-Mendez,Jose R,{age:25, height:6.1, weight:232.4}
-Smalls,Jessica X,{age:30, height:5.5, weight:175.2}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>TextFileReader</code> requires a <code>LineParser</code> to parse the input file lines into objects; it defines three methods, <code>boolean parseable(String)</code> which is used to determine whether or not the line should be parsed, <code>Object[] parseLine(String)</code> which is used to parse the line of text, and <code>Object parseItem(Object, int)</code> which is used to parse an individual element of the comma-separated line. There is a default implementation provided, the <code>CommaSeparatedLineParser</code> will parse simple comma-separated lines of text into arrays of Objects based on configured item converters; however, this will not work in the case of our file since there are commas in the data items themselves (the JSON-like format of the last element). So we need to implement one. Our <code>LineParser</code> will look something like the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonLineParser implements LineParser {
-
-    boolean parsable(String line){
-        line &amp;&amp; !line.startsWith(HASH) <b class="conum">(1)</b>
-    }
-
-    Object[] parseLine(String line){ <b class="conum">(2)</b>
-        int idx = 0
-        def elements = line.split(',').collect { parseItem(it, idx++) }
-
-        [
-            new Person(
-                firstName:elements[1][0],
-                middleName:elements[1][1],
-                lastName:elements[0],
-                age:elements[2],
-                height:elements[3],
-                weight:elements[4],
-            )
-        ] as Object[]
-    }
-
-    // Smith,John Q,{age:42, height:5.9, weight:230.5}
-    // 0    ,1     ,2      ,3          ,4
-    Object parseItem(Object item, int index){ <b class="conum">(3)</b>
-        switch(index){
-            case 0:
-                return item as String
-            case 1:
-                return item.split(' ')
-            case 2:
-                return item.split(':')[1] as int
-            case 3:
-                return item.split(':')[1] as float
-            case 4:
-                return item.split(':')[1][0..-2] as float
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>We want to ignore blank lines or lines that start with a <code>#</code> symbol.</p>
-</li>
-<li>
-<p>We extract the line items and build the <code>Person</code> object</p>
-</li>
-<li>
-<p>We convert the line items to our desired types</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>It&#8217;s not pretty, but it does the job and keeps all the line parsing logic out of the main file loading functionality. Our code to read in the file would look somethign like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">setup:
-TextFileReader reader = new TextFileReader(
-    filePath: new File(inputDir, 'people.txt'),
-    lineParser: new PersonLineParser(),
-    firstLine: 2 <b class="conum">(1)</b>
-)
-
-when:
-def people = []
-
-reader.eachLine { Object[] data -&gt;
-    lines &lt;&lt; data[0]
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>We skip the first line, since it will always be the header</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>The provided implementations for both the <code>LineFormatter</code> and <code>LineParser</code> will not account for every scenario, but hopefully they will hit some of them and provide a guideline for implementing your own. If nothing else, these components help to streamline the readign and writing of formatted text data so that you can get it done and focus on other more challenging development tasks.</p>
-</div></p>
-            </div>
-        </div>
-  	
 
 <div class="well well-sm">
-    <p><span class="glyphicon glyphicon-hourglass"></span> Older posts are available in the <a href="/archive.html">archives</a>.</p>
+    <p><span class="glyphicon glyphicon-calendar"></span> Older posts are available in the <a href="/archive.html">archives</a>.</p>
 </div>
 
 
@@ -2550,9 +2447,9 @@ reader.eachLine { Object[] data -&gt;
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

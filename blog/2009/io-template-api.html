@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -84,6 +81,12 @@
                             
                         </ul>
                     </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -134,8 +137,6 @@ IoTemplate.output(osf,osc);
 IoTemplate.output(response.getOutputStream(), osc);
 </code></pre><p>Leaving you to focus on writing your functionality, not all that boilerplate code. You could create a reusable factory for<br/>your application, or use one of the file-based or adapter implementations provided. Then each time you need to perform an<br/>IO operation you could use that factory and create a new callback, or even come up with a reusable set. I will admit that<br/>this does not really cut down on the code all that much and I think I see the reason why Spring has not implemented anything<br/>like this. It's hard to do it in an elegant manner without injecting a lot of assumptions and/or restrictions. I went for<br/>the shotgun approach of trying to cover everything.</p><p>Also, there are APIs such as the <a href="http://commons.apache.org/io">Jakarta Commons IO API</a> which do a much more compact job of<br/>reading/writing data all at once; however, that is not really what this API is for. CodePerks IO is meant for those<br/>situations where you need a bit more fine-grained control over how things are handled but still want some re-usability and<br/>abstraction from boilerplate code. Perhaps someone else will find it useful too. I will be maintaining that project and<br/>will eventually produce a release. Drop me an email if you are using it or would like to use it... sometimes that can get<br/>me to move things along faster.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -148,9 +149,9 @@ IoTemplate.output(response.getOutputStream(), osc);
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

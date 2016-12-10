@@ -52,12 +52,9 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="/index.html">Home</a></li>
-                    <li><a href="/about.html">About</a></li>
-                    <li><a href="/feed.xml">Feed</a></li>
-                    <li><a href="/archive.html">Archive</a></li>
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tags <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             
                                     <li><a href="/tags/ant.html">ant</a></li>
@@ -85,6 +82,12 @@
                         </ul>
                     </li>
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
@@ -109,8 +112,6 @@
   <li>No optical drive, sound card, video card or network card; the latter three all being integrated on the motherboard, the optical drive was not necessary for a server like this.</li>
 </ul><p>I bought everything from <a href="http://newegg.com/">NewEgg</a> for a grand total (with extra warranty and shipping) out of pocket of a hair over<br/><em>$300</em>. Not bad at all considering everything I looked at "off the rack" was at least $400, and usually had more or less<br/>than what I actually wanted. Maybe someone with more experience building systems could do better since there are probably<br/>areas I could have cut corners on where I played it safe.</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/compbuild1.jpg" alt="The components""/></p><p>Once all the parts came in (the following week, damn they ship fast), I put everything together with the help of the<br/>Lifehacker articles. With a little help and guidance it was actually a pretty easy and mostly straight-forward process<br/>that took about three hours. Once everything was secured and wired together, I fired it up for the first time and was<br/>able to get into the BIOS; however, my hard drive was not being recognized. After trying different cables and then<br/>trying the drive in my desktop computer the only thing I can figure is that the drive was dead on arrival, great quality<br/>control WD! I ran out to BestBuy and bought another of the same drive (well the same brand but larger size) for<br/>basically the same price to test my theory and I was correct. Once the new drive was in place everything worked fine. I<br/>returned the dead drive to NewEgg and have gotten my refund with no problems.</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/compbuild12.jpg" alt="The completed build""/></p><p>Next, I moved on to the OS. My server OS of choice is <a href="http://www.ubuntu.com/">Ubuntu</a> so I downloaded the<br/>64-bit version of Ubuntu 11.04 and followed the instructions to create a USB installer... I have no optical drive,<br/>remember. It was down right simple and it booted from the stick with no problem and installed, as always, like a<br/>dream.</p><p>From there I basically followed along with my previous post to install my shared directories and the<br/>applications I wanted. It's been nice having a server up and running again.</p><p>I think in a couple years when it's<br/>time to upgrade my desktop, I will do a custom build. It's kind of fun and you get exactly what you want.</p></p>
 
-	<hr />
-	
 
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -123,9 +124,9 @@
 
         </div>
 
-        <script src="js/jquery-1.12.4.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script src="js/prettify.js"></script>
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
 
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
