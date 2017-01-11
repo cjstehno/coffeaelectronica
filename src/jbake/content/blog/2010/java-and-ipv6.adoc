@@ -4,7 +4,7 @@ type=post
 tags=blog,java
 status=published
 ~~~~~~
-In case you have not run into it yet, [IPv6](http://en.wikipedia.org/wiki/IPv6) is creeping into our lives. Recently I
+In case you have not run into it yet, http://en.wikipedia.org/wiki/IPv6[IPv6] is creeping into our lives. Recently I
 had to work on functionality that had to support the storing of both IPv4 and IPv6 in a database record... and it's
 actually pretty easy.
 
