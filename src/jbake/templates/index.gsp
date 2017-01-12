@@ -6,7 +6,7 @@
                 <h1><a href="${post.uri}">${post.title}</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> ${post.date.format("dd MMMM yyyy")}</em> ~ <%= post.tags.collect { t->
                     "<a href='/tags/${t}.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> $t</span></a>"
-                }.join(', ') %>
+                }.join(' ') %>
                 <p>${post.body}</p>
             </div>
         </div>
