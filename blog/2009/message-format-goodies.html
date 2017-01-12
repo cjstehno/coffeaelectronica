@@ -95,7 +95,7 @@
 	
 	<h1>MessageFormat Goodies</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>The <code>java.text.MessageFormat</code> class is, in my opinion, underutilized. It is what <code>org.springframework.context.MessageSource</code> implementations use under the covers to provide message formatting, so they are probably used quite a bit, but do you really let them do what they are made to do... formatting? I am guilty of it to; you convert a Date object to a formatted string before handing it off to a <code>MessageSource</code> or <code>MessageFormat</code> instance... but no more. I wrote a quick<br/>little format dumper to show what each type of formatting prints out:</p>
 <pre><code class="java">Object[] params = new Object[]{ new Date() };

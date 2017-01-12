@@ -95,7 +95,7 @@
 	
 	<h1>Multi-threaded Work Queue</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 January 2013</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 January 2013</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
 	<p><p>I finally had some time to play with the DataFlow functionality in GPars, and as you would expect, it's both simple and<br/>powerful. I needed a simple means of processing data from a queue in a multi-threaded manner. I considered something like<br/>JMS, but for what I am working on that was too complex and too heavy. I really just needed to toss a message on a queue<br/>and let it get processed at some future time, hopefully by a couple threads. The DataFlowQueue came through perfectly.</p><p>Below is a simple demo:</p>
 <pre><code class="groovy">def pool = new DefaultPool(false, 3)

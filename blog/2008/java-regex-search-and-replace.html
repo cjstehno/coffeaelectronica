@@ -95,7 +95,7 @@
 	
 	<h1>Java Regex Search and Replace</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 12 August 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 12 August 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>For many years, I felt that there was nothing "regular" about Regular Expressions, but lately I have been warming<br/>up to them a bit. The <a href="http://www.bastian-bergerhoff.com/eclipse/features/web/QuickREx/toc.html">QuickRex</a> Eclipse plug-in<br/>has really helped make them easier to manage, but that's not what this post is about.</p><p>I recently needed to do a regex-based search and replace operation to convert all the html entities in a string to their<br/>actual character equivalents, basically unescape all the entities in an html string (don't ask why). With a little regex<br/>and a little searching documentation browsing I found that it is very easy to do. Start out with the pattern, which should<br/>be a static class member (it is thread-safe once created):</p>
 <pre><code class="java">private static final Pattern entityPattern = Pattern.compile(&quot;(&amp;amp;[a-z]*;)&quot;);

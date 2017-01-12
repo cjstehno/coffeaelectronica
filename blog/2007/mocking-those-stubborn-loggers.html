@@ -95,7 +95,7 @@
 	
 	<h1>Mocking those Stubborn Loggers</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
 	<p><p>I have run into a couple instances where I would benefit from being able to mock logging, such as when the result<br/>of an operation is only some output to a log file. Reflection comes in very handy for this.</p><p>I created a utility method called <code>injectFieldValue</code> which allows a specified value to be injected into a non-final<br/>field of an object.</p>
 <pre><code class="java">public static void injectFieldValue(Object target, String fieldName, Object fieldValue) throws Exception {

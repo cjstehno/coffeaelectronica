@@ -95,7 +95,7 @@
 	
 	<h1>Spring & RMI & JNDI -> Cool</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 10 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 10 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
 	<p><p>I started looking into RMI again; it's been a while since I have used it directly and as often happens, I got sidetracked.<br/>I found out how easy it is very to setup an RMI registry with <a href="http://springframework.org/">Spring</a> and then access the<br/>bound objects via JNDI.</p><p>First, we need an object to bind. Let's keep it simple and just have two methods: one for getting the current date and<br/>another that will return the string that we pass into it. If you remember your RMI you know that we need an interface<br/>that extends <code>java.rmi.Remote</code> and an object that implements that interface. For the interface:</p>
 <pre><code class="java">public interface MyRemote extends Remote {

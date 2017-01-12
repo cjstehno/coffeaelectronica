@@ -95,30 +95,89 @@
 	
 	<h1>Java and IPv6</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 October 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 October 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>In case you have not run into it yet, <a href="http://en.wikipedia.org/wiki/IPv6">IPv6</a> is creeping into our lives. Recently I<br/>had to work on functionality that had to support the storing of both IPv4 and IPv6 in a database record... and it's<br/>actually pretty easy.</p><p>Let's say we have tow IP addresses, one of each type:</p>
-<pre><code>157.166.224.26
-1080:0:0:0:8:800:200C:417A
-</code></pre><p>The first thing we need to do is parse the string values into <code>java.net.InetAddress</code> objects.</p>
-<pre><code class="java">InetAddress inet = InetAddress.getByName( ipstr );
-</code></pre><p>which works in either case. From there you may want to determine which type of address you are working with. The only way<br/>that I found (though I didn't spend all that long) was to do an instance check:</p>
-<pre><code class="java">if( inet instanceof Inet6Address ){
+	<p><div class="paragraph">
+<p>In case you have not run into it yet, <a href="http://en.wikipedia.org/wiki/IPv6">IPv6</a> is creeping into our lives. Recently I
+had to work on functionality that had to support the storing of both IPv4 and IPv6 in a database record&#8230;&#8203; and it&#8217;s
+actually pretty easy.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say we have tow IP addresses, one of each type:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>157.166.224.26
+1080:0:0:0:8:800:200C:417A</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first thing we need to do is parse the string values into <code>java.net.InetAddress</code> objects.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">InetAddress inet = InetAddress.getByName( ipstr );</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which works in either case. From there you may want to determine which type of address you are working with. The only way
+that I found (though I didn&#8217;t spend all that long) was to do an instance check:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">if( inet instanceof Inet6Address ){
     // you have an IPv6 address
 } else if( inet instanceof Inet4Address ){
     // you have an IPv4 address
 } else {
     // I dont know what you have
-}
-</code></pre><p>From there you will need to convert the InetAddress object into bytes for storage. You could store the addresses as<br/>strings, but you end up more dependant on hacky format recognition tricks, and the byte conversion is nice and pre-built<br/>for you:</p>
-<pre><code class="java">byte[] bytes = inet.getAddress();
-</code></pre><p>Now you are ready to store the address in the database. Without going into all the db-related code you end up with:</p>
-<pre><code class="java">statement.setBytes( 1, bytes );
-</code></pre><p>You could just as easily write the bytes to an output stream or other storage format. Once you have the address stored<br/>somewhere, you need to pull it out again. First you need to read the bytes from your storage location. Assuming a database,<br/>you get something like:</p>
-<pre><code class="java">byte[] inbytes = resultSet.getBytes( 1 );
-</code></pre><p>With these bytes you can create an InetAddress again,</p>
-<pre><code class="java">InetAddress inetIn = InetAddress.getByAddress( inbytes );
-</code></pre><p>From there, a nice <code>getHostAddress()</code> call will get you your formatted IP address string, for both IPv4 and<br/>IPv6. Notice there is no code specific to either type. The instance checking is only required if you want to know<br/>specifically which type you have... and there may be a better way to do that, I didn't come across one. One oddity I<br/>found is that IPv4 addresses mapped to IPv6 addresses can get a little strange depending on how your application handles<br/>them; the InetAddress class parses them fine, but converts them to IPv4 addresses rather than noting that they are<br/>mapped addresses. Not a big deal, but something to keep in mind.</p></p>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From there you will need to convert the InetAddress object into bytes for storage. You could store the addresses as
+strings, but you end up more dependant on hacky format recognition tricks, and the byte conversion is nice and pre-built
+for you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">byte[] bytes = inet.getAddress();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you are ready to store the address in the database. Without going into all the db-related code you end up with:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">statement.setBytes( 1, bytes );</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You could just as easily write the bytes to an output stream or other storage format. Once you have the address stored
+somewhere, you need to pull it out again. First you need to read the bytes from your storage location. Assuming a database,
+you get something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">byte[] inbytes = resultSet.getBytes( 1 );</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With these bytes you can create an InetAddress again,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">InetAddress inetIn = InetAddress.getByAddress( inbytes );</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From there, a nice <code>getHostAddress()</code> call will get you your formatted IP address string, for both IPv4 and
+IPv6. Notice there is no code specific to either type. The instance checking is only required if you want to know
+specifically which type you have&#8230;&#8203; and there may be a better way to do that, I didn&#8217;t come across one. One oddity I
+found is that IPv4 addresses mapped to IPv6 addresses can get a little strange depending on how your application handles
+them; the InetAddress class parses them fine, but converts them to IPv4 addresses rather than noting that they are
+mapped addresses. Not a big deal, but something to keep in mind.</p>
+</div></p>
 
 
             <div class="row">

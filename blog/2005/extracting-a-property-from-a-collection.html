@@ -95,7 +95,7 @@
 	
 	<h1>Extracting a Property form a Collection</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 17 October 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 17 October 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>I wrote a little tutorial about <a href="/2005/01/jakarta-commons-collections.html">Transformers</a> a while back and now I found a<br/>nice little use for them today. I needed (and do every now and then) need to extract the value of one property from<br/>every element of a collection. Yes, I could write an iterator loop and pull it out myself, but that takes more lines of<br/>code and is not reusable like this approach... and I love re-usable code. I needed a list containing the ids (long) of<br/>the elements in a collection.</p>
 <pre><code class="java">private static final Transformer tx = new InvokerTransformer(&quot;getId&quot;,null,null);

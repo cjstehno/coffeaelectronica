@@ -95,7 +95,7 @@
 	
 	<h1>Unix Y2038 Bug</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>Apparently there are still some short-sighted developer date-based issues out there, one of which is the<br/><a href="http://en.wikipedia.org/wiki/Year_2038_problem">Year 2038 Problem</a>, which is a unix-based problem with how the milliseconds since 1970 value is stored... it's a 32-bit value which will wrap around into negative numbers in 2038.</p><p>I ran a quick sanity check in Linux:</p>
 <pre><code class="java">Date expiration = new Date(Long.MAX_VALUE);

@@ -96,8 +96,100 @@
 	
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
+                <h1><a href="blog/2017/fuzzy-matching.html">Fuzzy Text Matching</a></h1>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 January 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><div class="paragraph">
+<p>From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people&#8217;s first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it&#8217;s better to have a simple solution that works well-enough without adding bulk to your application.</p>
+</div>
+<div class="paragraph">
+<p>As I mentioned above, let&#8217;s say we have a list of first names - I collected 100 from a <a href="http://listofrandomnames.com/index.cfm?textarea">random name generator site</a> and put them in a text file (a sample is shown below):</p>
+</div>
+<div class="listingblock">
+<div class="title">names.txt</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-text" data-lang="text">Sona
+Terisa
+Shasta
+Jerold
+Joetta
+Harrison
+Earle
+Isaiah
+Torrie
+Valarie
+Lynell
+Mignon
+Sharla
+Kiesha
+Art</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When given a name, such as "Harry", how can we filter the list of names to provide the best matches? I have found the <a href="http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/StringUtils.html#getJaroWinklerDistance-java.lang.CharSequence-java.lang.CharSequence-">getJaroWinklerDistance</a> in the <a href="http://commons.apache.org/proper/commons-lang">Apache Commons Lang</a> <code>StringUtils</code> class to be quite useful. It&#8217;s a string similarity algorithm that returns a <code>double</code> similarity result given two strings - the larger the number, the better the match.</p>
+</div>
+<div class="paragraph">
+<p>With that you can load the names into a collection and process each of them against your given name to find the best <code>N</code> results (let&#8217;s say 10). The script is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">find_name.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Grapes(
+    @Grab('org.apache.commons:commons-lang3:3.5')
+)
+
+import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance
+
+def query = args[0].toLowerCase()
+def names = new File('./names.txt').readLines().unique()*.toLowerCase()
+
+println "Searching for: ${query}\n"
+println 'Name           Score'
+println '--------------------'
+
+names.collect { n-&gt;
+    new Tuple(n, getJaroWinklerDistance(n, query))
+}.sort { -it.get(1) }[0..10].each { r-&gt;
+    println "${r.get(0).padRight(15)}${r.get(1)}"
+}
+println ''</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If I run this against the set of 100 names I used, I get the following result:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&gt; groovy find_name.groovy Harry
+Searching for: harry
+
+Name           Score
+--------------------
+harrison       0.86
+gary           0.78
+sharla         0.7
+darrin         0.7
+art            0.69
+margart        0.68
+maryellen      0.64
+sari           0.63
+hana           0.63
+earle          0.6
+shana          0.6</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see that there is actually a pretty good match, "Harrison", and even "Gary" for that matter. I have used this method to provide a list of suggestions back to the user so that they can make the final selection from them (being the list of items actually available in your system).</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s an interesting technique and I am sure that there are better ways - feel free to suggest them.</p>
+</div></p>
+            </div>
+        </div>
+  	
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/introducing-ersatz.html">Introducing Ersatz</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 10 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 10 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a>
                 <p><div class="paragraph">
 <p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server
 libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the
@@ -184,7 +276,7 @@ that we can utilize going forward that were not present in the other mock server
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-plugins-intro.html">Writing Gradle Plugins</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 07 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 07 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
                 <p><div class="paragraph">
 <p>In my last post, <a href="http://coffeaelectronica.com/blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a>, I discussed the basics of Gradle and how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.</p>
 </div>
@@ -824,7 +916,7 @@ the Gradle User Guide or through some Google searches. It&#8217;s a powerful fra
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 02 November 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 02 November 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
                 <p><div class="paragraph">
 <p>The <a href="http://gradle.org">Gradle</a> build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
 it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
@@ -1190,7 +1282,7 @@ Maven and Ant.</p>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-natives-update.html">Gradle Natives Plugin Update</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
                 <p><div class="paragraph">
 <p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p>
 </div>
@@ -1389,7 +1481,7 @@ Native libraries found for configurations (compile, runtime)...
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/httpbuilder-ng-demo.html">HTTP Builder NG for Groovy and Java</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 18 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 18 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>The <a href="https://github.com/jgritman/httpbuilder"><code>HttpBuilder</code></a> project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly
 died. A friend of mine (<a href="https://github.com/dwclark">Dave Clark</a>) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The
@@ -1616,7 +1708,7 @@ requests, or even suggested details to be documented.</p>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/nd4j-math.html">ND4J Matrix Math</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>In my last post (<a href="http://coffeaelectronica.com/blog/2016/commons-math-matrix.html">Commons Math - RealMatrix</a>), I discussed the matrix operations support provided by the Apache Commons Math API. In doing my research I also stumbled on a library that is much closer in functionality to the Python NumPy library (commonly used in Machine Learning examples). The <a href="http://nd4j.org/">ND4J</a> library is a scientific computing library for the JVM, meant to be used in production environments, which means routines are designed to run fast with minimum RAM requirements.</p>
 </div>
@@ -1672,7 +1764,7 @@ println "Matrix: $matA\n"</code></pre>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/commons-math-matrix.html">Apache Commons Math - RealMatrix</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 11 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 11 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>I have been reading <a href="https://www.manning.com/books/machine-learning-in-action">Machine Learning in Action</a>, which is a great book; however, all of the examples are in Python. While Python seems like a decent language, it is not one of my primary languages. With that in mind, I have been converting the Python examples into Groovy so that a few months from now when I come back and try to understand what I learned, I will be able to decipher the code.</p>
 </div>
@@ -2040,7 +2132,7 @@ println()</code></pre>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/dependencies-behind-the-wall.html">Gradle Dependencies Behind the Wall</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 10 July 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 10 July 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
                 <p><div class="paragraph">
 <p>Some companies like to take full control of their build environments and disallow builds that pull artifacts from external sources so that only approved internal artifact repositories are used containing only approved artifacts. While the validity of this is debatable, it exists and in my experience tends to add roadblocks to development, especially when working with new frameworks and libraries.</p>
 </div>
@@ -2088,7 +2180,7 @@ println()</code></pre>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/custom-shell-banner.html">Custom Spring Boot Shell Banner</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 25 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 25 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a>
                 <p><div class="paragraph">
 <p>I did a <a href="http://dfw2gug.org/blog/2016/march-2016.html">Groovy User Group talk</a> recently related to my <a href="http://coffeaelectronica.com/blog/2015/spring-shell.html">Spring Boot Remote Shell</a> blog post and while putting the talk together I stumbled across a bug in the integration between Spring Boot and the Crash shell (see <a href="https:///github.com/spring-projects/spring-boot/issues/3988">Spring-Boot-3988</a>). The custom banner you can add to your Spring Boot application (as /resources/banner.txt) is not applied by default to your crash shell, so you get the boring Spring logo every time you startup the shell. I had worked with the Crash shell previously and I remember that the banner was customizable so I did a little digging and figured out how to code a work-around - I also added this information to the bug ticket; I considered contributing a pull request, but I am not sure how this would be coded into the default application framework.</p>
 </div>
@@ -2135,7 +2227,7 @@ prompt = { -&gt;
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/groovy-di.html">Groovy Dependency Injection</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 19 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 19 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>Dependency Injection frameworks were a dime a dozen for a while - everybody had their own and probably a spare just in case. For the most part the field has settled down to a few big players, the <a href="http://springframework.org">Spring Framework</a> and <a href="https://github.com/google/guice">Google Guice</a> are the only two that come to mind. While both of these have their pluses and minuses, they both have a certain level of overhead in libraries and understanding. Sometimes you want to throw something together quickly or you are in a scenario where you can&#8217;t use one of these off the shelf libraries. I had to do this recently and while I still wanted to do something spring/guice-like, I could not use either of them, but I did have Groovy available.</p>
 </div>
@@ -2361,70 +2453,6 @@ The demo code for this post is on <a href="https://github.com/cjstehno/groovy-di
 </td>
 </tr>
 </table>
-</div></p>
-            </div>
-        </div>
-  	
-        <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-                <h1><a href="blog/2016/dependency-duplication-check.html">Dependency Duplication Checking</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>, <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
-                <p><div class="paragraph">
-<p>Sometimes it takes a critical mass threshold of running into the same issue repeatedly to really do something about it. How often, when working with a dependency manager like <a href="http://gradle.org">Gradle</a> or <a href="http://maven.org">Maven</a>, have you run into some runtime issue only to find that it was caused by a build dependency that you had two (or more) different versions of at runtime? More often than you would like, I am sure. It can be a real surprise when you actually go digging into your aggregated dependency list only to find out you have more than one duplicate dependency just waiting to become a problem.</p>
-</div>
-<div class="paragraph">
-<p>What do I mean by duplicate dependency? Basically, it&#8217;s just what it sounds like. You have two dependencies with different versions. Something like:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>org.codehaus.groovy:groovy-all:2.4.4
-org.codehaus.groovy:groovy-all:2.4.5</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Most likely, your project defines one of them and some other dependency brought the other along for the ride. It is usually pretty easy to resolve these extra dependencies; in <a href="http://gradle.org">Gradle</a> you can run the <code>dependency</code> task to see which dependency is bringing the extra library in:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>./gradlew dependencies &gt; deps.txt</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>I like to dump the output to a text file for easier viewing. Then, once you find the culprit, you can exclude the transitive dependency:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>compile( 'com.somebody:coollib:2.3.5' ){
-    exclude group:'org.codehaus.groovy', module:'groovy-all'
-}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then you can run the <code>dependency</code> task again to ensure that you got of it. Generally, this is a safe procedure; however, sometimes you get into a situation where different libraries depend on different versions that have significant code differences - that&#8217;s when the fun begins and it usually ends in having to up or down-grade various dependencies until you get a set that works and is clean.</p>
-</div>
-<div class="paragraph">
-<p>What is the problem with having multiple versions of the same library in your project? Sometimes nothing, sometimes everything. The classloader will load whichever one is defined first in the classpath. If your project needs a class <code>Foo</code> with a method <code>bar()</code> and the version you expect to use has it but the previous version does not, bad things can happen at runtime.</p>
-</div>
-<div class="paragraph">
-<p>Ok, now we know generally how to solve the multiple dependency problem, we&#8217;re done right? Sure, for a month or so. Unless your project is done and no longer touched, new dependencies and duplicates will creep in over time. I did this duplicataion purge on a project at work a few months ago and just last week I took a peek at the aggregated dependency list and was truely not so shocked to see three duplicated libraries. One of which was probably the cause of some major performance issues we were facing. That&#8217;s what inspired me to solve the problem at least to the point of letting you know when duplications creep in.</p>
-</div>
-<div class="paragraph">
-<p>I created the <a href="https://github.com/cjstehno/dependency-checker">dependency-checker</a> Gradle plugin. It is available in the <a href="https://plugins.gradle.org/plugin/com.stehno.gradle.dependency-checker">Gradle Plugin Repository</a>. At this point, it has one added task, <code>checkDependencies</code> which, as the name suggests, searches through all the dependencies of the project to see if you have any duplicates within a configuration. If it finds duplicates, it will write them to the output log and fail the build.</p>
-</div>
-<div class="paragraph">
-<p>Currently, you need to run the task for the checking to occur. I would like to get it to run with the default <code>check</code> task, or <code>build</code> task, but the code I had for that was not working - later version I guess. You can add that functionality into your own build by adding one or two lines to your <code>build.gradle</code> file:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>tasks.check.dependsOn checkDependencies
-tasks.build.dependsOn checkDependencies</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>These will make the appropriate tasks depend on the dependency check so that it will be run with every <code>build</code> - that way you will know right away that you have a potential problem.</p>
-</div>
-<div class="paragraph">
-<p>I did take a tour around Google and the plugin repository just to make sure there was nothing else providing this functionality - so hopefully I am not duplicating anyone else&#8217;s work.</p>
 </div></p>
             </div>
         </div>

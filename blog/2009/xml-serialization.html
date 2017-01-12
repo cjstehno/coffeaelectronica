@@ -95,7 +95,7 @@
 	
 	<h1>XML Serialization</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>Another pair of those seemingly forgotten classes in the core Java API are the <code>java.beans.XMLEncoder</code> and <code>java.beans.XMLDecoder</code>. Added in 1.4, they don't really seem to be used all that much, that I have come across anyway. It seems that whenever someone needs to convert objects into xml, they instantly reach for 3rd-party libraries rather than looking in the core API. Not to downplay other APIs, but I do think XMLEncoder and XMLDecoder deserve consideration, especially when you simply need to export data objects in a simple and repeatable manner.</p><p>First off, we need something to work with, how about a nice Person class:</p>
 <pre><code class="java">public class Person {

@@ -95,7 +95,7 @@
 	
 	<h1>Finding Your Center</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 August 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 August 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>Way back when I was in high school my typing teacher (yes, on a mechanical typewriter) taught us how to center blocks of text on a page. This has been a useful skill as I got into web development and programming as not everything has a built-in "center" alignment property.</p><p>I have never been asked how to do this, so it may be common knowledge, but I thought I would share anyway since I have not been blogging much. Basically, think about your viewing area as a page and what you are centering as a rectangle drawn on that page. Now fold that page in half and you will see that half of your rectangle is contained on half the page... makes sense. You are finding the horizontal position (x coordinate) of the left edge of your rectangle by subtracting half of its width from half the width of the page:</p>
 <pre><code>x = [page_width]/2 - [item_width]/2

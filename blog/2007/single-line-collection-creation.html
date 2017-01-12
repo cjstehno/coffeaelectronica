@@ -95,7 +95,7 @@
 	
 	<h1>Single-line Collection Creation</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 October 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 October 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>I like having nice compact code. No, I am not one of those "write the whole app on one line" developers, but I do<br/>like code collapsed and out of the way. One of the things that has always annoyed me was that while you can create and<br/>populate an array on one line, you cannot do the same with <code>Map</code>s, <code>List</code>s, and <code>Set</code>s: but, I finally realized that<br/>there is a very simple way to do it using instance initializers.</p>
 <pre><code class="java">Map&lt;String,String&gt; map = new HashMap&lt;String, String&gt;(){{ put(&quot;akey&quot;,&quot;avalue&quot;); }}

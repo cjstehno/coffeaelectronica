@@ -95,7 +95,7 @@
 	
 	<h1>When GStrings Attack</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 March 2012</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 March 2012</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
 	<p><p>I have run into this behavior a few times now, so I decided to dig into it a bit. Basically, if you have a map using "string" keys in <a href="http://groovy.codehaus.org">Groovy</a>, they can provide unexpected (or at least non-intuitive results).</p><p>Groovy has two object types of "string"... the standard Java String, which is denoted by single-quotes, and the dynamic GString, which is denoted by double-quotes _(Note: the current version of the documentation has a nice outline of <a href="http://groovy.codehaus.org/Strings+and+GString">Strings vs GStrings</a>). From a developer perspective these generally seem interchangable other than the dynamic nature of GStrings; however, there is a more fundamental difference when you are working with hashes (Sets and Maps) since these are not the same class.</p><p>Let's consider the following two strings:</p>
 <pre><code class="groovy">def str = &#39;foo2&#39;&lt;br/&gt;def gstr = &quot;foo${1+1}&quot;

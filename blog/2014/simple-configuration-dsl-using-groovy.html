@@ -95,7 +95,7 @@
 	
 	<h1>Simple Configuration DSL using Groovy</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 July 2014</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 July 2014</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
 	<p><p>Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the <code>missingMethod()</code> calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.</p><p>To start out with, we need a configuration holder class, which we'll just call <code>Configuration</code>:</p>
 <pre><code class="groovy">class Configuration {

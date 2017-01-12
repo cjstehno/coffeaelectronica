@@ -6,9 +6,103 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Fri, 9 Dec 2016 15:53:59 -0600</pubDate>
-    <lastBuildDate>Fri, 9 Dec 2016 15:53:59 -0600</lastBuildDate>
+    <pubDate>Thu, 12 Jan 2017 09:15:25 -0600</pubDate>
+    <lastBuildDate>Thu, 12 Jan 2017 09:15:25 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Fuzzy Text Matching</title>
+      <link>http://coffeaelectronica.com/blog/2017/fuzzy-matching.html</link>
+      <pubDate>Thu, 12 Jan 2017 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2017/fuzzy-matching.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people&amp;#8217;s first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it&amp;#8217;s better to have a simple solution that works well-enough without adding bulk to your application.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As I mentioned above, let&amp;#8217;s say we have a list of first names - I collected 100 from a &lt;a href=&quot;http://listofrandomnames.com/index.cfm?textarea&quot;&gt;random name generator site&lt;/a&gt; and put them in a text file (a sample is shown below):&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;names.txt&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Sona
+Terisa
+Shasta
+Jerold
+Joetta
+Harrison
+Earle
+Isaiah
+Torrie
+Valarie
+Lynell
+Mignon
+Sharla
+Kiesha
+Art&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;When given a name, such as &quot;Harry&quot;, how can we filter the list of names to provide the best matches? I have found the &lt;a href=&quot;http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/StringUtils.html#getJaroWinklerDistance-java.lang.CharSequence-java.lang.CharSequence-&quot;&gt;getJaroWinklerDistance&lt;/a&gt; in the &lt;a href=&quot;http://commons.apache.org/proper/commons-lang&quot;&gt;Apache Commons Lang&lt;/a&gt; &lt;code&gt;StringUtils&lt;/code&gt; class to be quite useful. It&amp;#8217;s a string similarity algorithm that returns a &lt;code&gt;double&lt;/code&gt; similarity result given two strings - the larger the number, the better the match.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;With that you can load the names into a collection and process each of them against your given name to find the best &lt;code&gt;N&lt;/code&gt; results (let&amp;#8217;s say 10). The script is as follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;find_name.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Grapes(
+    @Grab(&apos;org.apache.commons:commons-lang3:3.5&apos;)
+)
+
+import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance
+
+def query = args[0].toLowerCase()
+def names = new File(&apos;./names.txt&apos;).readLines().unique()*.toLowerCase()
+
+println &quot;Searching for: ${query}\n&quot;
+println &apos;Name           Score&apos;
+println &apos;--------------------&apos;
+
+names.collect { n-&amp;gt;
+    new Tuple(n, getJaroWinklerDistance(n, query))
+}.sort { -it.get(1) }[0..10].each { r-&amp;gt;
+    println &quot;${r.get(0).padRight(15)}${r.get(1)}&quot;
+}
+println &apos;&apos;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If I run this against the set of 100 names I used, I get the following result:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;&amp;gt; groovy find_name.groovy Harry
+Searching for: harry
+
+Name           Score
+--------------------
+harrison       0.86
+gary           0.78
+sharla         0.7
+darrin         0.7
+art            0.69
+margart        0.68
+maryellen      0.64
+sari           0.63
+hana           0.63
+earle          0.6
+shana          0.6&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We see that there is actually a pretty good match, &quot;Harrison&quot;, and even &quot;Gary&quot; for that matter. I have used this method to provide a list of suggestions back to the user so that they can make the final selection from them (being the list of items actually available in your system).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s an interesting technique and I am sure that there are better ways - feel free to suggest them.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Introducing Ersatz</title>
@@ -3925,113 +4019,6 @@ codenarcTest {
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This will keep the rule active, but will allow line lengths of 150 rather than the default 120 characters. You will need to check the JavaDocs for configurable rule properties; for the most part, they seem to be on or off. &lt;/p&gt;&lt;p&gt;Running the analysis is simple, the &lt;code&gt;check&lt;/code&gt; task may be run by itself, or it will be run along with the &lt;code&gt;build&lt;/code&gt; task.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;gradle check
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The reports (main and test) will be available in the &lt;code&gt;build/reports/codenarc&lt;/code&gt; directory as two html files. They are not the prettiest reports, but they are functional.&lt;/p&gt;&lt;p&gt;If you are starting to use CodeNarc on an existing project, you may want to take a phased approach to applying and customizing rules so that you are not instantly bogged down with rule violations - do a few passes with the trimmed down rule set, fix what you can fix quickly and configure or disable the others and set your thresholds to a sensible level then make a goal to drop the numbers with each sprint or release so that progress is made.&lt;/p&gt;
-	  </description>
-    </item>
-    
-    <item>
-      <title>Hello Again Slick2D</title>
-      <link>http://coffeaelectronica.com/blog/2014/hello-again-slick2d.html</link>
-      <pubDate>Sat, 11 Oct 2014 00:00:00 -0500</pubDate>
-      <guid isPermaLink="false">blog/2014/hello-again-slick2d.html</guid>
-      <description>
-      &lt;p&gt;I am finally getting back around to working on my little game programming project and I realized that somewhere along the&lt;br/&gt;way, my project stopped working. I am using the &lt;a href=&quot;http://slick.ninjacave.com/&quot;&gt;Slick2D&lt;/a&gt; library, which seems to have little&lt;br/&gt;in the way of formal release or distribution so it didn&apos;t surprise me. I think I had something hacked together making it&lt;br/&gt;work last time. I decided to try and put some more concrete and repeatable steps around basic setup, at least for how I use it - I&apos;m no&lt;br/&gt;game programmer. &lt;/p&gt;&lt;p&gt;I&apos;m using Groovy as my development language and Gradle for building. In the interest of time and clarity, I am going to use a&lt;br/&gt;dump-and-describe approach here; there are only two files, so it should not be a big deal.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;build.gradle&lt;/code&gt; file is as follows:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;group = &amp;#39;com.stehno.demo&amp;#39;
-version = &amp;#39;0.1&amp;#39;
-
-buildscript {
-    repositories {
-        jcenter()
-
-        maven {
-            url &amp;#39;http://dl.bintray.com/cjstehno/public/&amp;#39;
-        }
-    }
-
-    dependencies {
-        classpath &amp;#39;com.stehno:gradle-natives:0.2&amp;#39;
-    }
-}
-
-apply plugin:&amp;#39;groovy&amp;#39;
-apply plugin:&amp;#39;application&amp;#39;
-apply plugin:&amp;#39;com.stehno.natives&amp;#39;
-
-compileJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-}
-
-mainClassName = &amp;#39;helloslick.HelloSlick&amp;#39;
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    compile &amp;#39;org.codehaus.groovy:groovy-all:2.3.6&amp;#39;
-
-    compile &amp;#39;org.slick2d:slick2d-core:1.0.1&amp;#39;
-}
-
-test {
-    systemProperty &amp;#39;java.library.path&amp;#39;, file(&amp;#39;build/natives/windows&amp;#39;)
-}
-
-run {
-    systemProperty &amp;#39;java.library.path&amp;#39;, file(&amp;#39;build/natives/windows&amp;#39;)
-}
-
-natives {
-    jars = [
-        &amp;#39;lwjgl-platform-2.9.1-natives-windows.jar&amp;#39;,
-        &amp;#39;jinput-platform-2.0.5-natives-windows.jar&amp;#39;
-    ]
-    platforms = &amp;#39;windows&amp;#39;
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = &amp;#39;2.1&amp;#39;
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The first point of note, is that I am using my &lt;a href=&quot;http://cjstehno.github.io/gradle-natives/&quot;&gt;Gradle Natives plugin&lt;/a&gt;, not as&lt;br/&gt;a self-promotion, but since this is the reason I wrote it. This plugin takes care of extracting all the little native&lt;br/&gt;libraries and putting them in your build so that they are easily accessible by your code. The configuration is found near&lt;br/&gt;the bottom of the file, in the &lt;code&gt;natives&lt;/code&gt; block - we want to extract the native libraries from the lwjgl and jinput libraries&lt;br/&gt;for this project and in my case, I only care about the Windows versions (leave off &lt;code&gt;platforms&lt;/code&gt; to get all platforms).&lt;/p&gt;&lt;p&gt;There was one interesting development during my time away from this project, a 3rd-party jar version of Slick2D has been pushed to maven central, which makes it a lot easier - I think I had to build it myself and fiddle with pushing it to my local maven repo or something. Now it&apos;s just another remote library (hopefully it works as expected - I have not played with it yet).&lt;/p&gt;&lt;p&gt;The last point of interest here is the use of the &lt;code&gt;application&lt;/code&gt; plugin. This plugin provides an easy way to run your game&lt;br/&gt;while specifying the &lt;code&gt;java.library.path&lt;/code&gt; which is the painful part of running applications with native libraries. With the&lt;br/&gt;&lt;code&gt;application&lt;/code&gt; plugin and the &lt;code&gt;run&lt;/code&gt; configuration in place, you can run the game from Gradle - admittedly not ideal, but this&lt;br/&gt;is just development; I actually have a configuration set for the IzPack installer that I will write about later.&lt;/p&gt;&lt;p&gt;Now, we need some code to run, and the Slick2D wiki provides a simple Hello world sample that I have tweaked a bit for my&lt;br/&gt;use - mostly just cosmetic changes:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;package helloslick
-
-import groovy.util.logging.Log
-import org.newdawn.slick.*
-
-import java.util.logging.Level
-
-@Log
-class HelloSlick extends BasicGame {
-
-    HelloSlick(String gamename){
-        super(gamename)
-    }
-
-    @Override
-    public void init(GameContainer gc) throws SlickException {}
-
-    @Override
-    public void update(GameContainer gc, int i) throws SlickException {}
-
-    @Override
-    public void render(GameContainer gc, Graphics g) throws SlickException {
-        g.drawString &amp;#39;Hello Slick!&amp;#39;, 50, 50
-    }
-
-    public static void main(String[] args){
-        try {
-            AppGameContainer appgc = new AppGameContainer(new HelloSlick(&amp;#39;Simple Slick Game&amp;#39;))
-            appgc.setDisplayMode(640, 480, false)
-            appgc.start()
-
-        } catch (SlickException ex) {
-            log.log(Level.SEVERE, null, ex)
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This just opens a game window and writes &quot;Hello Slick!&quot; in it, but if you have that working, you should be ready for playtime&lt;br/&gt;with Slick2D.&lt;/p&gt;&lt;p&gt;Once you have the project setup (&lt;code&gt;build.gradle&lt;/code&gt; in the root, and &lt;code&gt;HelloSlick.groovy&lt;/code&gt; in &lt;code&gt;/src/main/groovy/helloslick&lt;/code&gt;), you&lt;br/&gt;are ready to go. Run the following to run the project.&lt;/p&gt;&lt;p&gt;&lt;code&gt;gradle unpackNatives run&lt;/code&gt;&lt;/p&gt;&lt;p&gt;And if all is well, you will see the game window and message.&lt;/p&gt;&lt;p&gt;Like I said, this is mostly just for getting my development environment up and running as a sanity check, but maybe it is useful to others.&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;Yes, the explicit &lt;code&gt;unpackNatives&lt;/code&gt; calls are annoying, it&apos;s something I am working on.&lt;/p&gt;
-&lt;/blockquote&gt;
 	  </description>
     </item>
     

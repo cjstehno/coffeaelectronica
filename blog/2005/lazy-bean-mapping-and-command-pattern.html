@@ -95,7 +95,7 @@
 	
 	<h1>Lazy Bean Mapping and the Command Pattern</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 26 October 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 26 October 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
 	<p><p>In doing some refactoring recently, I came up with a useful base class for my command pattern managers (manager<br/>beans that have a bunch of commands associated with them), here I will call it the <code>LazyBeanManager</code>.</p><p>Consider a case where you have a manger that manages a bunch of actions, and that you want the whole setup to be very<br/>lazy -- only load the manager when it is used AND only load a command action when it is requested. This is very simple to<br/>accomplish. First assume you have the following spring config:</p>
 <pre><code class="xml">&lt;bean id=&quot;manager&quot; class=&quot;example.MyManager&quot; lazy-init=&quot;true&quot;&gt;

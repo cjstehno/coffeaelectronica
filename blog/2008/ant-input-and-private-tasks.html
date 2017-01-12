@@ -95,7 +95,7 @@
 	
 	<h1>Ant Input Prompting and Private Targets</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 21 October 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/ant.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ant</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 21 October 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/ant.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ant</span></a></p>
 
 	<p><p>I have found the <a href="http://ant.apache.org/">Ant</a> <code>input</code> tag useful lately for setting up runtime parameters of an Ant build.</p><p>We have a few different server configuration settings that vary based on which server the artifact is being built for<br/>and the <code>input</code> tag makes this really easy:</p>
 <pre><code class="xml">&lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;

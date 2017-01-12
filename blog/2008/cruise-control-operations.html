@@ -95,7 +95,7 @@
 	
 	<h1>Cruise Control Project Operations</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 08 February 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 08 February 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
 	<p><p>One of the developers I work with figured out the URL for firing the various<br/><a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a> build operations (resume,<br/>pause, build, etc) and it was jokingly noted that now all we need is a <a href="http://ruby-lang.org/">Ruby</a> script to fire them.</p><p>And so, viola! Here is a simple ruby script that will do just that. It will run the specified operation command on one<br/>project (or all if no project is specified). You do have to configure the script with your CruiseControl url and your<br/>project names, but it's well worth it.</p>
 <pre><code class="ruby">#

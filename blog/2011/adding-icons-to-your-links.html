@@ -95,7 +95,7 @@
 	
 	<h1>Adding Icons to your Links</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 February 2011</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 February 2011</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
 	<p><p>I have started working on a new browser start page for myself and thought it would be nice to have the favicon images for the links I add to the page. Obviously, you could just download them and render them next to the link by brute force, but then you'd have to do that for every link you added... a big waste of time.</p><p>I thought about it for a few minutes and came up with an automated solution that works pretty well. You know the path to the favicon for a given url; it's just thesite.com/favicon.ico, though there are ways to change this that I am not<br/>accounting for. With a little JQuery JavaScripting you can pull the icon from the link itself. First, we need to style<br/>the external anchor tags in preparation for the icon:</p>
 <pre><code class="css">a[href^=&quot;http://&quot;]{

@@ -95,7 +95,7 @@
 	
 	<h1>Secure REST in Spring</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 04 May 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 04 May 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
 	<p><p>Getting HTTPS to play nice with REST and non-browser web clients in development (with a self-signed certificate) can be a frustrating effort. I struggled for a while down the path of using the Spring <code>RestTemplate</code> thinking that since I was using Spring MVC as my REST provider, it would make things easier; in this case, Spring did not come to the rescue, but Groovy did or rather the Groovy <a href="https://github.com/jgritman/httpbuilder">HTTPBuilder</a> did.</p><p>To keep this discussion simple, we need a simple REST project using HTTPS. I found the <a href="https://github.com/spring-guides/gs-rest-service">Spring REST Service Guide</a> project useful for this (with a few modifications to follow).</p><p>Go ahead and clone the project:</p>
 <pre><code>git clone git@github.com:spring-guides/gs-rest-service.git

@@ -95,7 +95,7 @@
 	
 	<h1>Are You Mocking Me?</h1>
 
-	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a>, <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>, <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
 	<p><p>Most of us agree that unit testing is an important part of development and that unit tests should be isolated as<br/>much as possible from external configuration and management issues so that you test only the object under examination<br/>and not the rest of the environment surrounding them; this is where mocking comes in handy.</p><p>Let's say I want to develop a JSP tag that pulls a name from somewhere in the scope available to the tag and then renders a<br/>hello message to the given name. It's not a very useful tag, but it will work as an example. First, setup the test and a<br/>method to test for the desired output.</p>
 <pre><code class="java">public class HelloTagTest extends TestCase {
