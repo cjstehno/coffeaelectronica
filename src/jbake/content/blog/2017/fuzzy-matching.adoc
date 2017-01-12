@@ -1,0 +1,82 @@
+title=Fuzzy Text Matching
+date=2017-01-12
+type=post
+tags=blog,groovy
+status=published
+~~~~~~
+From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people's first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it's better to have a simple solution that works well-enough without adding bulk to your application.
+
+As I mentioned above, let's say we have a list of first names - I collected 100 from a http://listofrandomnames.com/index.cfm?textarea[random name generator site] and put them in a text file (a sample is shown below):
+
+[source,text]
+.names.txt
+----
+Sona
+Terisa
+Shasta
+Jerold
+Joetta
+Harrison
+Earle
+Isaiah
+Torrie
+Valarie
+Lynell
+Mignon
+Sharla
+Kiesha
+Art
+----
+
+When given a name, such as "Harry", how can we filter the list of names to provide the best matches? I have found the http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/StringUtils.html#getJaroWinklerDistance-java.lang.CharSequence-java.lang.CharSequence-[getJaroWinklerDistance] in the http://commons.apache.org/proper/commons-lang[Apache Commons Lang] `StringUtils` class to be quite useful. It's a string similarity algorithm that returns a `double` similarity result given two strings - the larger the number, the better the match.
+
+With that you can load the names into a collection and process each of them against your given name to find the best `N` results (let's say 10). The script is as follows:
+
+[source,groovy]
+.find_name.groovy
+----
+@Grapes(
+    @Grab('org.apache.commons:commons-lang3:3.5')
+)
+
+import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance
+
+def query = args[0].toLowerCase()
+def names = new File('./names.txt').readLines().unique()*.toLowerCase()
+
+println "Searching for: ${query}\n"
+println 'Name           Score'
+println '--------------------'
+
+names.collect { n->
+    new Tuple(n, getJaroWinklerDistance(n, query))
+}.sort { -it.get(1) }[0..10].each { r->
+    println "${r.get(0).padRight(15)}${r.get(1)}"
+}
+println ''
+----
+
+If I run this against the set of 100 names I used, I get the following result:
+
+----
+> groovy find_name.groovy Harry
+Searching for: harry
+
+Name           Score
+--------------------
+harrison       0.86
+gary           0.78
+sharla         0.7
+darrin         0.7
+art            0.69
+margart        0.68
+maryellen      0.64
+sari           0.63
+hana           0.63
+earle          0.6
+shana          0.6
+----
+
+We see that there is actually a pretty good match, "Harrison", and even "Gary" for that matter. I have used this method to provide a list of suggestions back to the user so that they can make the final selection from them (being the list of items actually available in your system).
+
+It's an interesting technique and I am sure that there are better ways - feel free to suggest them.
