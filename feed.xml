@@ -6,9 +6,103 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Thu, 12 Jan 2017 09:15:25 -0600</pubDate>
-    <lastBuildDate>Thu, 12 Jan 2017 09:15:25 -0600</lastBuildDate>
+    <pubDate>Sun, 15 Jan 2017 08:43:41 -0600</pubDate>
+    <lastBuildDate>Sun, 15 Jan 2017 08:43:41 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Ignoring SSL Issues</title>
+      <link>http://coffeaelectronica.com/blog/2017/ssl-issues.html</link>
+      <pubDate>Sun, 15 Jan 2017 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2017/ssl-issues.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng/&quot;&gt;HttpBuilder-NG&lt;/a&gt; to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;All you need are a couple custom components, which are thankfully shared across the client implementations I will discuss. You need an all-trusting &lt;code&gt;javax.net.ssl.TrustManager&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;X509TrustManager allTrusting = new X509TrustManager() {
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[]{};
+    }
+
+    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+    }
+
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;and an all-accepting &lt;code&gt;javax.net.ssl.HostnameVerifier&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;HostnameVerifier ANY_HOSTNAME = (s, sslSession) -&amp;gt; true;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;With these, we can create an &lt;code&gt;javax.net.ssl.SSLContext&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;SSLContext sslContext = SSLContext.getInstance(&quot;SSL&quot;);
+sslContext.init(null, new TrustManager[]{allTrusting}, new SecureRandom());&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now you are ready to configure your clients. For the Java core &lt;code&gt;HttpsURLConnection&lt;/code&gt; you can inject these using:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;HttpsURLConnection https = // created elsewhere
+https.setHostnameVerifier(ANY_HOSTNAME);
+https.setSSLSocketFactory(sslContext.getSocketFactory());&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you are using the Apache HttpComponents library, it is also quite simple when using the &lt;code&gt;HttpClientBuilder&lt;/code&gt;:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;HttpClientBuilder builder = // created elsewhere
+builder.setSSLContext(sslContext);
+builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, ANY_HOSTNAME));&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Lastly, if you are using the OkHttp client, you can:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;OkHttpClient.Builder builder = // created elsewhere
+builder.sslSocketFactory(sslContext.getSocketFactory(), allTrusting);
+builder.hostnameVerifier(ANY_HOSTNAME);&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Ok, now that the gritty details have been discussed, what about a simpler approach - how can this be done in &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng/&quot;&gt;HttpBuilder-NG&lt;/a&gt;? All you need to do is apply the &lt;code&gt;ignoreSslIssues()&lt;/code&gt; helper method to your configuration as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def http = JavaHttpBuilder.configure {
+    ignoreSslIssues execution
+    // other config...
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Which will apply the configurations discussed above and you are ready to go. A means of doing this via system property is also provided (see the &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng/guide/html5/&quot;&gt;User Guide&lt;/a&gt; for more details).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now you are off and running to ignore SSL certificate issues. As a quick disclaimer and reminder, SSL is an important security measure for web connections and should not be disabled/ignored ligthly and never in an internet-facing production environment - these procedures for ignoring errors are really meant for testing purposes.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Fuzzy Text Matching</title>
@@ -3985,40 +4079,6 @@ Content: [content:Hello, Chris!, id:1]
       <guid isPermaLink="false">blog/2015/custom-github-hosting.html</guid>
       <description>
       &lt;p&gt;I have been working for a while now to get my blog fully cut over to being generated by &lt;a href=&quot;http://jbake.org/&quot;&gt;JBake&lt;/a&gt; and hosted on &lt;a href=&quot;http://github.org&quot;&gt;GitHub&lt;/a&gt;; it&apos;s not all that difficult, just a format conversion and some domain fiddling, but I was procrastinating.&lt;/p&gt;&lt;p&gt;Pointing your GitHub Pages at a custom domain is not all that hard to do, and they provide &lt;a href=&quot;https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/&quot;&gt;decent documentation&lt;/a&gt; about how to do it; however, some streamlining is nice for DNS novices like myself. I may have done things a bit out of order, but it worked in the end...&lt;/p&gt;&lt;p&gt;First, I created &lt;code&gt;A&lt;/code&gt; records for the GitHub-provided IP Addresses. I use Godaddy for my domain names, so your experience may be a bit different; but, in the Godaddy DNS Zone File editor you end up adding something like:&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/files/a_records.png&quot; alt=&quot;A Record&quot;&quot;/&gt;&lt;/p&gt;&lt;p&gt;Next, I added a &lt;code&gt;CName&lt;/code&gt; record alias for &lt;code&gt;www&lt;/code&gt; pointing to my GitHub account hostname, which ended up looking like this:&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/files/cname_record.png&quot; alt=&quot;CName Record&quot;&quot;/&gt;&lt;/p&gt;&lt;p&gt;Lastly, you need to make &lt;a href=&quot;https://help.github.com/articles/adding-a-cname-file-to-your-repository/&quot;&gt;changes in your repository&lt;/a&gt; - this step seems to be missed by a lot of people. The gist of it is that you add a new file to your &lt;code&gt;gh-pages&lt;/code&gt; branch, named &lt;code&gt;CNAME&lt;/code&gt; (all caps, no extension). And in that file you add your domain name (without &lt;code&gt;http://www.&lt;/code&gt;). Save the file and be sure you push it to your remote repository.&lt;/p&gt;&lt;p&gt;At this point it worked for me, but the documentation said it could take up to 48 hours to propagate the changes.&lt;/p&gt;
-	  </description>
-    </item>
-    
-    <item>
-      <title>Gradle and CodeNarc</title>
-      <link>http://coffeaelectronica.com/blog/2014/gradle-and-codenarc.html</link>
-      <pubDate>Fri, 7 Nov 2014 00:00:00 -0600</pubDate>
-      <guid isPermaLink="false">blog/2014/gradle-and-codenarc.html</guid>
-      <description>
-      &lt;p&gt;The subject of &quot;code quality tools&quot; has lead to many developer holy wars over the years, so I&apos;m not really going to touch the subject of their value or level of importance here, suffice to say that they are tools in your toolbox for helping to maintain a base level of &quot;tedious quality&quot;, meaning style rules and general coding conventions enforced by your organization - it should never take the ultimate decision making from the developers.&lt;/p&gt;&lt;p&gt;That being said, let&apos;s talk about &lt;a href=&quot;http://codenarc.sourceforge.net/&quot;&gt;CodeNarc&lt;/a&gt;. CodeNarc is a rule-based code quality analysis tool for Groovy-based projects. Groovy does not always play nice with other code analysis tools, so it&apos;s nice that there is one specially designed for it and &lt;a href=&quot;http://gradle.org&quot;&gt;Gradle&lt;/a&gt; provides access to it out of the box.&lt;/p&gt;&lt;p&gt;Using the &lt;a href=&quot;http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.quality.CodeNarc.html&quot;&gt;Gradle CodeNarc plugin&lt;/a&gt; is easy, apply the plugin to your build&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;apply plugin: &amp;#39;codenarc&amp;#39;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and then do a bit of rule configuration based on the needs of your code base. &lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;codenarcMain {
-    ignoreFailures false
-    configFile file(&amp;#39;config/codenarc/codenarc-main.rules&amp;#39;)
-
-    maxPriority1Violations 0
-    maxPriority2Violations 10
-    maxPriority3Violations 20
-}
-
-codenarcTest {
-    ignoreFailures true
-    configFile file(&amp;#39;config/codenarc/codenarc-test.rules&amp;#39;)
-
-    maxPriority1Violations 0
-    maxPriority2Violations 10
-    maxPriority3Violations 20
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The plugin allows you to have different configurations for your main code and your test code, and I recommend using that functionality since generally you may care about slightly different things in your production code versus your test code. Also, there are JUnit-specific rules that you can ignore in your production code scan.&lt;/p&gt;&lt;p&gt;Notice that in my example, I have ignored failures in the test code. This is handy when you are doing a lot of active development and don&apos;t really want to fail your build every time your test code quality drops slightly. You can also set the thresholds for allowed violations of the three priority levels - when the counts exceed one of the given thresholds, the build will fail, unless it&apos;s ignored. You will always get a report for both main and test code in your build reports directory, even if there are no violations. The threshold numbers are something you will need to determine based on your code base, your team and your needs.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;.rules&lt;/code&gt; files are really Groovy DSL files, but the extension is unimportant so I like to keep them out of the Groovy namespace. The CodeNarc web site has a sample &quot;&lt;a href=&quot;http://codenarc.sourceforge.net/StarterRuleSet-AllRulesByCategory.groovy.txt&quot;&gt;kitchen sink&lt;/a&gt;&quot; rule set to get things started - though it has a few rules that cause errors, you can comment those out or remove them from the file. Basically the file is a list of all the active rules, so removing one disables it. You can also configure some of them. LineLength is one I like to change:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;LineLength { length = 150 }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This will keep the rule active, but will allow line lengths of 150 rather than the default 120 characters. You will need to check the JavaDocs for configurable rule properties; for the most part, they seem to be on or off. &lt;/p&gt;&lt;p&gt;Running the analysis is simple, the &lt;code&gt;check&lt;/code&gt; task may be run by itself, or it will be run along with the &lt;code&gt;build&lt;/code&gt; task.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;gradle check
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The reports (main and test) will be available in the &lt;code&gt;build/reports/codenarc&lt;/code&gt; directory as two html files. They are not the prettiest reports, but they are functional.&lt;/p&gt;&lt;p&gt;If you are starting to use CodeNarc on an existing project, you may want to take a phased approach to applying and customizing rules so that you are not instantly bogged down with rule violations - do a few passes with the trimmed down rule set, fix what you can fix quickly and configure or disable the others and set your thresholds to a sensible level then make a goal to drop the numbers with each sprint or release so that progress is made.&lt;/p&gt;
 	  </description>
     </item>
     
