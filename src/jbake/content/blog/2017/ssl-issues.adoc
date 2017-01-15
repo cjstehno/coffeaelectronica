@@ -1,0 +1,80 @@
+title=Ignoring SSL Issues
+date=2017-01-15
+type=post
+tags=blog,groovy
+status=published
+~~~~~~
+SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on https://http-builder-ng.github.io/http-builder-ng/[HttpBuilder-NG] to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.
+
+All you need are a couple custom components, which are thankfully shared across the client implementations I will discuss. You need an all-trusting `javax.net.ssl.TrustManager`:
+
+[source,java]
+----
+X509TrustManager allTrusting = new X509TrustManager() {
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[]{};
+    }
+
+    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+    }
+
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+    }
+}
+----
+
+and an all-accepting `javax.net.ssl.HostnameVerifier`:
+
+[source,java]
+----
+HostnameVerifier ANY_HOSTNAME = (s, sslSession) -> true;
+----
+
+With these, we can create an `javax.net.ssl.SSLContext`:
+
+[source,java]
+----
+SSLContext sslContext = SSLContext.getInstance("SSL");
+sslContext.init(null, new TrustManager[]{allTrusting}, new SecureRandom());
+----
+
+Now you are ready to configure your clients. For the Java core `HttpsURLConnection` you can inject these using:
+
+[source,java]
+----
+HttpsURLConnection https = // created elsewhere
+https.setHostnameVerifier(ANY_HOSTNAME);
+https.setSSLSocketFactory(sslContext.getSocketFactory());
+----
+
+If you are using the Apache HttpComponents library, it is also quite simple when using the `HttpClientBuilder`:
+
+[source,java]
+----
+HttpClientBuilder builder = // created elsewhere
+builder.setSSLContext(sslContext);
+builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, ANY_HOSTNAME));
+----
+
+Lastly, if you are using the OkHttp client, you can:
+
+[source,java]
+----
+OkHttpClient.Builder builder = // created elsewhere
+builder.sslSocketFactory(sslContext.getSocketFactory(), allTrusting);
+builder.hostnameVerifier(ANY_HOSTNAME);
+----
+
+Ok, now that the gritty details have been discussed, what about a simpler approach - how can this be done in https://http-builder-ng.github.io/http-builder-ng/[HttpBuilder-NG]? All you need to do is apply the `ignoreSslIssues()` helper method to your configuration as:
+
+[source,groovy]
+----
+def http = JavaHttpBuilder.configure {
+    ignoreSslIssues execution
+    // other config...
+}
+----
+
+Which will apply the configurations discussed above and you are ready to go. A means of doing this via system property is also provided (see the https://http-builder-ng.github.io/http-builder-ng/guide/html5/[User Guide] for more details).
+
+Now you are off and running to ignore SSL certificate issues. As a quick disclaimer and reminder, SSL is an important security measure for web connections and should not be disabled/ignored ligthly and never in an internet-facing production environment - these procedures for ignoring errors are really meant for testing purposes.
