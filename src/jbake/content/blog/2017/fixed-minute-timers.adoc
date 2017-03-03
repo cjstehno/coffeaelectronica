@@ -1,4 +1,4 @@
-title=Run Timer on Fixed Minute Mark
+title=Fixed Minute Timers
 date=2017-03-03
 type=post
 tags=blog,groovy
