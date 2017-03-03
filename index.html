@@ -96,6 +96,107 @@
 	
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
+                <h1><a href="blog/2017/fixed-minute-timers.html">Fixed Minute Timers</a></h1>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><div class="paragraph">
+<p>A co-worker of mine recently complained about how our metrics reporting component wasn&#8217;t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>10:47:34
+10:52:34
+10:57:34</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which can be annoying for a user when you want to determine metric changes over time, especially when using a dashboard tool. While this is a critical defect, it can be a data quality annoyance and it turns out, its not all that hard to fix.</p>
+</div>
+<div class="paragraph">
+<p>What you want to do is determine the delay between now and the next desired minute-mark, the five-minute mark in our case, and you can do this with a little math:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where <code>mark</code> is your minute-mark (<code>5</code>), and <code>now</code> is either a time you pass in (mostly for testing) or the current time by default. We need to roll the minute hand forward one to account for how far we are already into that minute and then we figure out what the next minute-mark is (accounting for hour-boundary rollover). Then you determine the difference between that next interval time and the current time, returning that value.</p>
+</div>
+<div class="paragraph">
+<p>This does not account for the time spent in the method itself, but we are working on the scale of minutes and seconds here so our calculation time should not matter.</p>
+</div>
+<div class="paragraph">
+<p>A full example of using this to schedule a timer on the five-minute marks follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import java.time.*
+import java.time.temporal.*
+import java.util.concurrent.*
+
+def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}
+
+def now = LocalTime.now()
+println "Now: $now"
+
+int mark = 1
+long delay = delay(mark,now)
+println "Delay: $delay ms"
+println "Start: ${now.plus(delay, ChronoUnit.MILLIS)}"
+
+ScheduledExecutorService ses = Executors.newScheduledThreadPool(1)
+ses.scheduleAtFixedRate({
+    println LocalTime.now()
+}, delay, mark*60000, TimeUnit.MILLISECONDS)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which will print out something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Now: 08:33:22.611
+Delay: 97389 ms
+Start: 08:35
+08:35:00.088
+08:40:00.088
+08:45:00.088</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These nice clean time bounaries lead to cleaner reporting visualizations. You can use any minute as the mark points, but generally you would use: 1, 5, 10, 15, 20, 30, or 60.</p>
+</div></p>
+            </div>
+        </div>
+  	
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/ssl-issues.html">Ignoring SSL Issues</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 15 January 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
@@ -2265,53 +2366,6 @@ println()</code></pre>
 </div>
 <div class="paragraph">
 <p>Now, armed with a full list of the dependencies missing from your internal artifact repository, you can create your issue ticket and get the approvals once and get back to actual work faster.</p>
-</div></p>
-            </div>
-        </div>
-  	
-        <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-                <h1><a href="blog/2016/custom-shell-banner.html">Custom Spring Boot Shell Banner</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 25 March 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a>
-                <p><div class="paragraph">
-<p>I did a <a href="http://dfw2gug.org/blog/2016/march-2016.html">Groovy User Group talk</a> recently related to my <a href="http://coffeaelectronica.com/blog/2015/spring-shell.html">Spring Boot Remote Shell</a> blog post and while putting the talk together I stumbled across a bug in the integration between Spring Boot and the Crash shell (see <a href="https:///github.com/spring-projects/spring-boot/issues/3988">Spring-Boot-3988</a>). The custom banner you can add to your Spring Boot application (as /resources/banner.txt) is not applied by default to your crash shell, so you get the boring Spring logo every time you startup the shell. I had worked with the Crash shell previously and I remember that the banner was customizable so I did a little digging and figured out how to code a work-around - I also added this information to the bug ticket; I considered contributing a pull request, but I am not sure how this would be coded into the default application framework.</p>
-</div>
-<div class="paragraph">
-<p>The work-around is pretty simple and straight-forward if you have worked with the crash shell before. You use their method of customization and then have it pull in your Spring Boot custom banner. In your <code>/src/main/resources/commands</code> directory you add a <code>login.groovy</code> file, which Crash will load with every shell connection. The file allows the customization of the banner and the prompt. We can then load our spring banner from the classpath. The basic code is as follows:</p>
-</div>
-<div class="listingblock">
-<div class="title">login.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">welcome = { -&gt;
-    def hostName;
-    try {
-        hostName = java.net.InetAddress.getLocalHost().getHostName();
-    } catch (java.net.UnknownHostException ignore) {
-        hostName = 'localhost';
-    }
-
-    String banner = YourApplication.getResourceAsStream('/banner.txt').text
-
-    return """
-${banner}
-Logged into $hostName @ ${new Date()}
-"""
-}
-
-prompt = { -&gt;
-    return "% ";
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It&#8217;s a silly little thing to worry about, but sometimes it&#8217;s the little things that make an application feel more like your own.</p>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>I have created a <a href="https://github.com/spring-projects/spring-boot/pull/5453">pull request</a> in the spring-boot project to address this issue&#8230;&#8203; we&#8217;ll see what happens.</p>
-</div>
-</blockquote>
 </div></p>
             </div>
         </div>

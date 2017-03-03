@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CoffeaElectronica.com</title>
+
+    <meta name="description" content="A technical blog.">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/favicon.ico">
+</head>
+
+<body onload="prettyPrint()">
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <img src="/images/coffee-banner.jpg" class="img-responsive" />
+        </div>
+    </div>
+
+    <nav class="navbar navbar-inverse" style="margin-bottom: 2px;">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">&nbsp;CoffeaElectronica</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            
+                                    <li><a href="/tags/ant.html">ant</a></li>
+                            
+                                    <li><a href="/tags/blog.html">blog</a></li>
+                            
+                                    <li><a href="/tags/gradle.html">gradle</a></li>
+                            
+                                    <li><a href="/tags/groovy.html">groovy</a></li>
+                            
+                                    <li><a href="/tags/java.html">java</a></li>
+                            
+                                    <li><a href="/tags/javascript.html">javascript</a></li>
+                            
+                                    <li><a href="/tags/maven.html">maven</a></li>
+                            
+                                    <li><a href="/tags/python.html">python</a></li>
+                            
+                                    <li><a href="/tags/spring.html">spring</a></li>
+                            
+                                    <li><a href="/tags/testing.html">testing</a></li>
+                            
+                                    <li><a href="/tags/vanilla.html">vanilla</a></li>
+                            
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+	
+	<h1>Fixed Minute Timers</h1>
+
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+
+	<p><div class="paragraph">
+<p>A co-worker of mine recently complained about how our metrics reporting component wasn&#8217;t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>10:47:34
+10:52:34
+10:57:34</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which can be annoying for a user when you want to determine metric changes over time, especially when using a dashboard tool. While this is a critical defect, it can be a data quality annoyance and it turns out, its not all that hard to fix.</p>
+</div>
+<div class="paragraph">
+<p>What you want to do is determine the delay between now and the next desired minute-mark, the five-minute mark in our case, and you can do this with a little math:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where <code>mark</code> is your minute-mark (<code>5</code>), and <code>now</code> is either a time you pass in (mostly for testing) or the current time by default. We need to roll the minute hand forward one to account for how far we are already into that minute and then we figure out what the next minute-mark is (accounting for hour-boundary rollover). Then you determine the difference between that next interval time and the current time, returning that value.</p>
+</div>
+<div class="paragraph">
+<p>This does not account for the time spent in the method itself, but we are working on the scale of minutes and seconds here so our calculation time should not matter.</p>
+</div>
+<div class="paragraph">
+<p>A full example of using this to schedule a timer on the five-minute marks follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import java.time.*
+import java.time.temporal.*
+import java.util.concurrent.*
+
+def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}
+
+def now = LocalTime.now()
+println "Now: $now"
+
+int mark = 1
+long delay = delay(mark,now)
+println "Delay: $delay ms"
+println "Start: ${now.plus(delay, ChronoUnit.MILLIS)}"
+
+ScheduledExecutorService ses = Executors.newScheduledThreadPool(1)
+ses.scheduleAtFixedRate({
+    println LocalTime.now()
+}, delay, mark*60000, TimeUnit.MILLISECONDS)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which will print out something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Now: 08:33:22.611
+Delay: 97389 ms
+Start: 08:35
+08:35:00.088
+08:40:00.088
+08:45:00.088</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These nice clean time bounaries lead to cleaner reporting visualizations. You can use any minute as the mark points, but generally you would use: 1, 5, 10, 15, 20, 30, or 60.</p>
+</div></p>
+
+
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <hr>
+                    <div style="text-align:center;">
+                        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a> CoffeaElectronica.com content is copyright &copy; 2016 <a href="http://stehno.com">Christopher J. Stehno</a> and available under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
+
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-27165855-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+    </body>
+</html>

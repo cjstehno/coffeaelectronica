@@ -6,9 +6,112 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Sun, 15 Jan 2017 08:43:41 -0600</pubDate>
-    <lastBuildDate>Sun, 15 Jan 2017 08:43:41 -0600</lastBuildDate>
+    <pubDate>Fri, 3 Mar 2017 08:52:22 -0600</pubDate>
+    <lastBuildDate>Fri, 3 Mar 2017 08:52:22 -0600</lastBuildDate>
 
+    
+    <item>
+      <title>Fixed Minute Timers</title>
+      <link>http://coffeaelectronica.com/blog/2017/fixed-minute-timers.html</link>
+      <pubDate>Fri, 3 Mar 2017 00:00:00 -0600</pubDate>
+      <guid isPermaLink="false">blog/2017/fixed-minute-timers.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;A co-worker of mine recently complained about how our metrics reporting component wasn&amp;#8217;t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;literalblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;10:47:34
+10:52:34
+10:57:34&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which can be annoying for a user when you want to determine metric changes over time, especially when using a dashboard tool. While this is a critical defect, it can be a data quality annoyance and it turns out, its not all that hard to fix.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;What you want to do is determine the delay between now and the next desired minute-mark, the five-minute mark in our case, and you can do this with a little math:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;where &lt;code&gt;mark&lt;/code&gt; is your minute-mark (&lt;code&gt;5&lt;/code&gt;), and &lt;code&gt;now&lt;/code&gt; is either a time you pass in (mostly for testing) or the current time by default. We need to roll the minute hand forward one to account for how far we are already into that minute and then we figure out what the next minute-mark is (accounting for hour-boundary rollover). Then you determine the difference between that next interval time and the current time, returning that value.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This does not account for the time spent in the method itself, but we are working on the scale of minutes and seconds here so our calculation time should not matter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;A full example of using this to schedule a timer on the five-minute marks follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;import java.time.*
+import java.time.temporal.*
+import java.util.concurrent.*
+
+def delay(final int mark, final LocalTime now = LocalTime.now()){
+    int minute = now.minute + 1
+
+    int minuteMark = minute % mark
+    minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
+
+    int hour = now.hour
+    if( minuteMark == 60 ){
+        hour++
+        minuteMark = 0
+    }
+
+    now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
+}
+
+def now = LocalTime.now()
+println &quot;Now: $now&quot;
+
+int mark = 1
+long delay = delay(mark,now)
+println &quot;Delay: $delay ms&quot;
+println &quot;Start: ${now.plus(delay, ChronoUnit.MILLIS)}&quot;
+
+ScheduledExecutorService ses = Executors.newScheduledThreadPool(1)
+ses.scheduleAtFixedRate({
+    println LocalTime.now()
+}, delay, mark*60000, TimeUnit.MILLISECONDS)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which will print out something like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;Now: 08:33:22.611
+Delay: 97389 ms
+Start: 08:35
+08:35:00.088
+08:40:00.088
+08:45:00.088&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;These nice clean time bounaries lead to cleaner reporting visualizations. You can use any minute as the mark points, but generally you would use: 1, 5, 10, 15, 20, 30, or 60.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Ignoring SSL Issues</title>
@@ -4069,16 +4172,6 @@ Content: [content:Hello, Chris!, id:1]
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;forCode&lt;/code&gt; method creates the builder and prepares the code shell. This construct may be reused for each of your tests.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;inject&lt;/code&gt; method adds in the actual code you care about, meaning your transformation code being tested.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;instantiate&lt;/code&gt; method uses the &lt;code&gt;GroovyClassLoader&lt;/code&gt; internally to load the class and then instantiate it for testing.&lt;/p&gt;&lt;p&gt;I am going to add a version of the &lt;code&gt;ClassBuilder&lt;/code&gt; to my &lt;a href=&quot;https://github.com/cjstehno/vanilla&quot;&gt;Vanilla&lt;/a&gt; project once it is more stable; however, I have a version of it and a simple AST testing demo project in the &lt;a href=&quot;https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing&quot;&gt;ast-testing&lt;/a&gt; CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).&lt;/p&gt;
 &lt;blockquote&gt;&lt;p&gt;Note: I have recently discovered the &lt;a href=&quot;http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html&quot;&gt;groovy.tools.ast.TransformTestHelper&lt;/a&gt; class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.&lt;/p&gt;
 &lt;/blockquote&gt;
-	  </description>
-    </item>
-    
-    <item>
-      <title>Custom Domain for GitHub Pages</title>
-      <link>http://coffeaelectronica.com/blog/2015/custom-github-hosting.html</link>
-      <pubDate>Sun, 15 Feb 2015 00:00:00 -0600</pubDate>
-      <guid isPermaLink="false">blog/2015/custom-github-hosting.html</guid>
-      <description>
-      &lt;p&gt;I have been working for a while now to get my blog fully cut over to being generated by &lt;a href=&quot;http://jbake.org/&quot;&gt;JBake&lt;/a&gt; and hosted on &lt;a href=&quot;http://github.org&quot;&gt;GitHub&lt;/a&gt;; it&apos;s not all that difficult, just a format conversion and some domain fiddling, but I was procrastinating.&lt;/p&gt;&lt;p&gt;Pointing your GitHub Pages at a custom domain is not all that hard to do, and they provide &lt;a href=&quot;https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/&quot;&gt;decent documentation&lt;/a&gt; about how to do it; however, some streamlining is nice for DNS novices like myself. I may have done things a bit out of order, but it worked in the end...&lt;/p&gt;&lt;p&gt;First, I created &lt;code&gt;A&lt;/code&gt; records for the GitHub-provided IP Addresses. I use Godaddy for my domain names, so your experience may be a bit different; but, in the Godaddy DNS Zone File editor you end up adding something like:&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/files/a_records.png&quot; alt=&quot;A Record&quot;&quot;/&gt;&lt;/p&gt;&lt;p&gt;Next, I added a &lt;code&gt;CName&lt;/code&gt; record alias for &lt;code&gt;www&lt;/code&gt; pointing to my GitHub account hostname, which ended up looking like this:&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/files/cname_record.png&quot; alt=&quot;CName Record&quot;&quot;/&gt;&lt;/p&gt;&lt;p&gt;Lastly, you need to make &lt;a href=&quot;https://help.github.com/articles/adding-a-cname-file-to-your-repository/&quot;&gt;changes in your repository&lt;/a&gt; - this step seems to be missed by a lot of people. The gist of it is that you add a new file to your &lt;code&gt;gh-pages&lt;/code&gt; branch, named &lt;code&gt;CNAME&lt;/code&gt; (all caps, no extension). And in that file you add your domain name (without &lt;code&gt;http://www.&lt;/code&gt;). Save the file and be sure you push it to your remote repository.&lt;/p&gt;&lt;p&gt;At this point it worked for me, but the documentation said it could take up to 48 hours to propagate the changes.&lt;/p&gt;
 	  </description>
     </item>
     
