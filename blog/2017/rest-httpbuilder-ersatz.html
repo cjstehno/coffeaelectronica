@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CoffeaElectronica.com</title>
+
+    <meta name="description" content="A technical blog.">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/favicon.ico">
+</head>
+
+<body onload="prettyPrint()">
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <img src="/images/coffee-banner.jpg" class="img-responsive" />
+        </div>
+    </div>
+
+    <nav class="navbar navbar-inverse" style="margin-bottom: 2px;">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">&nbsp;CoffeaElectronica</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            
+                                    <li><a href="/tags/ant.html">ant</a></li>
+                            
+                                    <li><a href="/tags/blog.html">blog</a></li>
+                            
+                                    <li><a href="/tags/gradle.html">gradle</a></li>
+                            
+                                    <li><a href="/tags/groovy.html">groovy</a></li>
+                            
+                                    <li><a href="/tags/java.html">java</a></li>
+                            
+                                    <li><a href="/tags/javascript.html">javascript</a></li>
+                            
+                                    <li><a href="/tags/maven.html">maven</a></li>
+                            
+                                    <li><a href="/tags/python.html">python</a></li>
+                            
+                                    <li><a href="/tags/spring.html">spring</a></li>
+                            
+                                    <li><a href="/tags/testing.html">testing</a></li>
+                            
+                                    <li><a href="/tags/vanilla.html">vanilla</a></li>
+                            
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+	
+	<h1>Take a REST with HttpBuilder-NG and Ersatz</h1>
+
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 September 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
+
+	<p><div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>This is a long post and there is a lot of code to look through. If you would rather follow along using the completed code, you can find it in its GitHub project <a href="https://github.com/cjstehno/rest-dev">rest-dev</a>.</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>This blog post is going to be a bit more self-serving and a bit longer than my usual posts. I will be walking through the process of implementing a REST client using
+<a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> (v0.18.0) and then testing it against an <a href="http://stehno.com/ersatz">Ersatz Server</a> (v1.5.0) to
+mock out the endpoints.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say we work in a big company that is implementing a bunch of microservices. Our team is working on a service that will interface with a service being
+created by another team doing concurrent development - say they are creating an internal user management service. Our team will need to perform
+operations against their service before it actually exists. In discussions between the two teams, we have fleshed out a RESTful interface contract
+which looks something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>GET /users - list all users, responds with list of users
+GET /users/{id} - get specific user, responds with single user
+POST /users &lt;user&gt; - create new user, responds with created user
+PUT /users/{id} &lt;user&gt; - update existing user, responds with updated user
+DELETE /users/{id} - delete a user, 200 means success</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nothing shocking there, but now while they are developing the actual endpoints, you are developing a client. We need a way to simulate their user API
+in a realistic manner so we can develop with at least some level of confidence. This is one of the use cases where Ersatz Server comes in handy.</p>
+</div>
+<div class="paragraph">
+<p>We can quickly define a mock for each of the end points and then write client code against it. First, we will need a <code>User</code> object. Based on our shared
+contract, the <code>User</code> looks like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Canonical
+class User {
+    Long id
+    String username
+    String email
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next we need to setup a <a href="http://spockframework.org">Spock</a> test which will be used to simulate the API and test our client code. A basic Spock test with
+an Ersatz server is shown below (if you are not familiar with Spock, I suggest reading through the docs to get a quick feel for it before moving
+forward):</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClientSpec extends Specification {
+
+    @AutoCleanup('stop')
+    private final ErsatzServer server = new ErsatzServer()
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code creates our <code>ErsatzServer</code> instance for us and registers it to be stopped after each test method.</p>
+</div>
+<div class="paragraph">
+<p>For our REST endpoints, we will just start from the top and implement the <code>GET /users</code> endpoint first.</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieveAll'() {
+    setup:
+    List&lt;User&gt; users = [
+        new User(100, 'abe', 'abe@example.com'),
+        new User(200, 'bob', 'bob@example.com'),
+        new User(300, 'chuck', 'chuck@example.com')
+    ]
+
+    server.expectations {
+        get('/users').called(1).responder {
+            code 200
+            content users, APPLICATION_JSON
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    List&lt;User&gt; result = client.retrieveAll()
+
+    then:
+    result.size() == 3
+    result[0] == users[0]
+    result[1] == users[1]
+    result[2] == users[2]
+
+    and:
+    server.verify()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The client method for this endpoint will be named <code>retrieveAll()</code> so, we will use that as the test name. We setup a few users that will be returned
+by the call and then configure the Ersatz expectations. The expectations are defined using a DSL to describe each expected request and then to define
+the response that request will return. In this case we are expecting a <code>GET</code> request with the path <code>/users</code> only once, which will return a status code
+of <code>200</code> and the configured list of users as a string of JSON. We then use the client object (not defined yet) to make the server call and then verify
+that we got our list of users back and that the server expectation was actually called.</p>
+</div>
+<div class="paragraph">
+<p>It seems like a significant chunk of code to drop all at once, but if you read though it, it&#8217;s actually pretty straightforward.</p>
+</div>
+<div class="paragraph">
+<p>The first problem we run into when trying to run this code is that the <code>UserClient</code> class does not exist yet, so let&#8217;s create that next.</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClient {
+
+    private final HttpBuilder http
+
+    UserClient(final String host) {
+        http = HttpBuilder.configure {
+            request.uri = host
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We are using HttpBuilder-NG (the core client in this case) to make the HTTP calls. It also uses a DSL for configuration. In this case we define the
+base URI to be a host that we pass in - if you look back at the test we see that it&#8217;s the ErsatzServer host in that case. This will be the root of
+all requests. Now, to make our test happier, we need to implement the <code>retrieveAll()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">List&lt;User&gt; retrieveAll() {
+    http.get(List) {
+        request.uri.path = '/users'
+        response.parser(JSON) { ChainedHttpConfig config, FromServer fs -&gt;
+            json(config, fs).collect { x -&gt; x as User }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This method will make a <code>GET</code> request to the <code>/users</code> path on the configured host. Note that we also need to configure a parser to handle the incoming
+response data, which is a list of <code>User</code> objects serialized as JSON.</p>
+</div>
+<div class="paragraph">
+<p>Now, if we go back and run our test, we get a nasty error about parsing JSON content on the Ersatz Server side:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>groovy.json.JsonException: Unable to determine the current character, it is not a string, number, array, or object
+
+The current character read is 'r' with an int value of 114
+Unable to determine the current character, it is not a string, number, array, or object
+line number 1
+index number 1
+[restdev.User(100, abe, abe@example.com), restdev.User(200, bob, bob@example.com), restdev.User(300, chuck, chuck@example.com)]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means we need to add an <code>encoder</code> to the Ersatz Server configuration so that it knows how to encode the response it is sending back - in this case
+it will serialize a list of <code>User</code> objects as JSON to be sent as the response. We can configure this on the <code>ErsatzServer</code> constructor as:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+private final ErsatzServer server = new ErsatzServer({
+    encoder(APPLICATION_JSON, List) { input -&gt;
+        "[${input.collect { i -&gt; toJson(i) }.join(', ')}]"
+    }
+})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I just used the <code>groovy.json.JsonOutput.toJson(Object)</code> method for simplicity. Now, when we run the test it succeeds. At this point we have implemented
+and tested our client against a real endpoint. I say real because Ersatz creates an instance of an embedded <a href="http://undertow.io">Undertow</a> server and
+configures the expected endpoints on it. The client code is hitting a real and standard web server with all of the expected server behavior. What
+you do have to be careful of with this kind of testing is that the contract with the other team does not change. This mocked testing is only as good
+as the configured expectations and if left unmaintained could drift far from the reality of the production endpoints - something to be aware of.</p>
+</div>
+<div class="paragraph">
+<p>But we have other endpoints to define and clients to implement. Next, we will handle the single user retrieval case, the <code>retrieve(long)</code> method
+(<code>GET /users/{id}</code>). Our test for this method looks very similar to the first test:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieve'() {
+    setup:
+    User user = new User(42, 'somebody', 'somebody@example.com')
+
+    server.expectations {
+        get('/users/42').called(1).responder {
+            code 200
+            content user, APPLICATION_JSON
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    User result = client.retrieve(42)
+
+    then:
+    result == user
+
+    and:
+    server.verify()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that in this case, we are configuring only a single user in the response. Learning from our last test, we know that we will also need to
+configure an encoder to handle single <code>User</code> objects. This one is even simpler and makes our constructor look like:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+private final ErsatzServer server = new ErsatzServer({
+    encoder APPLICATION_JSON, User, Encoders.json
+    encoder(APPLICATION_JSON, List) { input -&gt;
+        "[${input.collect { i -&gt; toJson(i) }.join(', ')}]"
+    }
+})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the single object case we just define the default JSON encoder. Ersatz takes the stance that if you need/want encoders and decoders you need to
+configure them rather than having them provided out of the box. It keeps the configuration less surprising and more explicit.</p>
+</div>
+<div class="paragraph">
+<p>The client code for the <code>GET /users/{id}</code> endpoint is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User retrieve(final long userId) {
+    http.get(User) {
+        request.uri.path = "/users/${userId}"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which along the same lines as our first client method, we will need to add a response parser for deserializing the incoming JSON response. We can
+configure shared response parsers in the main <code>HttpBuilder.configure()</code> method that we have in our constructor, so that they will be available to all
+HTTP method calls. The client constructor now looks like:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
+    http = HttpBuilder.configure {
+        request.uri = host
+        response.parser JSON, { ChainedHttpConfig config, FromServer fs -&gt;
+            json(config, fs) as User
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This uses the <code>NativeHandlers.Parsers.json</code> method and casts it as a <code>User</code> object to satisfy our object typing.</p>
+</div>
+<div class="paragraph">
+<p>When we run our tests again, we see that they are both successful. That&#8217;s enough for the <code>GET</code> requests, let&#8217;s move on to something different. The
+<code>POST /users &lt;user&gt;</code> endpoint is tests as the others are:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'create'() {
+    setup:
+    User inputUser = new User(null, 'somebody', 'somebody@example.com')
+    User createdUser = new User(42, inputUser.username, inputUser.email)
+
+    server.expectations {
+        post('/users') {
+            called 1
+            body inputUser, APPLICATION_JSON
+            responder {
+                code 200
+                content createdUser, APPLICATION_JSON
+            }
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    User result = client.create(inputUser)
+
+    then:
+    result == createdUser
+
+    and:
+    server.verify()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case we are expecting a <code>POST</code> method with a <code>User</code> as the body content, serialized as JSON. When the request is successful we respond with
+the user data which also includes the id. To decode the incoming request content we need to add a <code>decoder</code> to the <code>ErsatzServer</code> constructor:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+private final ErsatzServer server = new ErsatzServer({
+    encoder APPLICATION_JSON, User, Encoders.json
+    encoder(APPLICATION_JSON, List) { input -&gt;
+        "[${input.collect { i -&gt; toJson(i) }.join(', ')}]"
+    }
+
+    decoder(APPLICATION_JSON) { byte[] bytes, DecodingContext dc -&gt;
+        Decoders.parseJson.apply(bytes, dc) as User
+    }
+})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the most part it is just the provided JSON decoder with the result cast as a <code>User</code> object. Now, for our client implementation</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User create(final User user) {
+    http.post(User) {
+        request.uri.path = '/users'
+        request.body = user
+        request.contentType = JSON[0]
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We just use the <code>post()</code> method and configure the request body content, which we will need a means of encoding into the outbound JSON format. Our client
+constructor now becomes:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
+    http = HttpBuilder.configure {
+        request.uri = host
+        request.encoder JSON, NativeHandlers.Encoders.&amp;json
+        response.parser JSON, { ChainedHttpConfig config, FromServer fs -&gt;
+            json(config, fs) as User
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the encoder, we can use the one provided with the library. Run the tests again and we see that everything is green.</p>
+</div>
+<div class="paragraph">
+<p>I am going to skip the description of the user update method and its test. They are basically the same as those for the create functionality. The
+<code>DELETE /users/{id}</code> endpoint provides a few different concepts, at least on the client side. We will flip the order with this one and show the
+client implementation first:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClient.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">boolean delete(final long userId) {
+    http.delete {
+        request.uri.path = "/users/$userId"
+        response.success {
+            true
+        }
+        response.failure {
+            throw new IllegalArgumentException()
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the <code>success</code> and <code>failure</code> handlers used here. If you get a successful response (e.g. 200), the <code>success</code> handler is called, otherwise the
+<code>failure</code> handler is called. For our implementation, we want to return <code>true</code> if the delete is successful` and throw an <code>IllegalArgumentException</code>
+if the user was not deleted - yes, it&#8217;s a bit odd, but it shows a bit more functionality.</p>
+</div>
+<div class="paragraph">
+<p>In order to test this method, we need to test cases:</p>
+</div>
+<div class="listingblock">
+<div class="title">UserClientSpec.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'delete: successful'() {
+    setup:
+    server.expectations {
+        delete('/users/42').called(1).responds().code(200)
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    boolean result = client.delete(42)
+
+    then:
+    result
+
+    and:
+    server.verify()
+}
+
+def 'delete: failed'() {
+    setup:
+    server.expectations {
+        delete('/users/42').called(1).responds().code(500)
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    boolean result = client.delete(42)
+
+    then:
+    thrown(IllegalArgumentException)
+    !result
+
+    and:
+    server.verify()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>One test case tests the successful path and the other the failure case. While there is still a lot of functionality left to
+implement and test (e.g. more failure cases, bad input data, etc), we&#8217;ve got a good starting point and a framework for future
+testing.</p>
+</div>
+<div class="paragraph">
+<p>Yes, this is a very code-rich discussion, but hopefully it was all pretty transparent about what was going on. You can find the code for both the client
+and the test in the <a href="https://github.com/cjstehno/rest-dev">rest-dev project</a> on GitHub.</p>
+</div>
+<div class="paragraph">
+<p>HttpBuilder-NG and Erstaz make a great team, and that&#8217;s actually somewhat by design. Ersatz is what HttpBuilder-NG uses to test its own functionality.
+Also, while the examples here are written in Groovy, both libraries work just as well with standard Java 8.</p>
+</div>
+<div class="paragraph">
+<p>This post has only scratched the surface of the functionality provided by both libraries. Poke around their documentation and see what else you can
+do, and feature requests are always welcome.</p>
+</div></p>
+
+
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <hr>
+                    <div style="text-align:center;">
+                        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a> CoffeaElectronica.com content is copyright &copy; 2016 <a href="http://stehno.com">Christopher J. Stehno</a> and available under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
+
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-27165855-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+    </body>
+</html>

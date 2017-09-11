@@ -6,9 +6,469 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Fri, 3 Mar 2017 08:52:22 -0600</pubDate>
-    <lastBuildDate>Fri, 3 Mar 2017 08:52:22 -0600</lastBuildDate>
+    <pubDate>Mon, 11 Sep 2017 07:27:47 -0500</pubDate>
+    <lastBuildDate>Mon, 11 Sep 2017 07:27:47 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Take a REST with HttpBuilder-NG and Ersatz</title>
+      <link>http://coffeaelectronica.com/blog/2017/rest-httpbuilder-ersatz.html</link>
+      <pubDate>Mon, 11 Sep 2017 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2017/rest-httpbuilder-ersatz.html</guid>
+      <description>
+      &lt;div class=&quot;quoteblock&quot;&gt;
+&lt;blockquote&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This is a long post and there is a lot of code to look through. If you would rather follow along using the completed code, you can find it in its GitHub project &lt;a href=&quot;https://github.com/cjstehno/rest-dev&quot;&gt;rest-dev&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This blog post is going to be a bit more self-serving and a bit longer than my usual posts. I will be walking through the process of implementing a REST client using
+&lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng/&quot;&gt;HttpBuilder-NG&lt;/a&gt; (v0.18.0) and then testing it against an &lt;a href=&quot;http://stehno.com/ersatz&quot;&gt;Ersatz Server&lt;/a&gt; (v1.5.0) to
+mock out the endpoints.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s say we work in a big company that is implementing a bunch of microservices. Our team is working on a service that will interface with a service being
+created by another team doing concurrent development - say they are creating an internal user management service. Our team will need to perform
+operations against their service before it actually exists. In discussions between the two teams, we have fleshed out a RESTful interface contract
+which looks something like this:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;GET /users - list all users, responds with list of users
+GET /users/{id} - get specific user, responds with single user
+POST /users &amp;lt;user&amp;gt; - create new user, responds with created user
+PUT /users/{id} &amp;lt;user&amp;gt; - update existing user, responds with updated user
+DELETE /users/{id} - delete a user, 200 means success&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Nothing shocking there, but now while they are developing the actual endpoints, you are developing a client. We need a way to simulate their user API
+in a realistic manner so we can develop with at least some level of confidence. This is one of the use cases where Ersatz Server comes in handy.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We can quickly define a mock for each of the end points and then write client code against it. First, we will need a &lt;code&gt;User&lt;/code&gt; object. Based on our shared
+contract, the &lt;code&gt;User&lt;/code&gt; looks like the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@Canonical
+class User {
+    Long id
+    String username
+    String email
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Next we need to setup a &lt;a href=&quot;http://spockframework.org&quot;&gt;Spock&lt;/a&gt; test which will be used to simulate the API and test our client code. A basic Spock test with
+an Ersatz server is shown below (if you are not familiar with Spock, I suggest reading through the docs to get a quick feel for it before moving
+forward):&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class UserClientSpec extends Specification {
+
+    @AutoCleanup(&apos;stop&apos;)
+    private final ErsatzServer server = new ErsatzServer()
+
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This code creates our &lt;code&gt;ErsatzServer&lt;/code&gt; instance for us and registers it to be stopped after each test method.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For our REST endpoints, we will just start from the top and implement the &lt;code&gt;GET /users&lt;/code&gt; endpoint first.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def &apos;retrieveAll&apos;() {
+    setup:
+    List&amp;lt;User&amp;gt; users = [
+        new User(100, &apos;abe&apos;, &apos;abe@example.com&apos;),
+        new User(200, &apos;bob&apos;, &apos;bob@example.com&apos;),
+        new User(300, &apos;chuck&apos;, &apos;chuck@example.com&apos;)
+    ]
+
+    server.expectations {
+        get(&apos;/users&apos;).called(1).responder {
+            code 200
+            content users, APPLICATION_JSON
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    List&amp;lt;User&amp;gt; result = client.retrieveAll()
+
+    then:
+    result.size() == 3
+    result[0] == users[0]
+    result[1] == users[1]
+    result[2] == users[2]
+
+    and:
+    server.verify()
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The client method for this endpoint will be named &lt;code&gt;retrieveAll()&lt;/code&gt; so, we will use that as the test name. We setup a few users that will be returned
+by the call and then configure the Ersatz expectations. The expectations are defined using a DSL to describe each expected request and then to define
+the response that request will return. In this case we are expecting a &lt;code&gt;GET&lt;/code&gt; request with the path &lt;code&gt;/users&lt;/code&gt; only once, which will return a status code
+of &lt;code&gt;200&lt;/code&gt; and the configured list of users as a string of JSON. We then use the client object (not defined yet) to make the server call and then verify
+that we got our list of users back and that the server expectation was actually called.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It seems like a significant chunk of code to drop all at once, but if you read though it, it&amp;#8217;s actually pretty straightforward.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The first problem we run into when trying to run this code is that the &lt;code&gt;UserClient&lt;/code&gt; class does not exist yet, so let&amp;#8217;s create that next.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;class UserClient {
+
+    private final HttpBuilder http
+
+    UserClient(final String host) {
+        http = HttpBuilder.configure {
+            request.uri = host
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We are using HttpBuilder-NG (the core client in this case) to make the HTTP calls. It also uses a DSL for configuration. In this case we define the
+base URI to be a host that we pass in - if you look back at the test we see that it&amp;#8217;s the ErsatzServer host in that case. This will be the root of
+all requests. Now, to make our test happier, we need to implement the &lt;code&gt;retrieveAll()&lt;/code&gt; method:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;List&amp;lt;User&amp;gt; retrieveAll() {
+    http.get(List) {
+        request.uri.path = &apos;/users&apos;
+        response.parser(JSON) { ChainedHttpConfig config, FromServer fs -&amp;gt;
+            json(config, fs).collect { x -&amp;gt; x as User }
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This method will make a &lt;code&gt;GET&lt;/code&gt; request to the &lt;code&gt;/users&lt;/code&gt; path on the configured host. Note that we also need to configure a parser to handle the incoming
+response data, which is a list of &lt;code&gt;User&lt;/code&gt; objects serialized as JSON.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, if we go back and run our test, we get a nasty error about parsing JSON content on the Ersatz Server side:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;groovy.json.JsonException: Unable to determine the current character, it is not a string, number, array, or object
+
+The current character read is &apos;r&apos; with an int value of 114
+Unable to determine the current character, it is not a string, number, array, or object
+line number 1
+index number 1
+[restdev.User(100, abe, abe@example.com), restdev.User(200, bob, bob@example.com), restdev.User(300, chuck, chuck@example.com)]&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This means we need to add an &lt;code&gt;encoder&lt;/code&gt; to the Ersatz Server configuration so that it knows how to encode the response it is sending back - in this case
+it will serialize a list of &lt;code&gt;User&lt;/code&gt; objects as JSON to be sent as the response. We can configure this on the &lt;code&gt;ErsatzServer&lt;/code&gt; constructor as:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@AutoCleanup(&apos;stop&apos;)
+private final ErsatzServer server = new ErsatzServer({
+    encoder(APPLICATION_JSON, List) { input -&amp;gt;
+        &quot;[${input.collect { i -&amp;gt; toJson(i) }.join(&apos;, &apos;)}]&quot;
+    }
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I just used the &lt;code&gt;groovy.json.JsonOutput.toJson(Object)&lt;/code&gt; method for simplicity. Now, when we run the test it succeeds. At this point we have implemented
+and tested our client against a real endpoint. I say real because Ersatz creates an instance of an embedded &lt;a href=&quot;http://undertow.io&quot;&gt;Undertow&lt;/a&gt; server and
+configures the expected endpoints on it. The client code is hitting a real and standard web server with all of the expected server behavior. What
+you do have to be careful of with this kind of testing is that the contract with the other team does not change. This mocked testing is only as good
+as the configured expectations and if left unmaintained could drift far from the reality of the production endpoints - something to be aware of.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;But we have other endpoints to define and clients to implement. Next, we will handle the single user retrieval case, the &lt;code&gt;retrieve(long)&lt;/code&gt; method
+(&lt;code&gt;GET /users/{id}&lt;/code&gt;). Our test for this method looks very similar to the first test:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def &apos;retrieve&apos;() {
+    setup:
+    User user = new User(42, &apos;somebody&apos;, &apos;somebody@example.com&apos;)
+
+    server.expectations {
+        get(&apos;/users/42&apos;).called(1).responder {
+            code 200
+            content user, APPLICATION_JSON
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    User result = client.retrieve(42)
+
+    then:
+    result == user
+
+    and:
+    server.verify()
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice that in this case, we are configuring only a single user in the response. Learning from our last test, we know that we will also need to
+configure an encoder to handle single &lt;code&gt;User&lt;/code&gt; objects. This one is even simpler and makes our constructor look like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@AutoCleanup(&apos;stop&apos;)
+private final ErsatzServer server = new ErsatzServer({
+    encoder APPLICATION_JSON, User, Encoders.json
+    encoder(APPLICATION_JSON, List) { input -&amp;gt;
+        &quot;[${input.collect { i -&amp;gt; toJson(i) }.join(&apos;, &apos;)}]&quot;
+    }
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the single object case we just define the default JSON encoder. Ersatz takes the stance that if you need/want encoders and decoders you need to
+configure them rather than having them provided out of the box. It keeps the configuration less surprising and more explicit.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The client code for the &lt;code&gt;GET /users/{id}&lt;/code&gt; endpoint is as follows:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;User retrieve(final long userId) {
+    http.get(User) {
+        request.uri.path = &quot;/users/${userId}&quot;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which along the same lines as our first client method, we will need to add a response parser for deserializing the incoming JSON response. We can
+configure shared response parsers in the main &lt;code&gt;HttpBuilder.configure()&lt;/code&gt; method that we have in our constructor, so that they will be available to all
+HTTP method calls. The client constructor now looks like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;UserClient(final String host) {
+    http = HttpBuilder.configure {
+        request.uri = host
+        response.parser JSON, { ChainedHttpConfig config, FromServer fs -&amp;gt;
+            json(config, fs) as User
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This uses the &lt;code&gt;NativeHandlers.Parsers.json&lt;/code&gt; method and casts it as a &lt;code&gt;User&lt;/code&gt; object to satisfy our object typing.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;When we run our tests again, we see that they are both successful. That&amp;#8217;s enough for the &lt;code&gt;GET&lt;/code&gt; requests, let&amp;#8217;s move on to something different. The
+&lt;code&gt;POST /users &amp;lt;user&amp;gt;&lt;/code&gt; endpoint is tests as the others are:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def &apos;create&apos;() {
+    setup:
+    User inputUser = new User(null, &apos;somebody&apos;, &apos;somebody@example.com&apos;)
+    User createdUser = new User(42, inputUser.username, inputUser.email)
+
+    server.expectations {
+        post(&apos;/users&apos;) {
+            called 1
+            body inputUser, APPLICATION_JSON
+            responder {
+                code 200
+                content createdUser, APPLICATION_JSON
+            }
+        }
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    User result = client.create(inputUser)
+
+    then:
+    result == createdUser
+
+    and:
+    server.verify()
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;In this case we are expecting a &lt;code&gt;POST&lt;/code&gt; method with a &lt;code&gt;User&lt;/code&gt; as the body content, serialized as JSON. When the request is successful we respond with
+the user data which also includes the id. To decode the incoming request content we need to add a &lt;code&gt;decoder&lt;/code&gt; to the &lt;code&gt;ErsatzServer&lt;/code&gt; constructor:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;@AutoCleanup(&apos;stop&apos;)
+private final ErsatzServer server = new ErsatzServer({
+    encoder APPLICATION_JSON, User, Encoders.json
+    encoder(APPLICATION_JSON, List) { input -&amp;gt;
+        &quot;[${input.collect { i -&amp;gt; toJson(i) }.join(&apos;, &apos;)}]&quot;
+    }
+
+    decoder(APPLICATION_JSON) { byte[] bytes, DecodingContext dc -&amp;gt;
+        Decoders.parseJson.apply(bytes, dc) as User
+    }
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the most part it is just the provided JSON decoder with the result cast as a &lt;code&gt;User&lt;/code&gt; object. Now, for our client implementation&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;User create(final User user) {
+    http.post(User) {
+        request.uri.path = &apos;/users&apos;
+        request.body = user
+        request.contentType = JSON[0]
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We just use the &lt;code&gt;post()&lt;/code&gt; method and configure the request body content, which we will need a means of encoding into the outbound JSON format. Our client
+constructor now becomes:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;UserClient(final String host) {
+    http = HttpBuilder.configure {
+        request.uri = host
+        request.encoder JSON, NativeHandlers.Encoders.&amp;amp;json
+        response.parser JSON, { ChainedHttpConfig config, FromServer fs -&amp;gt;
+            json(config, fs) as User
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the encoder, we can use the one provided with the library. Run the tests again and we see that everything is green.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I am going to skip the description of the user update method and its test. They are basically the same as those for the create functionality. The
+&lt;code&gt;DELETE /users/{id}&lt;/code&gt; endpoint provides a few different concepts, at least on the client side. We will flip the order with this one and show the
+client implementation first:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClient.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;boolean delete(final long userId) {
+    http.delete {
+        request.uri.path = &quot;/users/$userId&quot;
+        response.success {
+            true
+        }
+        response.failure {
+            throw new IllegalArgumentException()
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice the &lt;code&gt;success&lt;/code&gt; and &lt;code&gt;failure&lt;/code&gt; handlers used here. If you get a successful response (e.g. 200), the &lt;code&gt;success&lt;/code&gt; handler is called, otherwise the
+&lt;code&gt;failure&lt;/code&gt; handler is called. For our implementation, we want to return &lt;code&gt;true&lt;/code&gt; if the delete is successful` and throw an &lt;code&gt;IllegalArgumentException&lt;/code&gt;
+if the user was not deleted - yes, it&amp;#8217;s a bit odd, but it shows a bit more functionality.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;In order to test this method, we need to test cases:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;UserClientSpec.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;def &apos;delete: successful&apos;() {
+    setup:
+    server.expectations {
+        delete(&apos;/users/42&apos;).called(1).responds().code(200)
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    boolean result = client.delete(42)
+
+    then:
+    result
+
+    and:
+    server.verify()
+}
+
+def &apos;delete: failed&apos;() {
+    setup:
+    server.expectations {
+        delete(&apos;/users/42&apos;).called(1).responds().code(500)
+    }
+
+    UserClient client = new UserClient(server.httpUrl)
+
+    when:
+    boolean result = client.delete(42)
+
+    then:
+    thrown(IllegalArgumentException)
+    !result
+
+    and:
+    server.verify()
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;One test case tests the successful path and the other the failure case. While there is still a lot of functionality left to
+implement and test (e.g. more failure cases, bad input data, etc), we&amp;#8217;ve got a good starting point and a framework for future
+testing.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Yes, this is a very code-rich discussion, but hopefully it was all pretty transparent about what was going on. You can find the code for both the client
+and the test in the &lt;a href=&quot;https://github.com/cjstehno/rest-dev&quot;&gt;rest-dev project&lt;/a&gt; on GitHub.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;HttpBuilder-NG and Erstaz make a great team, and that&amp;#8217;s actually somewhat by design. Ersatz is what HttpBuilder-NG uses to test its own functionality.
+Also, while the examples here are written in Groovy, both libraries work just as well with standard Java 8.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This post has only scratched the surface of the functionality provided by both libraries. Poke around their documentation and see what else you can
+do, and feature requests are always welcome.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Fixed Minute Timers</title>
@@ -4132,45 +4592,6 @@ Content: [content:Hello, Chris!, id:1]
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the &lt;code&gt;then&lt;/code&gt; block here, we verify that the &lt;code&gt;println(String)&lt;/code&gt; method of the mocked &lt;code&gt;PrintWriter&lt;/code&gt; is called with the correct arguments in the correct order.&lt;/p&gt;&lt;p&gt;Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.&lt;/p&gt;
 &lt;blockquote&gt;&lt;p&gt;You can find the source code used in this posting in my &lt;a href=&quot;http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock&quot;&gt;TourDeMock&lt;/a&gt; project.&lt;/p&gt;
-&lt;/blockquote&gt;
-	  </description>
-    </item>
-    
-    <item>
-      <title>Testing AST Transformations</title>
-      <link>http://coffeaelectronica.com/blog/2015/ast-testing.html</link>
-      <pubDate>Sun, 8 Mar 2015 00:00:00 -0600</pubDate>
-      <guid isPermaLink="false">blog/2015/ast-testing.html</guid>
-      <description>
-      &lt;p&gt;While working on my &lt;a href=&quot;https://github.com/cjstehno/effigy&quot;&gt;Effigy&lt;/a&gt; project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.&lt;/p&gt;&lt;p&gt;After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it&apos;s actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)&lt;/p&gt;&lt;p&gt;The key to making transforms testable is the &lt;code&gt;GroovyClassLoader&lt;/code&gt; which gives you the ability to compile Groovy code on the fly:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;def clazz = new GroovyClassLoader().parseClass(sourceCode)
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;During that &lt;code&gt;parseClass&lt;/code&gt; method is when all the AST magic happens. This means you can not only easily test your code, but also debug into your transformations to get a better feel for what is going wrong when things break - and they often do.&lt;/p&gt;&lt;p&gt;For my testing, I have started building a &lt;code&gt;ClassBuilder&lt;/code&gt; code helper that is a shell for String-based source code. You provide a code template that acts as your class shell, and then you inject code for your specific test case. You end up with a reasonably clean means of building test code and instantiating it:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;private final ClassBuilder code = forCode(&amp;#39;&amp;#39;&amp;#39;
-    package testing
-
-    import com.stehno.ast.annotation.Counted
-
-    class CountingTester {
-        $code
-    }
-&amp;#39;&amp;#39;&amp;#39;)
-
-@Test void &amp;#39;single method&amp;#39;(){
-    def instance = code.inject(&amp;#39;&amp;#39;&amp;#39;
-        @Counted
-        String sayHello(String name){
-            &amp;quot;Hello, $name&amp;quot;
-        }
-    &amp;#39;&amp;#39;&amp;#39;).instantiate()
-
-    assert instance.sayHello(&amp;#39;AST&amp;#39;) == &amp;#39;Hello, AST&amp;#39;
-    assert instance.getSayHelloCount() == 1
-
-    assert instance.sayHello(&amp;#39;Counting&amp;#39;) == &amp;#39;Hello, Counting&amp;#39;
-    assert instance.getSayHelloCount() == 2
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;forCode&lt;/code&gt; method creates the builder and prepares the code shell. This construct may be reused for each of your tests.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;inject&lt;/code&gt; method adds in the actual code you care about, meaning your transformation code being tested.&lt;/p&gt;&lt;p&gt;The &lt;code&gt;instantiate&lt;/code&gt; method uses the &lt;code&gt;GroovyClassLoader&lt;/code&gt; internally to load the class and then instantiate it for testing.&lt;/p&gt;&lt;p&gt;I am going to add a version of the &lt;code&gt;ClassBuilder&lt;/code&gt; to my &lt;a href=&quot;https://github.com/cjstehno/vanilla&quot;&gt;Vanilla&lt;/a&gt; project once it is more stable; however, I have a version of it and a simple AST testing demo project in the &lt;a href=&quot;https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing&quot;&gt;ast-testing&lt;/a&gt; CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;Note: I have recently discovered the &lt;a href=&quot;http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html&quot;&gt;groovy.tools.ast.TransformTestHelper&lt;/a&gt; class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.&lt;/p&gt;
 &lt;/blockquote&gt;
 	  </description>
     </item>
