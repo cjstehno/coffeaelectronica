@@ -6,8 +6,8 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Mon, 11 Sep 2017 07:27:47 -0500</pubDate>
-    <lastBuildDate>Mon, 11 Sep 2017 07:27:47 -0500</lastBuildDate>
+    <pubDate>Tue, 12 Sep 2017 07:14:39 -0500</pubDate>
+    <lastBuildDate>Tue, 12 Sep 2017 07:14:39 -0500</lastBuildDate>
 
     
     <item>
@@ -466,6 +466,13 @@ Also, while the examples here are written in Groovy, both libraries work just as
 &lt;div class=&quot;paragraph&quot;&gt;
 &lt;p&gt;This post has only scratched the surface of the functionality provided by both libraries. Poke around their documentation and see what else you can
 do, and feature requests are always welcome.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;quoteblock&quot;&gt;
+&lt;blockquote&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Update: I have added a pure &lt;a href=&quot;https://github.com/cjstehno/rest-dev/tree/master/java-version&quot;&gt;Java 8 implementation&lt;/a&gt; of the code for this post (source and tests). Yes, both libraries really do work well with Java too!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/blockquote&gt;
 &lt;/div&gt;
 	  </description>
     </item>
