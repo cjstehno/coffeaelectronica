@@ -96,8 +96,207 @@
 	
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
+                <h1><a href="blog/2017/gradle-http-plugin.html">Making HTTP Requests from your Build</a></h1>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 15 October 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
+                <p><div class="paragraph">
+<p>I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The <a href="https://http-builder-ng.github.io/gradle-http-plugin/">HTTP Plugin</a> uses the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library&#8217;s clean DSL to configure the calls as Gradle tasks.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This post assumes some familiarity with the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library. If you have never used the library, I recommend reading through the <a href="https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5">User Guide</a> or my blog post <a href="http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a> to give you a good overview of its functionality.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As an example, let&#8217;s say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">NotificationController.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import groovy.transform.Canonical
+import groovy.transform.CompileStatic
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@CompileStatic @RestController
+class NotificationController {
+
+    private final List&lt;Notification&gt; notifications = []
+
+    @PostMapping('/notifications')
+    ResponseEntity&lt;Void&gt; notify(@RequestBody final Notification notification) {
+        notifications &lt;&lt; notification
+
+        new ResponseEntity&lt;Void&gt;(HttpStatus.OK)
+    }
+
+    @GetMapping('/notifications')
+    List&lt;Notification&gt; list() {
+        notifications
+    }
+}
+
+@CompileStatic @Canonical
+class Notification {
+
+    String project
+    String version
+    String message
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see that the controller will accept <code>POST</code> calls to <code>/notifications</code> to submit notifications. It will also provide a list of all notifications at the <code>GET</code> <code>/notifications</code> end point. I am going to omit the Spring-Boot project itself since it&#8217;s simply the controller above in a basic generated project. Just assume that the server is running in the background (with <code>gradle bootRun</code>).</p>
+</div>
+<div class="paragraph">
+<p>To apply the HTTP Plugin we add the following to the top of the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+	id 'io.github.http-builder-ng.http-plugin' version '0.1.0'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And then we need to create a task which will post build release notifications to our server:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notify(type:io.github.httpbuilderng.http.HttpTask){
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+    post {
+        request.uri.path = '/notifications'
+        request.contentType = 'application/json'
+        request.body = [
+            project: project.name,
+            version: project.version,
+            message: 'Build'
+        ]
+        response.success {
+            logger.info 'Notification succeeded.'
+        }
+        response.failure { fs, obj-&gt;
+            logger.warn "Notification failed (${fs.statusCode}: ${fs.message})"
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that the task is of type <code>io.github.httpbuilderng.http.HttpTask</code> which is provided by the plugin. The <code>config</code> block contains the client configuration (analogous to the <code>configure</code> method of the <code>HttpBuilder</code> implementation). The <code>post</code> block configures the actual request to be made. The <code>HttpTask</code> interface supports the <code>GET</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code> and <code>PATCH</code> request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a <code>POST</code> request to <code><a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a></code> with the project name, version and a simple message. If the notification is successful we will see the "Notification succeeded." message in the <code>--info</code> logging. A failure will produce a warning message with status information.</p>
+</div>
+<div class="paragraph">
+<p>Run the task with <code>gradle notify</code> with the server running. Then you can hit the <a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a> end point to see a JSON list of the submitted notifications.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+The <code>HttpTask</code> does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG <code>Response</code> interface (as the <code>success</code> and <code>failure</code> handlers in the example).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the <code>HttpExtension</code> provided by the plugin:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">http {
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means we can remove the <code>config</code> block from the <code>notify</code> task. Our new task to list the notifications will look like:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notifications(type:io.github.httpbuilderng.http.HttpTask){
+    get {
+        request.uri.path = '/notifications'
+        response.success { fs, obj-&gt;
+            println "Notifications List"
+            obj.each { notif-&gt;
+                println " - ${notif.project} (v${notif.version}): ${notif.message}"
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that we omitted the <code>config</code> block here since it we defined it in the <code>http</code> extension. This task makes a <code>GET</code> request to the <code>/notifications</code> end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with <code>gradle notifications</code> (and assuming we have run the <code>notify task</code>) you will see output similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>:notifications
+Notifications List
+ - demo (v0.0.1): Build
+ - demo (v0.0.1): Build
+
+BUILD SUCCESSFUL</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To this point we have been using the <code>CORE</code> client library provided by HttpBuilder-NG, which is based on the <code>HttpUrlConnection</code> object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the <code>library = 'apache'</code> line to the <code>http</code> extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.</p>
+</div>
+<div class="paragraph">
+<p>As a last bit of functionality, let&#8217;s add the ability to make the notification message more interesting. We can replace the:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: 'Build'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>line in the <code>notify</code> task definition with the following line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: project.hasProperty('notification-message') ? project.property('notification-message') : 'Build'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which allows us to send a notification with a more interesting message, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>gradle notify -Pnotification-message="Now with more message!"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.</p>
+</div></p>
+            </div>
+        </div>
+  	
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 11 September 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 11 September 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="quoteblock">
 <blockquote>
 <div class="paragraph">
@@ -562,7 +761,7 @@ do, and feature requests are always welcome.</p>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/fixed-minute-timers.html">Fixed Minute Timers</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>A co-worker of mine recently complained about how our metrics reporting component wasn&#8217;t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:</p>
 </div>
@@ -663,7 +862,7 @@ Start: 08:35
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/ssl-issues.html">Ignoring SSL Issues</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 15 January 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 15 January 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>
                 <p><div class="paragraph">
 <p>SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.</p>
 </div>
@@ -755,7 +954,7 @@ builder.hostnameVerifier(ANY_HOSTNAME);</code></pre>
         <div class="row">
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/fuzzy-matching.html">Fuzzy Text Matching</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 January 2017</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
+                <p><em><span class="glyphicon glyphicon-calendar"></span> 12 January 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
                 <p><div class="paragraph">
 <p>From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people&#8217;s first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it&#8217;s better to have a simple solution that works well-enough without adding bulk to your application.</p>
 </div>
@@ -2415,374 +2614,6 @@ println "Matrix: $matA\n"</code></pre>
 </div>
 <div class="paragraph">
 <p>All of the other mathematical operations I mentioned in the previous post are available and with data structures that feel a lot more rich and refined for general use. This is barely scratching the surface of the available functionality. Also, the underlying code is native-based and has support for running on CUDA cores for higher performance. This library is definitely one to keep in mind for cases when you have a lot of array and matrix-based operations.</p>
-</div></p>
-            </div>
-        </div>
-  	
-        <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
-                <h1><a href="blog/2016/commons-math-matrix.html">Apache Commons Math - RealMatrix</a></h1>
-                <p><em><span class="glyphicon glyphicon-calendar"></span> 11 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="paragraph">
-<p>I have been reading <a href="https://www.manning.com/books/machine-learning-in-action">Machine Learning in Action</a>, which is a great book; however, all of the examples are in Python. While Python seems like a decent language, it is not one of my primary languages. With that in mind, I have been converting the Python examples into Groovy so that a few months from now when I come back and try to understand what I learned, I will be able to decipher the code.</p>
-</div>
-<div class="paragraph">
-<p>What I have found is that, at least in the examples for this book, there are numerous Matrix-based operations. My Linear Algebra was a long time ago, but I think I remember some of the basics; however, it&#8217;s nice to have a Java-based implementation in the <a href="http://commons.apache.org/proper/commons-math/">Apache Commons Math</a> <code>RealMatrix</code> implementations (there are others but this is what I have been focussing on). It took me a little time to get back up to speed, especially since the Python examples will have something like:</p>
-</div>
-<div class="paragraph">
-<p>someMatrix = someMatrix * anotherMatrix + thirdMatrix * number</p>
-</div>
-<div class="paragraph">
-<p>where the resulting matrix is the product of two matrices added to the product of a matrix and a scalar number. Conceptually, this boils down to:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Multiply <code>someMatrix</code> by <code>anotherMatrix</code></p>
-</li>
-<li>
-<p>Multiply every element of <code>thirdMatrix</code> by the scalar <code>number</code> value</p>
-</li>
-<li>
-<p>Add every element of the matrix in step 1 with the element at the same position of the matrix from step 2.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Not hard to grasp, and not even all that hard to code; however, this is something I&#8217;d rather push off to someone else&#8217;s implementation instead of writing it myself. That is where the Commons Math library comes into play. The <code>RealMatrix</code> interface defines matrix support for <code>double</code> values - there is also a more flexible <code>FieldMatrix&lt;T&gt;</code> interface, but <code>double</code> values work well as an example. Let&#8217;s start by setting up a simple Groovy script for playing with matrices. Create a file named <code>matrix-math.groovy</code> and add the following to it:</p>
-</div>
-<div class="listingblock">
-<div class="title">matrix-math.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Grapes(
-   @Grab('org.apache.commons:commons-math3:3.6.1')
-)
-
-import org.apache.commons.math3.linear.*
-
-def mat = new Array2DRowRealMatrix(4,3)
-
-println mat</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This script will download the artifacts for the Apache Commons Math library and create a simple <code>RealMatrix</code> with 4 rows and 3 columns. It will then be printed to the console. When you run it, you should see</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Array2DRowRealMatrix{{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which represents our empty 4x3 matrix. While this is not a bad representation, it would be nicer if we could get a better representation of the rows and columns of data for our poor human eyes. The library provides a <code>RealMatrixFormat</code> for this. Add the following to the script:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def formatter = new RealMatrixFormat('{', '}', '{', '}', ',\n ', ',\t')
-
-println formatter.format(mat)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that the <code>println</code> line replaces the existing one. Now we get a better, more human-readable representation:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{0,    0,      0},
- {0,    0,      0},
- {0,    0,      0},
- {0,    0,      0}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Interesting so far, but we would really like some data. With the existing matrix, you can add data in rows or columns by index, similar to an array:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">mat.setRow(0, [1.0, 2.0, 3.0] as double[])
-mat.setColumn(1, [9.0, 8.0, 7.0, 6.0] as double[])</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now when you run the code, notice that you get the first row and the second column populated with the provided data:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{1,    9,      3},
- {0,    8,      0},
- {0,    7,      0},
- {0,    6,      0}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also notice that the column data overwrote the row data we set for the second column (index 1). In our row data it was <code>2.0</code>, but the <code>9.0</code> value from the column was applied after and is the final value. The other main method of creating a matrix is by providing the data directly in the constructor. Say we want to create a matrix with the same dimensions, but with a sequential collection of values, such as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>1  2  3
-4  5  6
-7  8  9
-10 11 12</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can do the following in the code:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def seqMat = new Array2DRowRealMatrix([
-    [1.0, 2.0, 3.0] as double[],
-    [4.0, 5.0, 6.0] as double[],
-    [7.0, 8.0, 9.0] as double[],
-    [10.0, 11.0, 12.0] as double[]
-] as double[][])
-
-println formatter.format(seqMat)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This code creates a matrix with an array of arrays, where the inner arrays are the rows of data. When printed out, you get the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{1,    2,      3},
- {4,    5,      6},
- {7,    8,      9},
- {10,   11,     12}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, let&#8217;s do some operations on our matrices. You can do common math operations on two matrices. Adding two matrices:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def sum = mat.add(seqMat)
-println formatter.format(sum)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This gives you the element-by-element sum of the values and yields:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{2,    11,     6},
- {4,    13,     6},
- {7,    15,     9},
- {10,   17,     12}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Subtracting one matrix from another:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def diff = seqMat.subtract(mat)
-println formatter.format(diff)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Gives:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{0,    -7,     0},
- {4,    -3,     6},
- {7,    1,      9},
- {10,   5,      12}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Multiplication of matrices is not what you might intuitively think it is, unless you are up on your Linear Algebra. Since there are whole wiki pages devoted to <a href="https://en.wikipedia.org/wiki/Matrix_multiplication">Matrix Multiplication</a>, I won&#8217;t go into it here beyond stating that it can be done when you have square matrices (ours are not). Not being a tutorial on Linear Algebra, I am going to leave it at that. You can also multiply a matrix by a scalar number:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def prod = mat.scalarMultiply(2)
-println formatter.format(prod)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which multiplies every element by the given value and results in:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{2,    18,     6},
- {0,    16,     0},
- {0,    14,     0},
- {0,    12,     0}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Similarly, there is a <code>scalarAdd(double)</code> method.</p>
-</div>
-<div class="paragraph">
-<p>Other useful operations may be performed on matrices. You can "transpose" the matrix:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def trans = seqMat.transpose()
-println formatter.format(trans)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This rotates the values of the matrix to turn rows into columns, as in our example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{1,    2,      3},
- {4,    5,      6},
- {7,    8,      9},
- {10,   11,     12}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>becomes</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{1,    4,      7,      10},
- {2,    5,      8,      11},
- {3,    6,      9,      12}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There are a handful of other built-in operations available to matrices that are probably useful if you know what you are doing, but at this point, I do not. Another useful construct is the set of "walker" methods that allow you to walk through the elements of the matrix in various ways, allowing you to modify the elements or simply read them. Let&#8217;s take our initial matrix as an example and multiply every element by <code>2.0</code> both in place and in an external collection.</p>
-</div>
-<div class="paragraph">
-<p>For the in-place modification we need a <code>RealMatrixChangingVisitor</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class MultiplicationVisitor extends DefaultRealMatrixChangingVisitor {
-
-    double factor
-
-    double visit(int row, int column, double value){
-        value * factor
-    }
-}
-
-mat.walkInOptimizedOrder(new MultiplicationVisitor(factor:2.0))
-println formatter.format(mat)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This visitor simply multiplies each value by the provided <code>factor</code> and returns it, which will update the value in the matrix. The resulting matrix has the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>{{2,    18,     6},
- {0,    16,     0},
- {0,    14,     0},
- {0,    12,     0}}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also walk a matrix without the ability to change the internal values. This requires a <code>RealMatrixPreservingVisitor</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class CollectingVisitor extends DefaultRealMatrixPreservingVisitor {
-
-    List values = []
-
-    void visit(int row, int column, double value){
-        values &lt;&lt; value
-    }
-}
-
-def collectingVisitor = new CollectingVisitor()
-mat.walkInOptimizedOrder(collectingVisitor)
-println collectingVisitor.values</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this case, the values are collected into a list and no matrix value is modified. You get the following result:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[2.0, 18.0, 6.0, 0.0, 16.0, 0.0, 0.0, 14.0, 0.0, 0.0, 12.0, 0.0]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This contains a list of all the values from our original matrix after the previous visitor has modified it.</p>
-</div>
-<div class="paragraph">
-<p>Matrix operations can seem quite complicated; however, they are not bad with a helpful library. So far the Commons Math API seems pretty useful for these more advanced math concepts.</p>
-</div>
-<div class="paragraph">
-<p>The entire script for this tutorial is provided below for completeness:</p>
-</div>
-<div class="listingblock">
-<div class="title">matrix-math.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Grapes(
-   @Grab('org.apache.commons:commons-math3:3.6.1')
-)
-
-import org.apache.commons.math3.linear.*
-
-def formatter = new RealMatrixFormat('{', '}', '{', '}', ',\n ', ',\t')
-
-def mat = new Array2DRowRealMatrix(4,3)
-mat.setRow(0, [1.0, 2.0, 3.0] as double[])
-mat.setColumn(1, [9.0, 8.0, 7.0, 6.0] as double[])
-
-println formatter.format(mat)
-println()
-
-def seqMat = new Array2DRowRealMatrix([
-    [1.0, 2.0, 3.0] as double[],
-    [4.0, 5.0, 6.0] as double[],
-    [7.0, 8.0, 9.0] as double[],
-    [10.0, 11.0, 12.0] as double[]
-] as double[][])
-
-println formatter.format(seqMat)
-println()
-
-def sum = mat.add(seqMat)
-println formatter.format(sum)
-println()
-
-def diff = seqMat.subtract(mat)
-println formatter.format(diff)
-println()
-
-def prod = mat.scalarMultiply(2)
-println formatter.format(prod)
-println()
-
-def trans = seqMat.transpose()
-println formatter.format(trans)
-println()
-
-class MultiplicationVisitor extends DefaultRealMatrixChangingVisitor {
-
-    double factor
-
-    double visit(int row, int column, double value){
-        value * factor
-    }
-}
-
-mat.walkInOptimizedOrder(new MultiplicationVisitor(factor:2.0))
-println formatter.format(mat)
-println()
-
-class CollectingVisitor extends DefaultRealMatrixPreservingVisitor {
-
-    List values = []
-
-    void visit(int row, int column, double value){
-        values &lt;&lt; value
-    }
-}
-
-def collectingVisitor = new CollectingVisitor()
-mat.walkInOptimizedOrder(collectingVisitor)
-println collectingVisitor.values
-println()</code></pre>
-</div>
 </div></p>
             </div>
         </div>

@@ -6,9 +6,210 @@
     <atom:link href="http://coffeaelectronica.com/feed.xml" rel="self" type="application/rss+xml" />
     <description>Technical blog of Christopher J. Stehno.</description>
     <language>en-us</language>
-    <pubDate>Tue, 12 Sep 2017 07:14:39 -0500</pubDate>
-    <lastBuildDate>Tue, 12 Sep 2017 07:14:39 -0500</lastBuildDate>
+    <pubDate>Sun, 15 Oct 2017 07:45:08 -0500</pubDate>
+    <lastBuildDate>Sun, 15 Oct 2017 07:45:08 -0500</lastBuildDate>
 
+    
+    <item>
+      <title>Making HTTP Requests from your Build</title>
+      <link>http://coffeaelectronica.com/blog/2017/gradle-http-plugin.html</link>
+      <pubDate>Sun, 15 Oct 2017 00:00:00 -0500</pubDate>
+      <guid isPermaLink="false">blog/2017/gradle-http-plugin.html</guid>
+      <description>
+      &lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The &lt;a href=&quot;https://http-builder-ng.github.io/gradle-http-plugin/&quot;&gt;HTTP Plugin&lt;/a&gt; uses the &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng&quot;&gt;HttpBuilder-NG&lt;/a&gt; library&amp;#8217;s clean DSL to configure the calls as Gradle tasks.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+This post assumes some familiarity with the &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng&quot;&gt;HttpBuilder-NG&lt;/a&gt; library. If you have never used the library, I recommend reading through the &lt;a href=&quot;https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5&quot;&gt;User Guide&lt;/a&gt; or my blog post &lt;a href=&quot;http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html&quot;&gt;Take a REST with HttpBuilder-NG and Ersatz&lt;/a&gt; to give you a good overview of its functionality.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As an example, let&amp;#8217;s say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;NotificationController.groovy&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;import groovy.transform.Canonical
+import groovy.transform.CompileStatic
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@CompileStatic @RestController
+class NotificationController {
+
+    private final List&amp;lt;Notification&amp;gt; notifications = []
+
+    @PostMapping(&apos;/notifications&apos;)
+    ResponseEntity&amp;lt;Void&amp;gt; notify(@RequestBody final Notification notification) {
+        notifications &amp;lt;&amp;lt; notification
+
+        new ResponseEntity&amp;lt;Void&amp;gt;(HttpStatus.OK)
+    }
+
+    @GetMapping(&apos;/notifications&apos;)
+    List&amp;lt;Notification&amp;gt; list() {
+        notifications
+    }
+}
+
+@CompileStatic @Canonical
+class Notification {
+
+    String project
+    String version
+    String message
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We see that the controller will accept &lt;code&gt;POST&lt;/code&gt; calls to &lt;code&gt;/notifications&lt;/code&gt; to submit notifications. It will also provide a list of all notifications at the &lt;code&gt;GET&lt;/code&gt; &lt;code&gt;/notifications&lt;/code&gt; end point. I am going to omit the Spring-Boot project itself since it&amp;#8217;s simply the controller above in a basic generated project. Just assume that the server is running in the background (with &lt;code&gt;gradle bootRun&lt;/code&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To apply the HTTP Plugin we add the following to the top of the &lt;code&gt;build.gradle&lt;/code&gt; file:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;plugins {
+	id &apos;io.github.http-builder-ng.http-plugin&apos; version &apos;0.1.0&apos;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;And then we need to create a task which will post build release notifications to our server:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;task notify(type:io.github.httpbuilderng.http.HttpTask){
+    config {
+        request.uri = &apos;http://localhost:8080&apos;
+    }
+    post {
+        request.uri.path = &apos;/notifications&apos;
+        request.contentType = &apos;application/json&apos;
+        request.body = [
+            project: project.name,
+            version: project.version,
+            message: &apos;Build&apos;
+        ]
+        response.success {
+            logger.info &apos;Notification succeeded.&apos;
+        }
+        response.failure { fs, obj-&amp;gt;
+            logger.warn &quot;Notification failed (${fs.statusCode}: ${fs.message})&quot;
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice that the task is of type &lt;code&gt;io.github.httpbuilderng.http.HttpTask&lt;/code&gt; which is provided by the plugin. The &lt;code&gt;config&lt;/code&gt; block contains the client configuration (analogous to the &lt;code&gt;configure&lt;/code&gt; method of the &lt;code&gt;HttpBuilder&lt;/code&gt; implementation). The &lt;code&gt;post&lt;/code&gt; block configures the actual request to be made. The &lt;code&gt;HttpTask&lt;/code&gt; interface supports the &lt;code&gt;GET&lt;/code&gt;, &lt;code&gt;HEAD&lt;/code&gt;, &lt;code&gt;POST&lt;/code&gt;, &lt;code&gt;PUT&lt;/code&gt; and &lt;code&gt;PATCH&lt;/code&gt; request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a &lt;code&gt;POST&lt;/code&gt; request to &lt;code&gt;&lt;a href=&quot;http://localhost:8080/notifications&quot; class=&quot;bare&quot;&gt;http://localhost:8080/notifications&lt;/a&gt;&lt;/code&gt; with the project name, version and a simple message. If the notification is successful we will see the &quot;Notification succeeded.&quot; message in the &lt;code&gt;--info&lt;/code&gt; logging. A failure will produce a warning message with status information.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Run the task with &lt;code&gt;gradle notify&lt;/code&gt; with the server running. Then you can hit the &lt;a href=&quot;http://localhost:8080/notifications&quot; class=&quot;bare&quot;&gt;http://localhost:8080/notifications&lt;/a&gt; end point to see a JSON list of the submitted notifications.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tip&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+The &lt;code&gt;HttpTask&lt;/code&gt; does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG &lt;code&gt;Response&lt;/code&gt; interface (as the &lt;code&gt;success&lt;/code&gt; and &lt;code&gt;failure&lt;/code&gt; handlers in the example).
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the &lt;code&gt;HttpExtension&lt;/code&gt; provided by the plugin:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;http {
+    config {
+        request.uri = &apos;http://localhost:8080&apos;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This means we can remove the &lt;code&gt;config&lt;/code&gt; block from the &lt;code&gt;notify&lt;/code&gt; task. Our new task to list the notifications will look like:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;build.gradle&lt;/div&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;task notifications(type:io.github.httpbuilderng.http.HttpTask){
+    get {
+        request.uri.path = &apos;/notifications&apos;
+        response.success { fs, obj-&amp;gt;
+            println &quot;Notifications List&quot;
+            obj.each { notif-&amp;gt;
+                println &quot; - ${notif.project} (v${notif.version}): ${notif.message}&quot;
+            }
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Notice that we omitted the &lt;code&gt;config&lt;/code&gt; block here since it we defined it in the &lt;code&gt;http&lt;/code&gt; extension. This task makes a &lt;code&gt;GET&lt;/code&gt; request to the &lt;code&gt;/notifications&lt;/code&gt; end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with &lt;code&gt;gradle notifications&lt;/code&gt; (and assuming we have run the &lt;code&gt;notify task&lt;/code&gt;) you will see output similar to the following:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;:notifications
+Notifications List
+ - demo (v0.0.1): Build
+ - demo (v0.0.1): Build
+
+BUILD SUCCESSFUL&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To this point we have been using the &lt;code&gt;CORE&lt;/code&gt; client library provided by HttpBuilder-NG, which is based on the &lt;code&gt;HttpUrlConnection&lt;/code&gt; object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the &lt;code&gt;library = &apos;apache&apos;&lt;/code&gt; line to the &lt;code&gt;http&lt;/code&gt; extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As a last bit of functionality, let&amp;#8217;s add the ability to make the notification message more interesting. We can replace the:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;message: &apos;Build&apos;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;line in the &lt;code&gt;notify&lt;/code&gt; task definition with the following line:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;prettyprint highlight&quot;&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;message: project.hasProperty(&apos;notification-message&apos;) ? project.property(&apos;notification-message&apos;) : &apos;Build&apos;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;which allows us to send a notification with a more interesting message, for example:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre&gt;gradle notify -Pnotification-message=&quot;Now with more message!&quot;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.&lt;/p&gt;
+&lt;/div&gt;
+	  </description>
+    </item>
     
     <item>
       <title>Take a REST with HttpBuilder-NG and Ersatz</title>
@@ -4496,110 +4697,6 @@ http.get( path: &amp;#39;greeting&amp;#39;, query:[name:&amp;#39;Chris&amp;#39;]
 &lt;pre&gt;&lt;code&gt;Status: 200
 Content: [content:Hello, Chris!, id:1]
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We are now using HTTPS on both the server and client for our rest service. It&apos;s not all that bad to setup once you figure out the steps, but in general the information seems to be tough to find.&lt;/p&gt;
-	  </description>
-    </item>
-    
-    <item>
-      <title>Tour de Mock 6: Spock</title>
-      <link>http://coffeaelectronica.com/blog/2015/tour-de-mock-6-spock.html</link>
-      <pubDate>Thu, 9 Apr 2015 00:00:00 -0500</pubDate>
-      <guid isPermaLink="false">blog/2015/tour-de-mock-6-spock.html</guid>
-      <description>
-      &lt;p&gt;My last entry in my &quot;Tour de Mock&quot; series was focused on basic &lt;a href=&quot;http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html&quot;&gt;Groovy mocking&lt;/a&gt;. In this post, I am going to take a look at the &lt;a href=&quot;https://code.google.com/p/spock/&quot;&gt;Spock Framework&lt;/a&gt;, which is an alternative testing framework with a lot of features, including its own mocking API.&lt;/p&gt;&lt;p&gt;Since it&apos;s been a while, let&apos;s refer back to the &lt;a href=&quot;http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html&quot;&gt;original posting&lt;/a&gt; as a refresher of what is being tested. We have a &lt;code&gt;Servlet&lt;/code&gt;, the &lt;code&gt;EmailListServlet&lt;/code&gt; &lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;public class EmailListServlet extends HttpServlet {
-
-    private EmailListService emailListService;
-
-    public void init() throws ServletException {
-        final ServletContext servletContext = getServletContext();
-        this.emailListService = (EmailListService)servletContext.getAttribute(EmailListService.KEY);
-
-        if(emailListService == null) throw new ServletException(&amp;quot;No ListService available!&amp;quot;);
-    }
-
-    protected void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
-        final String listName = req.getParameter(&amp;quot;listName&amp;quot;);
-        final List&amp;lt;String&amp;gt; list = emailListService.getListByName(listName);
-        PrintWriter writer = null;
-        try {
-            writer = res.getWriter();
-            for(final String email : list){
-                writer.println(email);
-            }
-        } finally {
-            if(writer != null) writer.close();
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;which uses an &lt;code&gt;EmailListService&lt;/code&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;public interface EmailListService {
-
-    public static final String KEY = &amp;quot;com.stehno.mockery.service.EmailListService&amp;quot;;
-
-    /**
-     * Retrieves the list of email addresses with the specified name. If no list
-     * exists with that name an IOException is thrown.
-     */
-    List&amp;lt;String&amp;gt; getListByName(String listName) throws IOException;
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;to retrieve lists of email addresses, because that&apos;s what you do, right? It&apos;s just an example. :-)&lt;/p&gt;&lt;p&gt;First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the &lt;code&gt;build.gradle&lt;/code&gt; file:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;testCompile &amp;quot;org.spockframework:spock-core:1.0-groovy-2.4&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Next, we need a test class. Spock uses the concept of a test &quot;Specification&quot; so we create a simple test class as:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;class EmailListServlet_SpockSpec extends Specification {
-    // test stuff here...
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not all that different from a JUnit test; conceptually they are very similar.&lt;/p&gt;&lt;p&gt;Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def setup() {
-    def emailListService = Mock(EmailListService) {
-        _ * getListByName(null) &amp;gt;&amp;gt; { throw new IOException() }
-        _ * getListByName(&amp;#39;foolist&amp;#39;) &amp;gt;&amp;gt; LIST
-    }
-
-    def servletContext = Mock(ServletContext) {
-        1 * getAttribute(EmailListService.KEY) &amp;gt;&amp;gt; emailListService
-    }
-
-    def servletConfig = Mock(ServletConfig) {
-        1 * getServletContext() &amp;gt;&amp;gt; servletContext
-    }
-
-    emailListServlet = new EmailListServlet()
-    emailListServlet.init servletConfig
-
-    request = Mock(HttpServletRequest)
-    response = Mock(HttpServletResponse)
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Spock provides a &lt;code&gt;setup&lt;/code&gt; method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.&lt;/p&gt;&lt;p&gt;The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it&apos;s actually pretty expressive. In the code above for the &lt;code&gt;EmailListService&lt;/code&gt;, I am mocking the &lt;code&gt;getListByName(String)&lt;/code&gt; method such that it will accept any number of calls with a &lt;code&gt;null&lt;/code&gt; parameter and throw an exception, as well as any number of calls with a &lt;code&gt;foolist&lt;/code&gt; parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the &lt;a href=&quot;http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html&quot;&gt;Interaction-based Testing&lt;/a&gt; section of the Spock documentation.&lt;/p&gt;&lt;p&gt;Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected &lt;code&gt;Exception&lt;/code&gt; thrown:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def &amp;#39;doGet: without list&amp;#39;() {
-    setup:
-    1 * request.getParameter(&amp;#39;listName&amp;#39;) &amp;gt;&amp;gt; null
-
-    when:
-    emailListServlet.doGet request, response
-
-    then:
-    thrown(IOException)
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the &lt;code&gt;setup&lt;/code&gt; block is where we do any additional mocking or setup specific to this test method. The &lt;code&gt;when&lt;/code&gt; block is where the actual operations being tested are performed while the &lt;code&gt;then&lt;/code&gt; block is where the results are verified and conditions examined.&lt;/p&gt;&lt;p&gt;In our case, we need to mock out the reuest parameter to return &lt;code&gt;null&lt;/code&gt; and then we need to ensure that an &lt;code&gt;IOException&lt;/code&gt; is thrown.&lt;/p&gt;&lt;p&gt;Our other test is the case when a valid list name is provided:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&quot;groovy&quot;&gt;def &amp;#39;doGet: with list&amp;#39;() {
-    setup:
-    1 * request.getParameter(&amp;#39;listName&amp;#39;) &amp;gt;&amp;gt; &amp;#39;foolist&amp;#39;
-
-    def writer = Mock(PrintWriter)
-
-    1 * response.getWriter() &amp;gt;&amp;gt; writer
-
-    when:
-    emailListServlet.doGet request, response
-
-    then:
-    1 * writer.println(LIST[0])
-    1 * writer.println(LIST[1])
-    1 * writer.println(LIST[2])
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the &lt;code&gt;then&lt;/code&gt; block here, we verify that the &lt;code&gt;println(String)&lt;/code&gt; method of the mocked &lt;code&gt;PrintWriter&lt;/code&gt; is called with the correct arguments in the correct order.&lt;/p&gt;&lt;p&gt;Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;You can find the source code used in this posting in my &lt;a href=&quot;http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock&quot;&gt;TourDeMock&lt;/a&gt; project.&lt;/p&gt;
-&lt;/blockquote&gt;
 	  </description>
     </item>
     

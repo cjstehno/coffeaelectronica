@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CoffeaElectronica.com</title>
+
+    <meta name="description" content="A technical blog.">
+    <meta name="author" content="Christopher J. Stehno">
+    <meta name="keywords" content="java,groovy,blog">
+    <meta name="generator" content="JBake">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/asciidoctor.css" rel="stylesheet">
+    <link href="/css/base.css" rel="stylesheet">
+    <link href="/css/prettify.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="shortcut icon" href="/favicon.ico">
+</head>
+
+<body onload="prettyPrint()">
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12">
+            <img src="/images/coffee-banner.jpg" class="img-responsive" />
+        </div>
+    </div>
+
+    <nav class="navbar navbar-inverse" style="margin-bottom: 2px;">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">&nbsp;CoffeaElectronica</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/archive.html" title="Archives"><span class="glyphicon glyphicon-calendar"></span></a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tags"><span class="glyphicon glyphicon-tags"></span> <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            
+                                    <li><a href="/tags/ant.html">ant</a></li>
+                            
+                                    <li><a href="/tags/blog.html">blog</a></li>
+                            
+                                    <li><a href="/tags/gradle.html">gradle</a></li>
+                            
+                                    <li><a href="/tags/groovy.html">groovy</a></li>
+                            
+                                    <li><a href="/tags/java.html">java</a></li>
+                            
+                                    <li><a href="/tags/javascript.html">javascript</a></li>
+                            
+                                    <li><a href="/tags/maven.html">maven</a></li>
+                            
+                                    <li><a href="/tags/python.html">python</a></li>
+                            
+                                    <li><a href="/tags/spring.html">spring</a></li>
+                            
+                                    <li><a href="/tags/testing.html">testing</a></li>
+                            
+                                    <li><a href="/tags/vanilla.html">vanilla</a></li>
+                            
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="http://stehno.com" title="Web Site" target="_blank"><span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="http://github.com/cjstehno" title="Projects" target="_blank"><span class="glyphicon glyphicon-wrench"></span></a></li>
+                    <li><a href="/feed.xml" title="Feed"><span class="glyphicon glyphicon-bullhorn"></span></a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+	
+	<h1>Making HTTP Requests from your Build</h1>
+
+	<p><em><span class="glyphicon glyphicon-calendar"></span> 15 October 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a></p>
+
+	<p><div class="paragraph">
+<p>I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The <a href="https://http-builder-ng.github.io/gradle-http-plugin/">HTTP Plugin</a> uses the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library&#8217;s clean DSL to configure the calls as Gradle tasks.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This post assumes some familiarity with the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library. If you have never used the library, I recommend reading through the <a href="https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5">User Guide</a> or my blog post <a href="http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a> to give you a good overview of its functionality.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As an example, let&#8217;s say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">NotificationController.groovy</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import groovy.transform.Canonical
+import groovy.transform.CompileStatic
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@CompileStatic @RestController
+class NotificationController {
+
+    private final List&lt;Notification&gt; notifications = []
+
+    @PostMapping('/notifications')
+    ResponseEntity&lt;Void&gt; notify(@RequestBody final Notification notification) {
+        notifications &lt;&lt; notification
+
+        new ResponseEntity&lt;Void&gt;(HttpStatus.OK)
+    }
+
+    @GetMapping('/notifications')
+    List&lt;Notification&gt; list() {
+        notifications
+    }
+}
+
+@CompileStatic @Canonical
+class Notification {
+
+    String project
+    String version
+    String message
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see that the controller will accept <code>POST</code> calls to <code>/notifications</code> to submit notifications. It will also provide a list of all notifications at the <code>GET</code> <code>/notifications</code> end point. I am going to omit the Spring-Boot project itself since it&#8217;s simply the controller above in a basic generated project. Just assume that the server is running in the background (with <code>gradle bootRun</code>).</p>
+</div>
+<div class="paragraph">
+<p>To apply the HTTP Plugin we add the following to the top of the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+	id 'io.github.http-builder-ng.http-plugin' version '0.1.0'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And then we need to create a task which will post build release notifications to our server:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notify(type:io.github.httpbuilderng.http.HttpTask){
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+    post {
+        request.uri.path = '/notifications'
+        request.contentType = 'application/json'
+        request.body = [
+            project: project.name,
+            version: project.version,
+            message: 'Build'
+        ]
+        response.success {
+            logger.info 'Notification succeeded.'
+        }
+        response.failure { fs, obj-&gt;
+            logger.warn "Notification failed (${fs.statusCode}: ${fs.message})"
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that the task is of type <code>io.github.httpbuilderng.http.HttpTask</code> which is provided by the plugin. The <code>config</code> block contains the client configuration (analogous to the <code>configure</code> method of the <code>HttpBuilder</code> implementation). The <code>post</code> block configures the actual request to be made. The <code>HttpTask</code> interface supports the <code>GET</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code> and <code>PATCH</code> request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a <code>POST</code> request to <code><a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a></code> with the project name, version and a simple message. If the notification is successful we will see the "Notification succeeded." message in the <code>--info</code> logging. A failure will produce a warning message with status information.</p>
+</div>
+<div class="paragraph">
+<p>Run the task with <code>gradle notify</code> with the server running. Then you can hit the <a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a> end point to see a JSON list of the submitted notifications.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+The <code>HttpTask</code> does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG <code>Response</code> interface (as the <code>success</code> and <code>failure</code> handlers in the example).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the <code>HttpExtension</code> provided by the plugin:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">http {
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means we can remove the <code>config</code> block from the <code>notify</code> task. Our new task to list the notifications will look like:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notifications(type:io.github.httpbuilderng.http.HttpTask){
+    get {
+        request.uri.path = '/notifications'
+        response.success { fs, obj-&gt;
+            println "Notifications List"
+            obj.each { notif-&gt;
+                println " - ${notif.project} (v${notif.version}): ${notif.message}"
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that we omitted the <code>config</code> block here since it we defined it in the <code>http</code> extension. This task makes a <code>GET</code> request to the <code>/notifications</code> end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with <code>gradle notifications</code> (and assuming we have run the <code>notify task</code>) you will see output similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>:notifications
+Notifications List
+ - demo (v0.0.1): Build
+ - demo (v0.0.1): Build
+
+BUILD SUCCESSFUL</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To this point we have been using the <code>CORE</code> client library provided by HttpBuilder-NG, which is based on the <code>HttpUrlConnection</code> object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the <code>library = 'apache'</code> line to the <code>http</code> extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.</p>
+</div>
+<div class="paragraph">
+<p>As a last bit of functionality, let&#8217;s add the ability to make the notification message more interesting. We can replace the:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: 'Build'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>line in the <code>notify</code> task definition with the following line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: project.hasProperty('notification-message') ? project.property('notification-message') : 'Build'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which allows us to send a notification with a more interesting message, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>gradle notify -Pnotification-message="Now with more message!"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.</p>
+</div></p>
+
+
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <hr>
+                    <div style="text-align:center;">
+                        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a> CoffeaElectronica.com content is copyright &copy; 2016 <a href="http://stehno.com">Christopher J. Stehno</a> and available under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script src="/js/jquery-1.12.4.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+        <script src="/js/prettify.js"></script>
+
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-27165855-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+    </body>
+</html>
