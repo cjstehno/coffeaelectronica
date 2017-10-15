@@ -1,7 +1,7 @@
 title=Fuzzy Text Matching
 date=2017-01-12
 type=post
-tags=blog,groovy
+tags=groovy
 status=published
 ~~~~~~
 From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people's first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it's better to have a simple solution that works well-enough without adding bulk to your application.

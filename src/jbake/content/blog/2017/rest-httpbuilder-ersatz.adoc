@@ -1,7 +1,7 @@
 title=Take a REST with HttpBuilder-NG and Ersatz
 date=2017-09-11
 type=post
-tags=blog,groovy
+tags=groovy
 status=published
 ~~~~~~
 > This is a long post and there is a lot of code to look through. If you would rather follow along using the completed code, you can find it in its GitHub project https://github.com/cjstehno/rest-dev[rest-dev].

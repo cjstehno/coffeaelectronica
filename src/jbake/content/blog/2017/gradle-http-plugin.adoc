@@ -1,0 +1,160 @@
+title=Making HTTP Requests from your Build
+date=2017-10-15
+type=post
+tags=groovy,gradle
+status=published
+~~~~~~
+I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The https://http-builder-ng.github.io/gradle-http-plugin/[HTTP Plugin] uses the https://http-builder-ng.github.io/http-builder-ng[HttpBuilder-NG] library's clean DSL to configure the calls as Gradle tasks.
+
+NOTE: This post assumes some familiarity with the https://http-builder-ng.github.io/http-builder-ng[HttpBuilder-NG] library. If you have never used the library, I recommend reading through the https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5[User Guide] or my blog post http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html[Take a REST with HttpBuilder-NG and Ersatz] to give you a good overview of its functionality.
+
+As an example, let's say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:
+
+[source,groovy]
+.NotificationController.groovy
+----
+import groovy.transform.Canonical
+import groovy.transform.CompileStatic
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@CompileStatic @RestController
+class NotificationController {
+
+    private final List<Notification> notifications = []
+
+    @PostMapping('/notifications')
+    ResponseEntity<Void> notify(@RequestBody final Notification notification) {
+        notifications << notification
+
+        new ResponseEntity<Void>(HttpStatus.OK)
+    }
+
+    @GetMapping('/notifications')
+    List<Notification> list() {
+        notifications
+    }
+}
+
+@CompileStatic @Canonical
+class Notification {
+
+    String project
+    String version
+    String message
+}
+----
+
+We see that the controller will accept `POST` calls to `/notifications` to submit notifications. It will also provide a list of all notifications at the `GET` `/notifications` end point. I am going to omit the Spring-Boot project itself since it's simply the controller above in a basic generated project. Just assume that the server is running in the background (with `gradle bootRun`).
+
+To apply the HTTP Plugin we add the following to the top of the `build.gradle` file:
+
+[source,groovy]
+.build.gradle
+----
+plugins {
+	id 'io.github.http-builder-ng.http-plugin' version '0.1.0'
+}
+----
+
+And then we need to create a task which will post build release notifications to our server:
+
+[source,groovy]
+.build.gradle
+----
+task notify(type:io.github.httpbuilderng.http.HttpTask){
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+    post {
+        request.uri.path = '/notifications'
+        request.contentType = 'application/json'
+        request.body = [
+            project: project.name,
+            version: project.version,
+            message: 'Build'
+        ]
+        response.success {
+            logger.info 'Notification succeeded.'
+        }
+        response.failure { fs, obj->
+            logger.warn "Notification failed (${fs.statusCode}: ${fs.message})"
+        }
+    }
+}
+----
+
+Notice that the task is of type `io.github.httpbuilderng.http.HttpTask` which is provided by the plugin. The `config` block contains the client configuration (analogous to the `configure` method of the `HttpBuilder` implementation). The `post` block configures the actual request to be made. The `HttpTask` interface supports the `GET`, `HEAD`, `POST`, `PUT` and `PATCH` request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a `POST` request to `http://localhost:8080/notifications` with the project name, version and a simple message. If the notification is successful we will see the "Notification succeeded." message in the `--info` logging. A failure will produce a warning message with status information.
+
+Run the task with `gradle notify` with the server running. Then you can hit the http://localhost:8080/notifications end point to see a JSON list of the submitted notifications.
+
+TIP: The `HttpTask` does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG `Response` interface (as the `success` and `failure` handlers in the example).
+
+Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the `HttpExtension` provided by the plugin:
+
+[source,groovy]
+.build.gradle
+----
+http {
+    config {
+        request.uri = 'http://localhost:8080'
+    }
+}
+----
+
+This means we can remove the `config` block from the `notify` task. Our new task to list the notifications will look like:
+
+[source,groovy]
+.build.gradle
+----
+task notifications(type:io.github.httpbuilderng.http.HttpTask){
+    get {
+        request.uri.path = '/notifications'
+        response.success { fs, obj->
+            println "Notifications List"
+            obj.each { notif->
+                println " - ${notif.project} (v${notif.version}): ${notif.message}"
+            }
+        }
+    }
+}
+----
+
+Notice that we omitted the `config` block here since it we defined it in the `http` extension. This task makes a `GET` request to the `/notifications` end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with `gradle notifications` (and assuming we have run the `notify task`) you will see output similar to the following:
+
+----
+:notifications
+Notifications List
+ - demo (v0.0.1): Build
+ - demo (v0.0.1): Build
+
+BUILD SUCCESSFUL
+----
+
+To this point we have been using the `CORE` client library provided by HttpBuilder-NG, which is based on the `HttpUrlConnection` object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the `library = 'apache'` line to the `http` extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.
+
+As a last bit of functionality, let's add the ability to make the notification message more interesting. We can replace the:
+
+[source,groovy]
+----
+message: 'Build'
+----
+
+line in the `notify` task definition with the following line:
+
+[source,groovy]
+----
+message: project.hasProperty('notification-message') ? project.property('notification-message') : 'Build'
+----
+
+which allows us to send a notification with a more interesting message, for example:
+
+----
+gradle notify -Pnotification-message="Now with more message!"
+----
+
+That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.

@@ -1,7 +1,7 @@
 title=Fixed Minute Timers
 date=2017-03-03
 type=post
-tags=blog,groovy
+tags=groovy
 status=published
 ~~~~~~
 A co-worker of mine recently complained about how our metrics reporting component wasn't smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:
@@ -18,7 +18,7 @@ What you want to do is determine the delay between now and the next desired minu
 ----
 def delay(final int mark, final LocalTime now = LocalTime.now()){
     int minute = now.minute + 1
-    
+
     int minuteMark = minute % mark
     minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
 
@@ -46,7 +46,7 @@ import java.util.concurrent.*
 
 def delay(final int mark, final LocalTime now = LocalTime.now()){
     int minute = now.minute + 1
-    
+
     int minuteMark = minute % mark
     minuteMark = minuteMark == 0 ? minute : minute - minuteMark + mark
 

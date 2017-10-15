@@ -1,7 +1,7 @@
 title=Ignoring SSL Issues
 date=2017-01-15
 type=post
-tags=blog,groovy
+tags=groovy,java
 status=published
 ~~~~~~
 SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on https://http-builder-ng.github.io/http-builder-ng/[HttpBuilder-NG] to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.

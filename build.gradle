@@ -11,7 +11,7 @@ buildscript {
         classpath 'org.jbake:jbake-core:2.3.2'
         classpath 'org.pegdown:pegdown:1.4.2'
         classpath 'org.asciidoctor:asciidoctorj:1.5.2'
-        classpath "gradle.plugin.com.stehno.gradle:webpreview:0.1.1"
+        classpath "gradle.plugin.com.stehno.gradle:webpreview:0.3.0"
     }
 }
 
