@@ -22,11 +22,11 @@
         <%     posts.each { p->
             def tagString = p.tags.collect { t-> "<a href='/tags/${t}.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ${t}</span></a>" }.join(' ')
         %>
-        <div>${p.date.format('MM/dd')}: <a href="${p.uri}">${p.title}</a> ~ ${tagString}</div>
+        <div>${p.date.format('MM/dd')}: <a href="/${p.uri}">${p.title}</a> ~ ${tagString}</div>
         <%     } %>
     </div>
     <%
         }
     %>
-	
+
 <%include "footer.gsp"%>
