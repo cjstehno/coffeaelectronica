@@ -97,8 +97,8 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 September 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Say you have a directory under which there can be multiple sub-directories of infinite depth each with any number<br/>of files. If you wanted to walk down the directory tree and do some sort of processing of the files the first thing that<br/>always came to my mind was recursion. Write a little recursive method to iterate over the files and call the method<br/>again on directories, performing the processing as you go. Something like this:</p>
-<pre><code class="java">void walk(File dir){
+	<p><p>Say you have a directory under which there can be multiple sub-directories of infinite depth each with any number<br> of files. If you wanted to walk down the directory tree and do some sort of processing of the files the first thing that<br> always came to my mind was recursion. Write a little recursive method to iterate over the files and call the method<br> again on directories, performing the processing as you go. Something like this:</p> 
+<pre><code class="language-java">void walk(File dir){
     for(File item : dir.listFiles()){
         if(item.isDirectory()){
             walk(item);
@@ -107,8 +107,9 @@
         }
     }
 }
-</code></pre><p>Now, this works fine and I have never run into problems with the approach; however, the iterative approach can be a<br/>useful and often more efficient alternative. Rather than recursively calling the <code>walk()</code> method, perform the<br/>looping and use a <code>Stack</code> object to maintain the set of directories to be searched. Here is what I mean:</p>
-<pre><code class="java">void walk(File dir){
+</code></pre> 
+<p>Now, this works fine and I have never run into problems with the approach; however, the iterative approach can be a<br> useful and often more efficient alternative. Rather than recursively calling the <code>walk()</code> method, perform the<br> looping and use a <code>Stack</code> object to maintain the set of directories to be searched. Here is what I mean:</p> 
+<pre><code class="language-java">void walk(File dir){
     Stack&lt;File&gt; stack = new Stack&lt;File&gt;();
     stack.push(dir);
 
@@ -122,7 +123,8 @@
         }
     }
 }
-</code></pre><p>This method does the same thing but without recursion. I would like to do some profiling of the two approaches to see<br/>how each performs for various directory structures.</p></p>
+</code></pre> 
+<p>This method does the same thing but without recursion. I would like to do some profiling of the two approaches to see<br> how each performs for various directory structures.</p></p>
 
 
             <div class="row">

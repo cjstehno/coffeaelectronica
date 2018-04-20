@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 12 April 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>Every now and then you need to sort something in JavaScript and though, it's not all that hard to do, it is not the best-documented feature. Here is a quick little summary of how to do it.</p><p>You call the sort function of an array with your comparator. A JavaScript comparator is just a function that returns -1, 0, or 1 depending on whether a is less than b, a is equal to b, or a is greater than b:</p>
-<pre><code class="javascript">myarray.sort(function(a,b){
+	<p><p>Every now and then you need to sort something in JavaScript and though, it's not all that hard to do, it is not the best-documented feature. Here is a quick little summary of how to do it.</p> 
+<p>You call the sort function of an array with your comparator. A JavaScript comparator is just a function that returns -1, 0, or 1 depending on whether a is less than b, a is equal to b, or a is greater than b:</p> 
+<pre><code class="language-javascript">myarray.sort(function(a,b){
     if(a &lt; b){
         return -1;
     } else if(a == b){
@@ -107,10 +108,12 @@
         return 1;
     }
 });
-</code></pre><p>This is just an example, your function can base the comparison on whatever you want, but it needs to return -1,0,1. Say you had a set of custom JavaScript objects that you want sorted by age:</p>
-<pre><code class="javascript">var people = [{name:&#39;Bob&#39;,age:21}, {name:&#39;Fred&#39;,age:34}, {name:&#39;Dan&#39;,age:19}];
-</code></pre><p>You could easily sort them using</p>
-<pre><code class="javascript">people.sort(function(a,b){
+</code></pre> 
+<p>This is just an example, your function can base the comparison on whatever you want, but it needs to return -1,0,1. Say you had a set of custom JavaScript objects that you want sorted by age:</p> 
+<pre><code class="language-javascript">var people = [{name:'Bob',age:21}, {name:'Fred',age:34}, {name:'Dan',age:19}];
+</code></pre> 
+<p>You could easily sort them using</p> 
+<pre><code class="language-javascript">people.sort(function(a,b){
     if(a.age &lt; b.age){
         return -1;
     } else if(a.age == b.age){
@@ -119,7 +122,8 @@
         return 1;
     }
 });
-</code></pre><p>Not too hard to do. It's actually very similar to the Java <code>Comparator</code> interface.</p></p>
+</code></pre> 
+<p>Not too hard to do. It's actually very similar to the Java <code>Comparator</code> interface.</p></p>
 
 
             <div class="row">

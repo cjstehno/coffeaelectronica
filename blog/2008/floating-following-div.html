@@ -97,33 +97,38 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 October 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>I needed one of those <code>DIV</code>s that appears on call and then stays in view even when you scroll, until you<br/>close it. For lack of a better name, I call it the floating following div, and it's pretty easy to make. With a little<br/>help from <a href="http://prototypejs.org/">Prototype</a> we can even make it work across the major browsers.</p><p>First you need to put the div to be floated somewhere on your page. The page itself can be anything you want.</p>
-<pre><code class="html">&lt;div id=&quot;movable&quot;&gt;This is my floating area&lt;/div&gt;
-</code></pre><p>and then you need to give it some initial style:</p>
-<pre><code class="css">#movable {
+	<p><p>I needed one of those <code>DIV</code>s that appears on call and then stays in view even when you scroll, until you<br> close it. For lack of a better name, I call it the floating following div, and it's pretty easy to make. With a little<br> help from <a href="http://prototypejs.org/">Prototype</a> we can even make it work across the major browsers.</p> 
+<p>First you need to put the div to be floated somewhere on your page. The page itself can be anything you want.</p> 
+<pre><code class="language-html">&lt;div id="movable"&gt;This is my floating area&lt;/div&gt;
+</code></pre> 
+<p>and then you need to give it some initial style:</p> 
+<pre><code class="language-css">#movable {
     position: absolute;
     left: 100px;
     width: 200px;
     height: 200px;
     background-color: red;
 }
-</code></pre><p>Once all that is on the page, you will need some JavaScript to do the fancy stuff:</p>
-<pre><code class="html">&lt;script type=&quot;text/javascript&quot; src=&quot;prototype.js&quot;&gt;&lt;/script&gt;&lt;script type=&quot;text/javascript&quot;&gt;
-    Event.observe(window,&#39;load&#39;,function(evt){
-        $(&#39;movable&#39;).hide();
-        Event.observe(&#39;showme&#39;,&#39;click&#39;,showDiv);
-        Event.observe(window,&#39;scroll&#39;, function(evt){
-            $(&#39;movable&#39;).setStyle({ top: 8 + document.viewport.getScrollOffsets().top + &#39;px&#39; });
+</code></pre> 
+<p>Once all that is on the page, you will need some JavaScript to do the fancy stuff:</p> 
+<pre><code class="language-html">&lt;script type="text/javascript" src="prototype.js"&gt;&lt;/script&gt;&lt;script type="text/javascript"&gt;
+    Event.observe(window,'load',function(evt){
+        $('movable').hide();
+        Event.observe('showme','click',showDiv);
+        Event.observe(window,'scroll', function(evt){
+            $('movable').setStyle({ top: 8 + document.viewport.getScrollOffsets().top + 'px' });
         });
     });
 
     function showDiv(evt){
-        $(&#39;movable&#39;).show();
+        $('movable').show();
     }
 &lt;/script&gt;
-</code></pre><p>This causes the "movable" element to be hidden. Once the button with an id of "showme" is clicked, the element will<br/>be shown and will then follow along with vertical scrolling, staying up near the top of the view port. The key to this<br/>following motion is the function mapped to the <tt>window</tt> scrolling event:</p>
-<pre><code class="javascript">$(&#39;movable&#39;).setStyle({ top: 8 + document.viewport.getScrollOffsets().top + &#39;px&#39; });
-</code></pre><p>The <a href="http://prototypejs.org/api/document/viewport/getscrolloffsets">document.viewport.getScrollOffsets()</a> function is provided by<br/>Prototype. It's nothing exciting, but it works... just another thing posted here for future reference.</p></p>
+</code></pre> 
+<p>This causes the "movable" element to be hidden. Once the button with an id of "showme" is clicked, the element will<br> be shown and will then follow along with vertical scrolling, staying up near the top of the view port. The key to this<br> following motion is the function mapped to the <tt>window</tt> scrolling event:</p> 
+<pre><code class="language-javascript">$('movable').setStyle({ top: 8 + document.viewport.getScrollOffsets().top + 'px' });
+</code></pre> 
+<p>The <a href="http://prototypejs.org/api/document/viewport/getscrolloffsets">document.viewport.getScrollOffsets()</a> function is provided by<br> Prototype. It's nothing exciting, but it works... just another thing posted here for future reference.</p></p>
 
 
             <div class="row">

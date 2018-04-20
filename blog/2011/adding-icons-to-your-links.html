@@ -97,58 +97,62 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 February 2011</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>I have started working on a new browser start page for myself and thought it would be nice to have the favicon images for the links I add to the page. Obviously, you could just download them and render them next to the link by brute force, but then you'd have to do that for every link you added... a big waste of time.</p><p>I thought about it for a few minutes and came up with an automated solution that works pretty well. You know the path to the favicon for a given url; it's just thesite.com/favicon.ico, though there are ways to change this that I am not<br/>accounting for. With a little JQuery JavaScripting you can pull the icon from the link itself. First, we need to style<br/>the external anchor tags in preparation for the icon:</p>
-<pre><code class="css">a[href^=&quot;http://&quot;]{
+	<p><p>I have started working on a new browser start page for myself and thought it would be nice to have the favicon images for the links I add to the page. Obviously, you could just download them and render them next to the link by brute force, but then you'd have to do that for every link you added... a big waste of time.</p> 
+<p>I thought about it for a few minutes and came up with an automated solution that works pretty well. You know the path to the favicon for a given url; it's just thesite.com/favicon.ico, though there are ways to change this that I am not<br> accounting for. With a little JQuery JavaScripting you can pull the icon from the link itself. First, we need to style<br> the external anchor tags in preparation for the icon:</p> 
+<pre><code class="language-css">a[href^="http://"]{
     background-repeat:no-repeat;
     background-position:left;
     padding-left:17px;
 }
-</code></pre><p>This will cause all anchor tags with an href starting with "http://" (external) to be left-padded and have some<br/>additional background configuration. This basically adds a blank spot for the icon. Now we need some JavaScript to pull<br/>the icon for the link:</p>
-<pre><code class="javascript">jQuery(function(){
-    $(&#39;a[href^=&quot;http&quot;]&#39;).each(function(it){
-        var url = $(this).attr(&#39;href&#39;);
-        var slashIndex = url.indexOf(&#39;/&#39;,7);
+</code></pre> 
+<p>This will cause all anchor tags with an href starting with "<a href="http://&quot;">http://"</a> (external) to be left-padded and have some<br> additional background configuration. This basically adds a blank spot for the icon. Now we need some JavaScript to pull<br> the icon for the link:</p> 
+<pre><code class="language-javascript">jQuery(function(){
+    $('a[href^="http"]').each(function(it){
+        var url = $(this).attr('href');
+        var slashIndex = url.indexOf('/',7);
         if( slashIndex != -1 ){
             url = url.substring(0, slashIndex);
         }
 
-        $(this).css(&#39;background-image&#39;,&quot;url(&#39;&quot; + url + &quot;/favicon.ico&#39;)&quot;);
+        $(this).css('background-image',"url('" + url + "/favicon.ico')");
     });
 });
-</code></pre><p>Using JQuery, I find each of the external anchor tags, and ignoring the path part of the url, I set the<br/>"background-image" property of the anchor to be the favicon url. And that's it. Below is the full example:</p>
-<pre><code class="html">&lt;html&gt;
+</code></pre> 
+<p>Using JQuery, I find each of the external anchor tags, and ignoring the path part of the url, I set the<br> "background-image" property of the anchor to be the favicon url. And that's it. Below is the full example:</p> 
+<pre><code class="language-html">&lt;html&gt;
     &lt;head&gt;
         &lt;title&gt;Test&lt;/title&gt;
-        &lt;style type=&quot;text/css&quot;&gt;
-            a[href^=&quot;http://&quot;]{
+        &lt;style type="text/css"&gt;
+            a[href^="http://"]{
                 background-repeat:no-repeat;
                 background-position:left;
                 padding-left:17px;
             }
         &lt;/style&gt;
-        &lt;script type=&quot;text/javascript&quot; src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js&quot;&gt;&lt;/script&gt;
-        &lt;script type=&quot;text/javascript&quot;&gt;
+        &lt;script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"&gt;&lt;/script&gt;
+        &lt;script type="text/javascript"&gt;
             jQuery(function(){
-                $(&#39;a[href^=&quot;http&quot;]&#39;).each(function(it){
-                    var url = $(this).attr(&#39;href&#39;);
-                    var slashIndex = url.indexOf(&#39;/&#39;,7);
+                $('a[href^="http"]').each(function(it){
+                    var url = $(this).attr('href');
+                    var slashIndex = url.indexOf('/',7);
                     if( slashIndex != -1 ){
                         url = url.substring(0, slashIndex);
                     }
 
-                    $(this).css(&#39;background-image&#39;,&quot;url(&#39;&quot; + url + &quot;/favicon.ico&#39;)&quot;);
+                    $(this).css('background-image',"url('" + url + "/favicon.ico')");
                 });
             });
         &lt;/script&gt;
     &lt;/head&gt;
     &lt;body&gt;
-        This is some text surrounding &lt;a href=&quot;http://jqueryui.com&quot;&gt;JQuery UI&lt;/a&gt; the link I am playing with.
-        Also I will add another link &lt;a href=&quot;http://google.com&quot;&gt;Google&lt;/a&gt;.
-        More &lt;a href=&quot;http://jqueryui.com/demos/&quot;&gt;Demos&lt;/a&gt;.&lt;br/&gt;
-        Local links like &lt;a href=&quot;local.html&quot;&gt;this&lt;/a&gt; will be unchanged.
+        This is some text surrounding &lt;a href="http://jqueryui.com"&gt;JQuery UI&lt;/a&gt; the link I am playing with.
+        Also I will add another link &lt;a href="http://google.com"&gt;Google&lt;/a&gt;.
+        More &lt;a href="http://jqueryui.com/demos/"&gt;Demos&lt;/a&gt;.&lt;br/&gt;
+        Local links like &lt;a href="local.html"&gt;this&lt;/a&gt; will be unchanged.
     &lt;/body&gt;
 &lt;/html&gt;
-</code></pre><p>When you render this example, you will get something like the following image. href-icons.png I am sure there are<br/>tweaks that could be done and other scenarios to consider, but this is an interesting starting point.</p></p>
+</code></pre> 
+<p>When you render this example, you will get something like the following image. href-icons.png I am sure there are<br> tweaks that could be done and other scenarios to consider, but this is an interesting starting point.</p></p>
 
 
             <div class="row">

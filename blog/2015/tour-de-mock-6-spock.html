@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 April 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>My last entry in my "Tour de Mock" series was focused on basic <a href="http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html">Groovy mocking</a>. In this post, I am going to take a look at the <a href="https://code.google.com/p/spock/">Spock Framework</a>, which is an alternative testing framework with a lot of features, including its own mocking API.</p><p>Since it's been a while, let's refer back to the <a href="http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html">original posting</a> as a refresher of what is being tested. We have a <code>Servlet</code>, the <code>EmailListServlet</code> </p>
-<pre><code class="groovy">public class EmailListServlet extends HttpServlet {
+	<p><p>My last entry in my "Tour de Mock" series was focused on basic <a href="http://coffeaelectronica.com/blog/2010/tour-de-mock-5.html">Groovy mocking</a>. In this post, I am going to take a look at the <a href="https://code.google.com/p/spock/">Spock Framework</a>, which is an alternative testing framework with a lot of features, including its own mocking API.</p> 
+<p>Since it's been a while, let's refer back to the <a href="http://coffeaelectronica.com/blog/2009/tour-de-mock-1.html">original posting</a> as a refresher of what is being tested. We have a <code>Servlet</code>, the <code>EmailListServlet</code></p> 
+<pre><code class="language-groovy">public class EmailListServlet extends HttpServlet {
 
     private EmailListService emailListService;
 
@@ -106,11 +107,11 @@
         final ServletContext servletContext = getServletContext();
         this.emailListService = (EmailListService)servletContext.getAttribute(EmailListService.KEY);
 
-        if(emailListService == null) throw new ServletException(&quot;No ListService available!&quot;);
+        if(emailListService == null) throw new ServletException("No ListService available!");
     }
 
     protected void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
-        final String listName = req.getParameter(&quot;listName&quot;);
+        final String listName = req.getParameter("listName");
         final List&lt;String&gt; list = emailListService.getListByName(listName);
         PrintWriter writer = null;
         try {
@@ -123,10 +124,11 @@
         }
     }
 }
-</code></pre><p>which uses an <code>EmailListService</code></p>
-<pre><code class="groovy">public interface EmailListService {
+</code></pre> 
+<p>which uses an <code>EmailListService</code></p> 
+<pre><code class="language-groovy">public interface EmailListService {
 
-    public static final String KEY = &quot;com.stehno.mockery.service.EmailListService&quot;;
+    public static final String KEY = "com.stehno.mockery.service.EmailListService";
 
     /**
      * Retrieves the list of email addresses with the specified name. If no list
@@ -134,17 +136,22 @@
      */
     List&lt;String&gt; getListByName(String listName) throws IOException;
 }
-</code></pre><p>to retrieve lists of email addresses, because that's what you do, right? It's just an example. :-)</p><p>First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the <code>build.gradle</code> file:</p>
-<pre><code>testCompile &quot;org.spockframework:spock-core:1.0-groovy-2.4&quot;
-</code></pre><p>Next, we need a test class. Spock uses the concept of a test "Specification" so we create a simple test class as:</p>
-<pre><code class="groovy">class EmailListServlet_SpockSpec extends Specification {
+</code></pre> 
+<p>to retrieve lists of email addresses, because that's what you do, right? It's just an example. :-)</p> 
+<p>First, we need to add Spock to our build (recently converted to Gradle, but basically the same) by adding the following line to the <code>build.gradle</code> file:</p> 
+<pre><code>testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+</code></pre> 
+<p>Next, we need a test class. Spock uses the concept of a test "Specification" so we create a simple test class as:</p> 
+<pre><code class="language-groovy">class EmailListServlet_SpockSpec extends Specification {
     // test stuff here...
 }
-</code></pre><p>Not all that different from a JUnit test; conceptually they are very similar.</p><p>Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:</p>
-<pre><code class="groovy">def setup() {
+</code></pre> 
+<p>Not all that different from a JUnit test; conceptually they are very similar.</p> 
+<p>Just as in the other examples of testing this system, we need to setup our mock objects for the servlet environment and other collaborators:</p> 
+<pre><code class="language-groovy">def setup() {
     def emailListService = Mock(EmailListService) {
         _ * getListByName(null) &gt;&gt; { throw new IOException() }
-        _ * getListByName(&#39;foolist&#39;) &gt;&gt; LIST
+        _ * getListByName('foolist') &gt;&gt; LIST
     }
 
     def servletContext = Mock(ServletContext) {
@@ -161,10 +168,13 @@
     request = Mock(HttpServletRequest)
     response = Mock(HttpServletResponse)
 }
-</code></pre><p>Spock provides a <code>setup</code> method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.</p><p>The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it's actually pretty expressive. In the code above for the <code>EmailListService</code>, I am mocking the <code>getListByName(String)</code> method such that it will accept any number of calls with a <code>null</code> parameter and throw an exception, as well as any number of calls with a <code>foolist</code> parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the <a href="http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html">Interaction-based Testing</a> section of the Spock documentation.</p><p>Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected <code>Exception</code> thrown:</p>
-<pre><code class="groovy">def &#39;doGet: without list&#39;() {
+</code></pre> 
+<p>Spock provides a <code>setup</code> method that you can override to perform your test setup operations, such as mocking. In this example, we are mocking the service interface, and the servlet API interfaces so that they behave in the deisred manner.</p> 
+<p>The mocking provided by Spock took a little getting used to when coming from a primarily mockito-based background, but once you grasp the overall syntax, it's actually pretty expressive. In the code above for the <code>EmailListService</code>, I am mocking the <code>getListByName(String)</code> method such that it will accept any number of calls with a <code>null</code> parameter and throw an exception, as well as any number of calls with a <code>foolist</code> parameter which will return a reference to the email address list. Similarly, you can specify that you expect only N calls to a method as was done in the other mocks. You can dig a little deeper into the mocking part of the framework in the <a href="http://spockframework.github.io/spock/docs/1.0/interaction_based_testing.html">Interaction-based Testing</a> section of the Spock documentation.</p> 
+<p>Now that we have our basic mocks ready, we can test something. As in the earlier examples, we want to test the condition when no list name is specified and ensure that we get the expected <code>Exception</code> thrown:</p> 
+<pre><code class="language-groovy">def 'doGet: without list'() {
     setup:
-    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; null
+    1 * request.getParameter('listName') &gt;&gt; null
 
     when:
     emailListServlet.doGet request, response
@@ -172,10 +182,13 @@
     then:
     thrown(IOException)
 }
-</code></pre><p>One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the <code>setup</code> block is where we do any additional mocking or setup specific to this test method. The <code>when</code> block is where the actual operations being tested are performed while the <code>then</code> block is where the results are verified and conditions examined.</p><p>In our case, we need to mock out the reuest parameter to return <code>null</code> and then we need to ensure that an <code>IOException</code> is thrown.</p><p>Our other test is the case when a valid list name is provided:</p>
-<pre><code class="groovy">def &#39;doGet: with list&#39;() {
+</code></pre> 
+<p>One thing you should notice right away is that Spock uses label blocks to denote different parts of a test method. Here, the <code>setup</code> block is where we do any additional mocking or setup specific to this test method. The <code>when</code> block is where the actual operations being tested are performed while the <code>then</code> block is where the results are verified and conditions examined.</p> 
+<p>In our case, we need to mock out the reuest parameter to return <code>null</code> and then we need to ensure that an <code>IOException</code> is thrown.</p> 
+<p>Our other test is the case when a valid list name is provided:</p> 
+<pre><code class="language-groovy">def 'doGet: with list'() {
     setup:
-    1 * request.getParameter(&#39;listName&#39;) &gt;&gt; &#39;foolist&#39;
+    1 * request.getParameter('listName') &gt;&gt; 'foolist'
 
     def writer = Mock(PrintWriter)
 
@@ -189,8 +202,11 @@
     1 * writer.println(LIST[1])
     1 * writer.println(LIST[2])
 }
-</code></pre><p>In the <code>then</code> block here, we verify that the <code>println(String)</code> method of the mocked <code>PrintWriter</code> is called with the correct arguments in the correct order.</p><p>Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.</p>
-<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</code></pre> 
+<p>In the <code>then</code> block here, we verify that the <code>println(String)</code> method of the mocked <code>PrintWriter</code> is called with the correct arguments in the correct order.</p> 
+<p>Overall, Spock is a pretty clean and expressive framework for testing and mocking. It actually has quite a few other interesting features that beg to be explored.</p> 
+<blockquote> 
+ <p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p> 
 </blockquote></p>
 
 

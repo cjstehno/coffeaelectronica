@@ -97,12 +97,19 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 February 2013</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/maven.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> maven</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>When I talk about unit testing, I generally mean small quick and mocked tests of individual chunks of functionality,<br/>traditional unit testing. In some cases I will be testing slightly larger chunks, such as the interaction of a<br/>controller and a service, with everything else mocked out; however, when you start using a real database (especially<br/>not an embedded one) or needing to connect to other services in order to get a good solid test, you cross over into the<br/>realm of integration testing.</p><p>Recently on one of my projects I had DAO integration tests that require a real database to test against, and it is not<br/>embeddable (PostgreSQL using some non-standard features). I used a system property check to ensure that these integration<br/>tests only ran when I wanted them to so that I could ensure that there was a database ready to test against. You would<br/>have something like the following in your unit test:</p>
-<pre><code class="java">assumeTrue( &quot;true&quot;.equalsIgnoreCase(System.getProperty(&quot;integration&quot;)) );
-</code></pre><p>which would only continue with the test if the assumption was true, otherwise it stops without failing the test. With<br/>this, when I wanted to run the integration tests I would just run them with that property, e.g.:</p>
+	<p><p>When I talk about unit testing, I generally mean small quick and mocked tests of individual chunks of functionality,<br> traditional unit testing. In some cases I will be testing slightly larger chunks, such as the interaction of a<br> controller and a service, with everything else mocked out; however, when you start using a real database (especially<br> not an embedded one) or needing to connect to other services in order to get a good solid test, you cross over into the<br> realm of integration testing.</p> 
+<p>Recently on one of my projects I had DAO integration tests that require a real database to test against, and it is not<br> embeddable (PostgreSQL using some non-standard features). I used a system property check to ensure that these integration<br> tests only ran when I wanted them to so that I could ensure that there was a database ready to test against. You would<br> have something like the following in your unit test:</p> 
+<pre><code class="language-java">assumeTrue( "true".equalsIgnoreCase(System.getProperty("integration")) );
+</code></pre> 
+<p>which would only continue with the test if the assumption was true, otherwise it stops without failing the test. With<br> this, when I wanted to run the integration tests I would just run them with that property, e.g.:</p> 
 <pre><code>mvn test -Dintegration=true
-</code></pre><p>This works, and it's not a horrible solution, but it does get annoying when testing from an IDE since you have to keep<br/>setting that property on any new test runners, which can slow things down.</p><p>A better way would be to have the test be no different than any other test so that if you want to run it, you run it,<br/>if not, you don't. I figured that there had to be a solution to this problem out there so a little research was in order.<br/>I found out that maven has an "integration-test" phase (since Maven 3) and that there is a fork of the<br/><a href="http://maven.apache.org/surefire/maven-surefire-plugin/">surefire</a> testing plugin called<br/><a href="http://maven.apache.org/surefire/maven-failsafe-plugin/">failsafe</a><br/>to take advantage of this build phase.</p><p>Surefire is the unit test running plugin used by maven. You usually don't even realize it's there; Unless you have some<br/>special configuration needs it just runs your tests for you. The failsafe fork of the plugin does the same functionality<br/>but with slightly different configuration. Failsafe looks for tests ending in "IT" for "integration test" rather than<br/>"Test" as a normal JUnit test. Also, failsafe runs in the integration-test phase rather rather than the test phase.</p><p>Now what I needed was a simple way to take advantage of this build phase. I could have used the naming patterns, but I<br/>prefer the "Test" suffix and wanted another option. I found an interesting alternative, the experimental categories<br/>feature in <a href="http://junit.org/">JUnit</a> (4.9+).</p><p>To get this running, you need to have something like the following config in your maven build plugins:</p>
-<pre><code class="xml">&lt;plugin&gt;
+</code></pre> 
+<p>This works, and it's not a horrible solution, but it does get annoying when testing from an IDE since you have to keep<br> setting that property on any new test runners, which can slow things down.</p> 
+<p>A better way would be to have the test be no different than any other test so that if you want to run it, you run it,<br> if not, you don't. I figured that there had to be a solution to this problem out there so a little research was in order.<br> I found out that maven has an "integration-test" phase (since Maven 3) and that there is a fork of the<br> <a href="http://maven.apache.org/surefire/maven-surefire-plugin/">surefire</a> testing plugin called<br> <a href="http://maven.apache.org/surefire/maven-failsafe-plugin/">failsafe</a><br> to take advantage of this build phase.</p> 
+<p>Surefire is the unit test running plugin used by maven. You usually don't even realize it's there; Unless you have some<br> special configuration needs it just runs your tests for you. The failsafe fork of the plugin does the same functionality<br> but with slightly different configuration. Failsafe looks for tests ending in "IT" for "integration test" rather than<br> "Test" as a normal JUnit test. Also, failsafe runs in the integration-test phase rather rather than the test phase.</p> 
+<p>Now what I needed was a simple way to take advantage of this build phase. I could have used the naming patterns, but I<br> prefer the "Test" suffix and wanted another option. I found an interesting alternative, the experimental categories<br> feature in <a href="http://junit.org/">JUnit</a> (4.9+).</p> 
+<p>To get this running, you need to have something like the following config in your maven build plugins:</p> 
+<pre><code class="language-xml">&lt;plugin&gt;
     &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
     &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
     &lt;version&gt;2.13&lt;/version&gt;
@@ -129,16 +136,22 @@
         &lt;/includes&gt;
     &lt;/configuration&gt;
 &lt;/plugin&gt;
-</code></pre><p>This tells surefire to ignore any JUnit tests annotated with the Integration annotation and then configures failsafe to only consider classes ending in "Test" and having the Integration annotation. Remember, by default failsafe looks for "**/*IT.*".</p><p>With this, your tests either have no Category annotation, for a normal test, or something like the example shown below for Integration tests:</p>
-<pre><code class="java">@Category(Integration.class)
+</code></pre> 
+<p>This tells surefire to ignore any JUnit tests annotated with the Integration annotation and then configures failsafe to only consider classes ending in "Test" and having the Integration annotation. Remember, by default failsafe looks for "**/<em>IT.</em>".</p> 
+<p>With this, your tests either have no Category annotation, for a normal test, or something like the example shown below for Integration tests:</p> 
+<pre><code class="language-java">@Category(Integration.class)
 public class SomeDaoTest {
     // your integration test methods...
 }
-</code></pre><p>Now, when you run:</p>
+</code></pre> 
+<p>Now, when you run:</p> 
 <pre><code>mvn test
-</code></pre><p>You get only your normal unit tests being run, while running</p>
+</code></pre> 
+<p>You get only your normal unit tests being run, while running</p> 
 <pre><code>mvn integration-test
-</code></pre><p>will run only your integration tests.</p><p>Along with this, you retain the ability to run any single test in your IDE without having to do any extra configuration.</p></p>
+</code></pre> 
+<p>will run only your integration tests.</p> 
+<p>Along with this, you retain the ability to run any single test in your IDE without having to do any extra configuration.</p></p>
 
 
             <div class="row">

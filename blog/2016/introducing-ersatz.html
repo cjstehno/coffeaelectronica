@@ -97,24 +97,18 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 10 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><div class="paragraph">
-<p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server
-libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the
-<a href="https://github.com/square/okhttp/tree/master/mockwebserver">OkHttp Mock Server</a>, but both had their own issues and just didn&#8217;t really fit the bill for
-what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the
-<a href="http://stehno.com/ersatz/">Ersatz Server</a>.</p>
-</div>
-<div class="paragraph">
-<p>My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of
-any other mocking library. I used the <a href="http://undertow.io">Undertow</a> web server with both a Java 8 chained builder and a Groovy DSL approach to
-configuration to allow very simple and expressive expectation configuration.</p>
-</div>
-<div class="paragraph">
-<p>With the Groovy DSL you can define expectations such as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">ErsatzServer ersatz = new ErsatzServer()
+	<p><div class="paragraph"> 
+ <p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the <a href="https://github.com/square/okhttp/tree/master/mockwebserver">OkHttp Mock Server</a>, but both had their own issues and just didn’t really fit the bill for what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the <a href="http://stehno.com/ersatz/">Ersatz Server</a>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of any other mocking library. I used the <a href="http://undertow.io">Undertow</a> web server with both a Java 8 chained builder and a Groovy DSL approach to configuration to allow very simple and expressive expectation configuration.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With the Groovy DSL you can define expectations such as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">ErsatzServer ersatz = new ErsatzServer()
 
 server.expectations {
     get('/say/hello'){
@@ -133,31 +127,28 @@ assert url.text == 'Hello Ersatz'
 
 assert ersatz.verify()
 
-ersatz.stop()</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which will respond to a <code>GET</code> request to <code>/say/hello?name=Ersatz</code> with the text content <code>Hello Ersatz</code> and it will be expected that this request is
-called exactly once, or the <code>verify()</code> call will fail. This could also be written in standard Java:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">server.expectations( expect -&gt; {
+ersatz.stop()</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which will respond to a <code>GET</code> request to <code>/say/hello?name=Ersatz</code> with the text content <code>Hello Ersatz</code> and it will be expected that this request is called exactly once, or the <code>verify()</code> call will fail. This could also be written in standard Java:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">server.expectations( expect -&gt; {
     expect.get("/say/hello").verifier(once()).query("name","Ersatz").responds().content("Hello Ersatz","text/plain");
-});</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The builder form and the DSL form are equivalent and may be used together when developing in Groovy.</p>
-</div>
-<div class="paragraph">
-<p>Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other
-custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent
-calls would respond with a 500 error status, such as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">server.expectations {
+});</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The builder form and the DSL form are equivalent and may be used together when developing in Groovy.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent calls would respond with a 500 error status, such as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">server.expectations {
     post('/save'){
         body data, 'application/json'
         responder {
@@ -167,15 +158,14 @@ calls would respond with a 500 error status, such as:</p>
             code 500
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This allows for some interesting and flexible configuration options.</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features
-that we can utilize going forward that were not present in the other mock server libraries. Give it a try.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This allows for some interesting and flexible configuration options.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>It’s a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features that we can utilize going forward that were not present in the other mock server libraries. Give it a try.</p> 
 </div></p>
 
 

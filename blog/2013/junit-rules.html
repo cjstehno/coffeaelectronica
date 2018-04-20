@@ -97,35 +97,35 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 March 2013</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><div class="paragraph">
-<p>No, the title is not simply an expression of my love of <a href="http://junit.org/">JUnit</a>, but rather specifies that I will be talking about the <code>@Rule</code> annotations provided by JUnit&#8230;&#8203; and yes, they do "rule".</p>
-</div>
-<div class="paragraph">
-<p>Out of the box, JUnit has a <a href="https://github.com/junit-team/junit/wiki/Rules">handful of useful rules</a> defined for things like temporary folder and test timeouts. With this post I am going to focus on writing my own rules using extensions of the <a href="https://github.com/junit-team/junit/wiki/Rules#externalresource-rules">ExternalResource</a> rule class.</p>
-</div>
-<div class="paragraph">
-<p>Suppose we are doing some unit testing of database access code using JDBC. Mocking direct JDBC calls is tedious and not very productive so we will be using a real database for testing. To keep this post a simple and straight-forward as possible without forsaking useful content, I am going to use Groovy for the examples and assume that we are using the Spring JDBC framework and some random database.</p>
-</div>
-<div class="paragraph">
-<p>We have a <code>PersonDao</code> for storing the name and email address of people in the database.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDao {
+	<p><div class="paragraph"> 
+ <p>No, the title is not simply an expression of my love of <a href="http://junit.org/">JUnit</a>, but rather specifies that I will be talking about the <code>@Rule</code> annotations provided by JUnit…​ and yes, they do "rule".</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Out of the box, JUnit has a <a href="https://github.com/junit-team/junit/wiki/Rules">handful of useful rules</a> defined for things like temporary folder and test timeouts. With this post I am going to focus on writing my own rules using extensions of the <a href="https://github.com/junit-team/junit/wiki/Rules#externalresource-rules">ExternalResource</a> rule class.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Suppose we are doing some unit testing of database access code using JDBC. Mocking direct JDBC calls is tedious and not very productive so we will be using a real database for testing. To keep this post a simple and straight-forward as possible without forsaking useful content, I am going to use Groovy for the examples and assume that we are using the Spring JDBC framework and some random database.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>We have a <code>PersonDao</code> for storing the name and email address of people in the database.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDao {
     JdbcTemplate jdbcTemplate
 
     void createPerson( person ){
         jdbcTemplate.update('insert into people (name,email) values (?,?)', person.name, person.email )
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We are only going to worry about a simple create operation since we are discussing the rules, not the testing itself. We first need to have a test case to work with:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We are only going to worry about a simple create operation since we are discussing the rules, not the testing itself. We first need to have a test case to work with:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
     private PersonDao personDao
 
     @Before void before(){
@@ -133,18 +133,18 @@
             jdbcTemplate: null // ?
         )
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Right out of the gate we run into our first hurdle&#8230;&#8203; we need a <code>JdbcTempate</code> to inject. We could just connect to a database or fire up an embedded database right here and move on, but we can assume that if there is one of these tests, there will be many so a reusable solution would be best. Enter the JUnit rules. Basically, the rules are just reusable code that implements a simple interface to provide operations before and after test classes or methodes (depending on the rule annotation).</p>
-</div>
-<div class="paragraph">
-<p>For our first rule, we want to setup a database environment to test with.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class DatabaseEnvironment extends ExternalResource {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Right out of the gate we run into our first hurdle…​ we need a <code>JdbcTempate</code> to inject. We could just connect to a database or fire up an embedded database right here and move on, but we can assume that if there is one of these tests, there will be many so a reusable solution would be best. Enter the JUnit rules. Basically, the rules are just reusable code that implements a simple interface to provide operations before and after test classes or methodes (depending on the rule annotation).</p> 
+</div> 
+<div class="paragraph"> 
+ <p>For our first rule, we want to setup a database environment to test with.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class DatabaseEnvironment extends ExternalResource {
     DataSource dataSource
 
     JdbcTemplate getJdbcTemplate(){
@@ -169,21 +169,21 @@
             conn?.close()
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Remember, we are assuming that you have some <code>DataSource</code> that you are using for testing. When the <code>before()</code> method is called, our database is destroyed if it exists and is then recreated to the fresh empty state. I am using liquibase for database management, but any means of creating and destroying your database would work here.</p>
-</div>
-<div class="paragraph">
-<p>INFO: I do not destroy the database in the <code>after()</code> method. This is intentional; it allows you to investigate the data conditions of a failed test.</p>
-</div>
-<div class="paragraph">
-<p>We can now integrate this into the test case and move forward:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Remember, we are assuming that you have some <code>DataSource</code> that you are using for testing. When the <code>before()</code> method is called, our database is destroyed if it exists and is then recreated to the fresh empty state. I am using liquibase for database management, but any means of creating and destroying your database would work here.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>INFO: I do not destroy the database in the <code>after()</code> method. This is intentional; it allows you to investigate the data conditions of a failed test.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>We can now integrate this into the test case and move forward:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
 
     @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
         dataSource: myTestDataSource // you must define somewhere
@@ -196,15 +196,15 @@
             jdbcTemplate: dbEnvironment.jdbcTemplate
         )
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>I defined the DatabaseEnvironment as a <code>@ClassRule</code> so that the database is created once for each test class, rather than for every test method. Now we can add an actual test method.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>I defined the DatabaseEnvironment as a <code>@ClassRule</code> so that the database is created once for each test class, rather than for every test method. Now we can add an actual test method.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
 
     @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
         dataSource: myTestDataSource // you must define somewhere
@@ -223,27 +223,27 @@
 
         assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, 'people')
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The test runs and passes with a fresh database every time. There is still a hidden problem here though, let&#8217;s add another test method. This is a bit arbitrary but let&#8217;s test the case when you add a person with no email address (successfully); we add the following test method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Test void 'createPerson: simple'(){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The test runs and passes with a fresh database every time. There is still a hidden problem here though, let’s add another test method. This is a bit arbitrary but let’s test the case when you add a person with no email address (successfully); we add the following test method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Test void 'createPerson: simple'(){
     personDao.createPerson([ name:'Chris' ])
 
     assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, 'people')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, if you run all the tests (not just the one you added), the test will fail with a value of 2 where 1 was expected. Why? The database is created and destroyed per-class, not per-test so you are working with a database that already has data in it. To get around this we could make the database work per-test, but depending on how large your schema is, this could be time consuming and greatly increase your test runtime. What we want is to clean up the existing database in-place after each test. Another <code>ExternalResource</code> rule to the rescue!</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class DatabaseCleaner extends ExternalResource {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, if you run all the tests (not just the one you added), the test will fail with a value of 2 where 1 was expected. Why? The database is created and destroyed per-class, not per-test so you are working with a database that already has data in it. To get around this we could make the database work per-test, but depending on how large your schema is, this could be time consuming and greatly increase your test runtime. What we want is to clean up the existing database in-place after each test. Another <code>ExternalResource</code> rule to the rescue!</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class DatabaseCleaner extends ExternalResource {
     JdbcTemplate jdbcTemplate
 
     def tables = []
@@ -254,15 +254,15 @@
             jdbcTemplate.execute("truncate table $table cascade")
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here we have defined an <code>ExternalResource</code> rule which will truncate a specified collection of tables each time the <code>before()</code> method is called. We want to use this as an instance rule, and again, we do nothing in the <code>after()</code> method so that our data is in a known-failed state for a failed test. Our test case becomes:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Here we have defined an <code>ExternalResource</code> rule which will truncate a specified collection of tables each time the <code>before()</code> method is called. We want to use this as an instance rule, and again, we do nothing in the <code>after()</code> method so that our data is in a known-failed state for a failed test. Our test case becomes:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class PersonDaoTest {
 
     @ClassRule public DatabaseEnvironment dbEnvironment = new DatabaseEnvironment(
         dataSource: myTestDataSource // you must define somewhere
@@ -292,14 +292,14 @@
 
         assert 1 == JdbcTestUtils.countRowsInTable(dbEnvironment.jdbcTemplate, 'people')
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now when we run the whole test case, we have both tests passing because before each test method, the database is cleaned in-place.</p>
-</div>
-<div class="paragraph">
-<p>With just these two rules we have created a stable and flexible means of testing database code. With configuration you can point your tests at an in-memory database, locally running database or shared database server. For normal unit testing I would recommend either an embedded database, or when that is not possible a database running local to the testing machine, but those strategies will have to be discussed another time.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now when we run the whole test case, we have both tests passing because before each test method, the database is cleaned in-place.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With just these two rules we have created a stable and flexible means of testing database code. With configuration you can point your tests at an in-memory database, locally running database or shared database server. For normal unit testing I would recommend either an embedded database, or when that is not possible a database running local to the testing machine, but those strategies will have to be discussed another time.</p> 
 </div></p>
 
 

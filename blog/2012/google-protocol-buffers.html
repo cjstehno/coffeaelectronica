@@ -97,27 +97,36 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 13 May 2012</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p><a href="https://developers.google.com/protocol-buffers/">Google Protocol Buffers</a> have been around for a while; however, I have<br/>only started working with them recently. We use them at work for well-defined communication protocols between Java and<br/>native systems. I was always under the impression that they were a lot more complicated than what they really are. I<br/>decided to collect my working knowledge into a quick little tutorial.</p><p>The best way to describe Google Protocol Buffers is right from the blurb on the project web site:</p>
-<blockquote><p>Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data -<br/>think XML, but smaller, faster, and simpler. You define how you want your data to be structured once, then you can use<br/>special generated source code to easily write and read your structured data to and from a variety of data streams and<br/>using a variety of languages - Java, C++, or Python.</p>
-</blockquote><p>As an example to play with let's consider a simple set of messages for searching a remote database for user information.<br/>We will need a <code>Person</code> data structure to hold the information being transferred:</p>
+	<p><p><a href="https://developers.google.com/protocol-buffers/">Google Protocol Buffers</a> have been around for a while; however, I have<br> only started working with them recently. We use them at work for well-defined communication protocols between Java and<br> native systems. I was always under the impression that they were a lot more complicated than what they really are. I<br> decided to collect my working knowledge into a quick little tutorial.</p> 
+<p>The best way to describe Google Protocol Buffers is right from the blurb on the project web site:</p> 
+<blockquote> 
+ <p>Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data -<br> think XML, but smaller, faster, and simpler. You define how you want your data to be structured once, then you can use<br> special generated source code to easily write and read your structured data to and from a variety of data streams and<br> using a variety of languages - Java, C++, or Python.</p> 
+</blockquote> 
+<p>As an example to play with let's consider a simple set of messages for searching a remote database for user information.<br> We will need a <code>Person</code> data structure to hold the information being transferred:</p> 
 <pre><code>Person
     id - the id of the user
     name - the full name of the user
     age - the age of the user
-</code></pre><p>We will also need a container for the query itself, let's call it a <code>PersonQuery</code>, which will contain a prototype Person<br/>with the search criteria.</p>
+</code></pre> 
+<p>We will also need a container for the query itself, let's call it a <code>PersonQuery</code>, which will contain a prototype Person<br> with the search criteria.</p> 
 <pre><code>PersonQuery
     prototype - a partially complete Person used as search criteria
-</code></pre><p>And, finally we will need a response structure, <code>PersonQueryResults</code> which will contain all the matching Person(s) in the<br/>external data source.</p>
+</code></pre> 
+<p>And, finally we will need a response structure, <code>PersonQueryResults</code> which will contain all the matching Person(s) in the<br> external data source.</p> 
 <pre><code>PersonQueryResults
     prototype - the search criteria
     results - the resulting Person(s) found
-</code></pre><p>That should be enough to work with. Next we need to create the actual protocol definition GPB protocols are defined in a<br/>simple well-documented text format so we create a text file called <code>PersonMessages.proto</code> in your favorite text editor.</p><p>All three of our structures are considered "message" structures in GPB. The Person would be defined as:</p>
+</code></pre> 
+<p>That should be enough to work with. Next we need to create the actual protocol definition GPB protocols are defined in a<br> simple well-documented text format so we create a text file called <code>PersonMessages.proto</code> in your favorite text editor.</p> 
+<p>All three of our structures are considered "message" structures in GPB. The Person would be defined as:</p> 
 <pre><code>message Person {
     optional int32 id = 1;
     optional string name = 2;
     optional int32 age = 3;
 }
-</code></pre><p>First, we see all three fields are listed as "optional" since these fields do not have to be present. The type<br/>of each field is defined next (int32 and string in our case) and then the field name. After each field is an index<br/>number. These index numbers should not be changed once your protocol is in use as they are used in generating the<br/>compiled objects used by the various supported platforms to determine serialization and deserialization<br/>information.</p><p>We can similarly work up the other two structures:</p>
+</code></pre> 
+<p>First, we see all three fields are listed as "optional" since these fields do not have to be present. The type<br> of each field is defined next (int32 and string in our case) and then the field name. After each field is an index<br> number. These index numbers should not be changed once your protocol is in use as they are used in generating the<br> compiled objects used by the various supported platforms to determine serialization and deserialization<br> information.</p> 
+<p>We can similarly work up the other two structures:</p> 
 <pre><code>message PersonQuery {
     required Person prototype = 1;
 }
@@ -126,22 +135,34 @@ message PersonQueryResults {
     required Person prototype = 1;
     repeated Person result = 2;
 }
-</code></pre><p>Note, that the fields in these two are "required", which as it sounds, means that these fields must be filled<br/>in. There are a few other modifiers and a bunch of field types you can use; you should definitely check out the<br/>documentation if you are interested in going deeper.</p><p>Since we will be working with Java, we want to specify an "option" at the top of the file:</p>
-<pre><code>option java_package = &quot;com.stehno.proto&quot;;
-</code></pre><p>This tells the GPB compiler to put the generated classes in the specified package. Also good to note is that<br/>the wrapper class for the protocol structures will have the same name as the proto file (though I think it will also<br/>convert underscore-separated names as well).</p><p>You can either use the command line compiler or, if you are using Maven, you can create a project for all of your<br/>protocols and build them with the "maven-protoc-plugin" plugin. The source for this post will have the complete proto<br/>file and pom.xml file.</p><p>Once you have the message classes, you can use the provided Builders to create your message objects for a query:</p>
-<pre><code class="java">PersonMessages.Person.Builder personBuilder = PersonMessages.Person.newBuilder();
-personBuilder.setName( &quot;Chris&quot; );
+</code></pre> 
+<p>Note, that the fields in these two are "required", which as it sounds, means that these fields must be filled<br> in. There are a few other modifiers and a bunch of field types you can use; you should definitely check out the<br> documentation if you are interested in going deeper.</p> 
+<p>Since we will be working with Java, we want to specify an "option" at the top of the file:</p> 
+<pre><code>option java_package = "com.stehno.proto";
+</code></pre> 
+<p>This tells the GPB compiler to put the generated classes in the specified package. Also good to note is that<br> the wrapper class for the protocol structures will have the same name as the proto file (though I think it will also<br> convert underscore-separated names as well).</p> 
+<p>You can either use the command line compiler or, if you are using Maven, you can create a project for all of your<br> protocols and build them with the "maven-protoc-plugin" plugin. The source for this post will have the complete proto<br> file and pom.xml file.</p> 
+<p>Once you have the message classes, you can use the provided Builders to create your message objects for a query:</p> 
+<pre><code class="language-java">PersonMessages.Person.Builder personBuilder = PersonMessages.Person.newBuilder();
+personBuilder.setName( "Chris" );
 
 PersonMessages.PersonQuery.Builder personQueryBuilder = PersonMessages.PersonQuery.newBuilder();
 personQueryBuilder.setPrototype( personBuilder );
 
 PersonMessages.PersonQuery personQuery = personQueryBuilder.build();
 byte[] bytes = personQuery.toByteArray();
-</code></pre><p>This code creates a Person with <code>name=&quot;Chris&quot;</code>, the prototype of the person we are searching for, and then<br/>creates a PersonQuery with that Person. The resulting Builder is built with the build() method which creates the actual<br/>message object. Then all you need to do is call <code>toByteArray()</code> to render the message as bytes suitable for transfer or<br/>storage.</p><p>And, on the other end of the pipeline you can deserialize the message simply by parsing the bytes:</p>
-<pre><code class="java">PersonMessages.PersonQuery rebuiltQuery = PersonMessages.PersonQuery.parseFrom( bytes );
+</code></pre> 
+<p>This code creates a Person with <code>name="Chris"</code>, the prototype of the person we are searching for, and then<br> creates a PersonQuery with that Person. The resulting Builder is built with the build() method which creates the actual<br> message object. Then all you need to do is call <code>toByteArray()</code> to render the message as bytes suitable for transfer or<br> storage.</p> 
+<p>And, on the other end of the pipeline you can deserialize the message simply by parsing the bytes:</p> 
+<pre><code class="language-java">PersonMessages.PersonQuery rebuiltQuery = PersonMessages.PersonQuery.parseFrom( bytes );
 String name = rebuiltQuery.getPrototype().getName();
-</code></pre><p>This simple serialization and deserialization method could also be useful for long-term object storage, though GPB<br/>works best when the message structures do not change much or often (though there are ways of minimizing the effect of<br/>protocol changes).</p><p>To finish up, there are some design concerns you need to be aware of when working with GPB. The serialized message bytes<br/>have no concept of what type of message created them, meaning you need to know what the message is in order to parse it<br/>with the correct message object class. You can work-around this by wrapping all messages in an "envelope message" that<br/>defines a type and the content bytes of that type. Another approach, if available, is to provide message type information<br/>in any header information provided by your transport mechanism.</p><p>GPB messages are best for static or slowly-changing protocols, if your needs are not well-defined or may change drastically,<br/>you may not want to use GPB.</p><p>So, that's all there is. The GPB documentation is pretty straight-forward and provides good suggestions for message style and design.</p>
-<blockquote><p>The source code for this post can be found at: <a href="https://github.com/cjstehno/coffeaelectronica">https://github.com/cjstehno/coffeaelectronica</a></p>
+</code></pre> 
+<p>This simple serialization and deserialization method could also be useful for long-term object storage, though GPB<br> works best when the message structures do not change much or often (though there are ways of minimizing the effect of<br> protocol changes).</p> 
+<p>To finish up, there are some design concerns you need to be aware of when working with GPB. The serialized message bytes<br> have no concept of what type of message created them, meaning you need to know what the message is in order to parse it<br> with the correct message object class. You can work-around this by wrapping all messages in an "envelope message" that<br> defines a type and the content bytes of that type. Another approach, if available, is to provide message type information<br> in any header information provided by your transport mechanism.</p> 
+<p>GPB messages are best for static or slowly-changing protocols, if your needs are not well-defined or may change drastically,<br> you may not want to use GPB.</p> 
+<p>So, that's all there is. The GPB documentation is pretty straight-forward and provides good suggestions for message style and design.</p> 
+<blockquote> 
+ <p>The source code for this post can be found at: <a href="https://github.com/cjstehno/coffeaelectronica">https://github.com/cjstehno/coffeaelectronica</a></p> 
 </blockquote></p>
 
 

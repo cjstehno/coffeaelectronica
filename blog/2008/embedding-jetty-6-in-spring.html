@@ -97,45 +97,48 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 05 August 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>A few years ago, I wrote a blog entry about <a href="Embedding-Jetty-in-Spring">Embedding Jetty in Spring</a>.<br/>It became quite popular, at least in relation to other pages on my site. Unfortunately, as I noted in the header of that posting, it has<br/>become a bit out-dated as newer versions of Jetty have been released. Well, with a little prodding via emails and a handful of free time,<br/>I have come up with an updated version for <a href="http://jetty.mortbay.com/">Jetty 6.1.11</a> and <a href="http://springframework.org/">Spring 2.5.5</a> that<br/>requires no additional helper-classes.</p><p>For simplicity I came up with a spring context for embedding Jetty based on the example included with Jetty which replicates the default<br/>full configuration, <a href="http://jetty.mortbay.org/jetty-6/xref/org/mortbay/jetty/example/LikeJettyXml.html">LikeJettyXml.java</a>. This seemed a<br/>good place to start since you will either need all of that, or slightly less... and removing stuff is simple.</p><p>For the most part the spring context configuration mirrors the java source from the example; the only real deviation comes form the life-cycle<br/>addition method calls <code>addLifeCycle()</code>, which spring does not directly support. To perform that one missing dependency injection, you<br/>can use the spring <code>MethodInvokingFactoryBean</code> to create a bean and then call a method to inject it into the target bean.</p>
-<pre><code class="xml">&lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
-    &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
-    &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
-    &lt;property name=&quot;arguments&quot;&gt;
-        &lt;list&gt;&lt;ref local=&quot;server.ContextDeployer&quot; /&gt;&lt;/list&gt;
+	<p><p>A few years ago, I wrote a blog entry about <a href="Embedding-Jetty-in-Spring">Embedding Jetty in Spring</a>.<br> It became quite popular, at least in relation to other pages on my site. Unfortunately, as I noted in the header of that posting, it has<br> become a bit out-dated as newer versions of Jetty have been released. Well, with a little prodding via emails and a handful of free time,<br> I have come up with an updated version for <a href="http://jetty.mortbay.com/">Jetty 6.1.11</a> and <a href="http://springframework.org/">Spring 2.5.5</a> that<br> requires no additional helper-classes.</p> 
+<p>For simplicity I came up with a spring context for embedding Jetty based on the example included with Jetty which replicates the default<br> full configuration, <a href="http://jetty.mortbay.org/jetty-6/xref/org/mortbay/jetty/example/LikeJettyXml.html">LikeJettyXml.java</a>. This seemed a<br> good place to start since you will either need all of that, or slightly less... and removing stuff is simple.</p> 
+<p>For the most part the spring context configuration mirrors the java source from the example; the only real deviation comes form the life-cycle<br> addition method calls <code>addLifeCycle()</code>, which spring does not directly support. To perform that one missing dependency injection, you<br> can use the spring <code>MethodInvokingFactoryBean</code> to create a bean and then call a method to inject it into the target bean.</p> 
+<pre><code class="language-xml">&lt;bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"&gt;
+    &lt;property name="targetObject" ref="server.Server" /&gt;
+    &lt;property name="targetMethod" value="addLifeCycle" /&gt;
+    &lt;property name="arguments"&gt;
+        &lt;list&gt;&lt;ref local="server.ContextDeployer" /&gt;&lt;/list&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
-</code></pre><p>which simply calls the <code>addLifeCycle()</code> method on the server instance to add the two deployer instances. The whole context file reads as follows:</p>
-<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-    xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+</code></pre> 
+<p>which simply calls the <code>addLifeCycle()</code> method on the server instance to add the two deployer instances. The whole context file reads as follows:</p> 
+<pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"&gt;
 
-    &lt;bean id=&quot;server.Server&quot; class=&quot;org.mortbay.jetty.Server&quot; destroy-method=&quot;stop&quot;&gt;
-        &lt;property name=&quot;threadPool&quot;&gt;
-            &lt;bean class=&quot;org.mortbay.thread.QueuedThreadPool&quot;&gt;
-                &lt;property name=&quot;maxThreads&quot; value=&quot;100&quot; /&gt;
+    &lt;bean id="server.Server" class="org.mortbay.jetty.Server" destroy-method="stop"&gt;
+        &lt;property name="threadPool"&gt;
+            &lt;bean class="org.mortbay.thread.QueuedThreadPool"&gt;
+                &lt;property name="maxThreads" value="100" /&gt;
             &lt;/bean&gt;
         &lt;/property&gt;
-        &lt;property name=&quot;connectors&quot;&gt;
+        &lt;property name="connectors"&gt;
             &lt;list&gt;
-                &lt;bean class=&quot;org.mortbay.jetty.nio.SelectChannelConnector&quot;&gt;
-                    &lt;property name=&quot;port&quot; value=&quot;8080&quot; /&gt;
-                    &lt;property name=&quot;maxIdleTime&quot; value=&quot;30000&quot; /&gt;
+                &lt;bean class="org.mortbay.jetty.nio.SelectChannelConnector"&gt;
+                    &lt;property name="port" value="8080" /&gt;
+                    &lt;property name="maxIdleTime" value="30000" /&gt;
                 &lt;/bean&gt;
             &lt;/list&gt;
         &lt;/property&gt;
-        &lt;property name=&quot;handler&quot;&gt;
-            &lt;bean class=&quot;org.mortbay.jetty.handler.HandlerCollection&quot;&gt;
-                &lt;property name=&quot;handlers&quot;&gt;
+        &lt;property name="handler"&gt;
+            &lt;bean class="org.mortbay.jetty.handler.HandlerCollection"&gt;
+                &lt;property name="handlers"&gt;
                     &lt;list&gt;
-                        &lt;ref local=&quot;server.ContextHandlerCollection&quot; /&gt;
-                        &lt;bean class=&quot;org.mortbay.jetty.handler.DefaultHandler&quot; /&gt;
-                        &lt;bean class=&quot;org.mortbay.jetty.handler.RequestLogHandler&quot;&gt;
-                            &lt;property name=&quot;requestLog&quot;&gt;
-                                &lt;bean class=&quot;org.mortbay.jetty.NCSARequestLog&quot;&gt;
-                                    &lt;constructor-arg value=&quot;cfg/logs/jetty-yyyy_mm_dd.log&quot; /&gt;
-                                    &lt;property name=&quot;extended&quot; value=&quot;false&quot;/&gt;
+                        &lt;ref local="server.ContextHandlerCollection" /&gt;
+                        &lt;bean class="org.mortbay.jetty.handler.DefaultHandler" /&gt;
+                        &lt;bean class="org.mortbay.jetty.handler.RequestLogHandler"&gt;
+                            &lt;property name="requestLog"&gt;
+                                &lt;bean class="org.mortbay.jetty.NCSARequestLog"&gt;
+                                    &lt;constructor-arg value="cfg/logs/jetty-yyyy_mm_dd.log" /&gt;
+                                    &lt;property name="extended" value="false"/&gt;
                                 &lt;/bean&gt;
                             &lt;/property&gt;
                         &lt;/bean&gt;
@@ -143,66 +146,68 @@
                 &lt;/property&gt;
             &lt;/bean&gt;
         &lt;/property&gt;
-        &lt;property name=&quot;userRealms&quot;&gt;
+        &lt;property name="userRealms"&gt;
             &lt;list&gt;
-                &lt;bean class=&quot;org.mortbay.jetty.security.HashUserRealm&quot;&gt;
-                    &lt;property name=&quot;name&quot; value=&quot;Test Realm&quot; /&gt;
-                    &lt;property name=&quot;config&quot; value=&quot;cfg/etc/realm.properties&quot; /&gt;
+                &lt;bean class="org.mortbay.jetty.security.HashUserRealm"&gt;
+                    &lt;property name="name" value="Test Realm" /&gt;
+                    &lt;property name="config" value="cfg/etc/realm.properties" /&gt;
                 &lt;/bean&gt;
             &lt;/list&gt;
         &lt;/property&gt;
-        &lt;property name=&quot;stopAtShutdown&quot; value=&quot;true&quot; /&gt;
-        &lt;property name=&quot;sendServerVersion&quot; value=&quot;true&quot;/&gt;
+        &lt;property name="stopAtShutdown" value="true" /&gt;
+        &lt;property name="sendServerVersion" value="true"/&gt;
     &lt;/bean&gt;
 
-    &lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
-        &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
-        &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
-        &lt;property name=&quot;arguments&quot;&gt;
-            &lt;list&gt;&lt;ref local=&quot;server.ContextDeployer&quot; /&gt;&lt;/list&gt;
+    &lt;bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"&gt;
+        &lt;property name="targetObject" ref="server.Server" /&gt;
+        &lt;property name="targetMethod" value="addLifeCycle" /&gt;
+        &lt;property name="arguments"&gt;
+            &lt;list&gt;&lt;ref local="server.ContextDeployer" /&gt;&lt;/list&gt;
         &lt;/property&gt;
     &lt;/bean&gt;
 
-    &lt;bean class=&quot;org.springframework.beans.factory.config.MethodInvokingFactoryBean&quot;&gt;
-        &lt;property name=&quot;targetObject&quot; ref=&quot;server.Server&quot; /&gt;
-        &lt;property name=&quot;targetMethod&quot; value=&quot;addLifeCycle&quot; /&gt;
-        &lt;property name=&quot;arguments&quot;&gt;
-            &lt;list&gt;&lt;ref local=&quot;server.WebAppDeployer&quot; /&gt;&lt;/list&gt;
+    &lt;bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"&gt;
+        &lt;property name="targetObject" ref="server.Server" /&gt;
+        &lt;property name="targetMethod" value="addLifeCycle" /&gt;
+        &lt;property name="arguments"&gt;
+            &lt;list&gt;&lt;ref local="server.WebAppDeployer" /&gt;&lt;/list&gt;
         &lt;/property&gt;
     &lt;/bean&gt;
 
-    &lt;bean id=&quot;server.ContextHandlerCollection&quot; class=&quot;org.mortbay.jetty.handler.ContextHandlerCollection&quot; /&gt;
+    &lt;bean id="server.ContextHandlerCollection" class="org.mortbay.jetty.handler.ContextHandlerCollection" /&gt;
 
-    &lt;bean id=&quot;server.ContextDeployer&quot; class=&quot;org.mortbay.jetty.deployer.ContextDeployer&quot;&gt;
-        &lt;property name=&quot;contexts&quot; ref=&quot;server.ContextHandlerCollection&quot; /&gt;
-        &lt;property name=&quot;configurationDir&quot;&gt;
-            &lt;bean class=&quot;org.mortbay.resource.FileResource&quot;&gt;
-                &lt;constructor-arg value=&quot;file://./cfg/contexts&quot; /&gt;
+    &lt;bean id="server.ContextDeployer" class="org.mortbay.jetty.deployer.ContextDeployer"&gt;
+        &lt;property name="contexts" ref="server.ContextHandlerCollection" /&gt;
+        &lt;property name="configurationDir"&gt;
+            &lt;bean class="org.mortbay.resource.FileResource"&gt;
+                &lt;constructor-arg value="file://./cfg/contexts" /&gt;
             &lt;/bean&gt;
         &lt;/property&gt;
-        &lt;property name=&quot;scanInterval&quot; value=&quot;1&quot; /&gt;
+        &lt;property name="scanInterval" value="1" /&gt;
     &lt;/bean&gt;
 
-    &lt;bean id=&quot;server.WebAppDeployer&quot; class=&quot;org.mortbay.jetty.deployer.WebAppDeployer&quot;&gt;
-        &lt;property name=&quot;contexts&quot; ref=&quot;server.ContextHandlerCollection&quot; /&gt;
-        &lt;property name=&quot;webAppDir&quot; value=&quot;cfg/webapps&quot; /&gt;
-        &lt;property name=&quot;parentLoaderPriority&quot; value=&quot;false&quot; /&gt;
-        &lt;property name=&quot;extract&quot; value=&quot;true&quot; /&gt;
-        &lt;property name=&quot;allowDuplicates&quot; value=&quot;false&quot; /&gt;
-        &lt;property name=&quot;defaultsDescriptor&quot; value=&quot;cfg/etc/webdefault.xml&quot; /&gt;
+    &lt;bean id="server.WebAppDeployer" class="org.mortbay.jetty.deployer.WebAppDeployer"&gt;
+        &lt;property name="contexts" ref="server.ContextHandlerCollection" /&gt;
+        &lt;property name="webAppDir" value="cfg/webapps" /&gt;
+        &lt;property name="parentLoaderPriority" value="false" /&gt;
+        &lt;property name="extract" value="true" /&gt;
+        &lt;property name="allowDuplicates" value="false" /&gt;
+        &lt;property name="defaultsDescriptor" value="cfg/etc/webdefault.xml" /&gt;
     &lt;/bean&gt;
 &lt;/beans&gt;
-</code></pre><p>In order to start the server you need to be sure that the <code>MethodInvokingFactoryBeans</code> have been fired before the server has been started;<br/>the easiest way is to start the server with an external class once the context has loaded.</p>
-<pre><code class="java">public class Main {
+</code></pre> 
+<p>In order to start the server you need to be sure that the <code>MethodInvokingFactoryBeans</code> have been fired before the server has been started;<br> the easiest way is to start the server with an external class once the context has loaded.</p> 
+<pre><code class="language-java">public class Main {
     public static void main(String[] args) throws Exception {&lt;
-        ApplicationContext context = new FileSystemXmlApplicationContext(&quot;cfg/server-context.xml&quot;);
+        ApplicationContext context = new FileSystemXmlApplicationContext("cfg/server-context.xml");
 
-        Server server = (Server)context.getBean(&quot;server.Server&quot;);
+        Server server = (Server)context.getBean("server.Server");
         server.start();
         server.join();
     }
 }
-</code></pre><p>This should be a good starting point and general template for anything you need... just inject or modify whatever configuration setup you<br/>need for your application. I have attached the zipped up Eclipse project I used to create and run this test. You will need the following<br/>jars somewhere on your classpath: ant-1.6.5.jar, commons-el-1.0.jar, commons-logging.jar, jasper-compiler-5.5.15.jar,<br/>jasper-runtime-5.5.1.5.jar, jetty-6.1.11.jar, jetty-util-6.1.11.jar, jsp-api-2.0.jar, servlet-api-2.5-6.1.11.jar, and spring.jar...<br/>all of which can be found in the lib directories of the Spring and Jetty distributions uses.</p></p>
+</code></pre> 
+<p>This should be a good starting point and general template for anything you need... just inject or modify whatever configuration setup you<br> need for your application. I have attached the zipped up Eclipse project I used to create and run this test. You will need the following<br> jars somewhere on your classpath: ant-1.6.5.jar, commons-el-1.0.jar, commons-logging.jar, jasper-compiler-5.5.15.jar,<br> jasper-runtime-5.5.1.5.jar, jetty-6.1.11.jar, jetty-util-6.1.11.jar, jsp-api-2.0.jar, servlet-api-2.5-6.1.11.jar, and spring.jar...<br> all of which can be found in the lib directories of the Spring and Jetty distributions uses.</p></p>
 
 
             <div class="row">

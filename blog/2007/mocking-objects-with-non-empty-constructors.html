@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 September 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>While writing mock objects with <a href="http://jmock.org/">JMock</a>, I have run into a reoccurring issue, you<br/>cannot mock concrete classes that do not have an empty constructor (this has been addressed by the JMock development<br/>team; however, the specific code line has not yet been released). Sometimes, for one reason or another, you have neither<br/>an interface nor empty constructor to mock an object with.</p><p>The way JMock creates its proxied mock objects is "on creation", meaning that when you create the mock, the proxy<br/>object is created and stored, thereby not allowing you any way to specify constructor arguments. With a little extension<br/>to the mocking API you can still mock those classes. The solution is a simple extension of the<br/><a href="http://cglib.sourceforge.net/">CGLIB</a>-based functionality that is already there such that the proxy is<br/>created only when the <code>proxy()</code> method is called. The code of the two classes needed is shown below:</p>
-<pre><code class="java">public class CGLIBCoreLazyMock extends AbstractDynamicMock implements MethodInterceptor {
+	<p><p>While writing mock objects with <a href="http://jmock.org/">JMock</a>, I have run into a reoccurring issue, you<br> cannot mock concrete classes that do not have an empty constructor (this has been addressed by the JMock development<br> team; however, the specific code line has not yet been released). Sometimes, for one reason or another, you have neither<br> an interface nor empty constructor to mock an object with.</p> 
+<p>The way JMock creates its proxied mock objects is "on creation", meaning that when you create the mock, the proxy<br> object is created and stored, thereby not allowing you any way to specify constructor arguments. With a little extension<br> to the mocking API you can still mock those classes. The solution is a simple extension of the<br> <a href="http://cglib.sourceforge.net/">CGLIB</a>-based functionality that is already there such that the proxy is<br> created only when the <code>proxy()</code> method is called. The code of the two classes needed is shown below:</p> 
+<pre><code class="language-java">public class CGLIBCoreLazyMock extends AbstractDynamicMock implements MethodInterceptor {
     private Enhancer enhancer;
     private Class[] argTypes;
     private Object[] args;
@@ -128,14 +129,17 @@
         return mockInvocation(new Invocation(proxy,method,args));
     }
 }
-</code></pre><p>and then a Mock extension.</p>
-<pre><code class="java">public class LazyMock extends org.jmock.Mock {
+</code></pre> 
+<p>and then a Mock extension.</p> 
+<pre><code class="language-java">public class LazyMock extends org.jmock.Mock {
     public LazyMock(Class mockedType,Class[] argTypes,Object[] args){
         super(new CGLIBCoreLazyMock(mockedType,argTypes,args));
     }
 }
-</code></pre><p>By adding this functionality to JMock, you can mock these classes and still use all of the stub and expectation<br/>features that JMock provides. My first resolution to this problem was a quick custom hack using CGLIB. As it threatened<br/>to get more complex, I took a peek at the JMock source and found that it would not be hard to implement. I guess I could<br/>have gotten the source and added it directly to their code base, and I even looked at doing that right off, but their<br/>project was Ant-based and seemed to be missing some of the pieces required for the build. I just made a little extension<br/>jar and it seems to work well enough.</p>
-<blockquote><p><em>Update:</em> <a href="http://jmock.org/">JMock 2</a> fixes this issue internally and has a lot of other improvements. See<br/><a href="Are-You-Still-Mocking-Me%3F">Are You Still Mocking Me?</a> for updated information.</p>
+</code></pre> 
+<p>By adding this functionality to JMock, you can mock these classes and still use all of the stub and expectation<br> features that JMock provides. My first resolution to this problem was a quick custom hack using CGLIB. As it threatened<br> to get more complex, I took a peek at the JMock source and found that it would not be hard to implement. I guess I could<br> have gotten the source and added it directly to their code base, and I even looked at doing that right off, but their<br> project was Ant-based and seemed to be missing some of the pieces required for the build. I just made a little extension<br> jar and it seems to work well enough.</p> 
+<blockquote> 
+ <p><em>Update:</em> <a href="http://jmock.org/">JMock 2</a> fixes this issue internally and has a lot of other improvements. See<br> <a href="Are-You-Still-Mocking-Me%3F">Are You Still Mocking Me?</a> for updated information.</p> 
 </blockquote></p>
 
 

@@ -97,49 +97,58 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 October 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I decided to play around a little with <a href="http://jackrabbit.apache.org/">Jackrabbit</a> the other day... here are some of my notes... I am running on Ubuntu with <a href="http://tomcat.apache.org/">Tomcat 6</a> and all I had to do to get started was download the Jackrabbit war distribution and install it in the webapps directory, then add the jcr-1.0.jar (downloaded from Sun) to the TOMCAT/lib directory. Once you start up the server and go into the context you get a nice welcome screen:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-1.png" alt="Welcome Screen""/></p><p>I created a content repo in my home directory:</p>
+	<p><p>I decided to play around a little with <a href="http://jackrabbit.apache.org/">Jackrabbit</a> the other day... here are some of my notes... I am running on Ubuntu with <a href="http://tomcat.apache.org/">Tomcat 6</a> and all I had to do to get started was download the Jackrabbit war distribution and install it in the webapps directory, then add the jcr-1.0.jar (downloaded from Sun) to the TOMCAT/lib directory. Once you start up the server and go into the context you get a nice welcome screen:</p> 
+<p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-1.png" alt="Welcome Screen"></p> 
+<p>I created a content repo in my home directory:</p> 
 <pre><code>/home/cjstehno/.jackrabbit
-</code></pre><p>Once the repo is configured you get a list of common clients, with links on how to use them:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-2.png" alt="Configured Repo""/></p><p>I was interested in Standard WebDAV to do some simple content sharing between a few computers. It seemed simple enough and there is even a WebDAV connection setup in Ubuntu, but I had a heck of a time getting it to work. Finally I just tried pasting the connection URL into Nautilus directly:</p>
+</code></pre> 
+<p>Once the repo is configured you get a list of common clients, with links on how to use them:</p> 
+<p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-2.png" alt="Configured Repo"></p> 
+<p>I was interested in Standard WebDAV to do some simple content sharing between a few computers. It seemed simple enough and there is even a WebDAV connection setup in Ubuntu, but I had a heck of a time getting it to work. Finally I just tried pasting the connection URL into Nautilus directly:</p> 
 <pre><code>http://localhost:8080/jackrabbit/repository/default
-</code></pre><p>but that didn't work, so I tried a slight change,</p>
+</code></pre> 
+<p>but that didn't work, so I tried a slight change,</p> 
 <pre><code>dav://localhost:8080/jackrabbit/repository/default
-</code></pre><p>which worked and asked me for a username and password, which the documentation says will take anything until you configure it. It looked like I had everything up and running:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-3.png" alt="File browser""/></p><p>Looks can be deceiving... I could add files but not edit them or add directories; however, after a refresh of the WebDAV view my folder was there. It did allow me to copy files from it into other directories and then work with them as normal. It does not seem like a very useful means of accessing the files. I can view everything in the web interface, but that is really not much better. I decided to try connecting using one of the more programmatic means, the RMI client provided with Jackrabbit. It was actually very easy to connect and use. After digging around for a while with the files I had in the repository, It seems that this content repository stuff is quite flexible and could be very powerful, but the learning curve to make good use of it may be a little high... and there seems to be little documentation. I wrote a<br/>little dumper app, which I called Jackalope so I could see how things were laid out in the repo:</p>
-<pre><code class="java">public class Jackalope {
+</code></pre> 
+<p>which worked and asked me for a username and password, which the documentation says will take anything until you configure it. It looked like I had everything up and running:</p> 
+<p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/jack-screen-3.png" alt="File browser"></p> 
+<p>Looks can be deceiving... I could add files but not edit them or add directories; however, after a refresh of the WebDAV view my folder was there. It did allow me to copy files from it into other directories and then work with them as normal. It does not seem like a very useful means of accessing the files. I can view everything in the web interface, but that is really not much better. I decided to try connecting using one of the more programmatic means, the RMI client provided with Jackrabbit. It was actually very easy to connect and use. After digging around for a while with the files I had in the repository, It seems that this content repository stuff is quite flexible and could be very powerful, but the learning curve to make good use of it may be a little high... and there seems to be little documentation. I wrote a<br> little dumper app, which I called Jackalope so I could see how things were laid out in the repo:</p> 
+<pre><code class="language-java">public class Jackalope {
 	public static void main( final String[] args ) {
 		final ClientRepositoryFactory factory = new ClientRepositoryFactory();
 		Session session = null;
 		try {
-			final Repository repo = factory.getRepository( &quot;//localhost/jackrabbit.repository&quot; );
-			session = repo.login( new SimpleCredentials(&quot;cjstehno&quot;, &quot;foo&quot;.toCharArray() ) );
+			final Repository repo = factory.getRepository( "//localhost/jackrabbit.repository" );
+			session = repo.login( new SimpleCredentials("cjstehno", "foo".toCharArray() ) );
 			
 			final String user = session.getUserID();
 			final String name = repo.getDescriptor(Repository.REP_NAME_DESC);
-			System.out.println(&quot;Logged in as &quot; + user + &quot; to a &quot; + name + &quot; repository.&quot;);
+			System.out.println("Logged in as " + user + " to a " + name + " repository.");
 			
 			final Workspace ws = session.getWorkspace();
-			System.out.println(&quot;Workspace: &quot; + ws.getName());
+			System.out.println("Workspace: " + ws.getName());
 			
 			final Node node = session.getRootNode();
-			System.out.println(&quot;Node: &quot; + node.getName());
+			System.out.println("Node: " + node.getName());
 			
 			final NodeIterator children = node.getNodes();
-			System.out.println(&quot;Children: &quot; + children.getSize());
+			System.out.println("Children: " + children.getSize());
 			while(children.hasNext()){
 				final Node child = (Node)children.next();
-				System.out.println(&quot;--&gt; &quot; + child.getName() + &quot; [&quot; + child.getPrimaryNodeType().getName() + &quot;]&quot;);
+				System.out.println("--&gt; " + child.getName() + " [" + child.getPrimaryNodeType().getName() + "]");
 				
 				final NodeDefinition nodeDef = child.getDefinition();
-				System.out.println(&quot;--&gt;\tn: &quot; + nodeDef.getDeclaringNodeType().getName());
+				System.out.println("--&gt;\tn: " + nodeDef.getDeclaringNodeType().getName());
 				
 				final PropertyIterator props = child.getProperties();
 				while(props.hasNext()){
 					final Property prop = (Property)props.next();
-					System.out.println(&quot;--&gt;\tp: &quot; + prop.getName() + &quot; = &quot; + prop.getValue().getString());
+					System.out.println("--&gt;\tp: " + prop.getName() + " = " + prop.getValue().getString());
 				}
 				
-				if(! child.getPrimaryNodeType().isNodeType( &quot;rep:system&quot; ) ){
+				if(! child.getPrimaryNodeType().isNodeType( "rep:system" ) ){
 					final VersionHistory history = child.getVersionHistory();
-					System.out.println(&quot;--&gt; labels: &quot; + Arrays.toString( history.getVersionLabels() ));
+					System.out.println("--&gt; labels: " + Arrays.toString( history.getVersionLabels() ));
 				}
 			}
 		} catch (final Exception e) {
@@ -149,89 +158,98 @@
 		}
 	}
 }
-</code></pre><p>It's nothing fancy, just a little code to poke around. There was apparently an Eclipse plug-in for navigating through JCR repos, but it has since died away. (Also, if you get errors running the code above, remove the last if block related to versioning... the versioning functionality is not well documented and this was bombing a lot for me). Interesting stuff, but not really what I was looking for. I will keep it in mind for future use.</p><h2>Further down the rabbit hole</h2><p>So far, the JCR is a very interesting and seemingly under-utilized API, but I for the purpose of this discussion I am going to assume that you already have a bare minimum of understanding of Jackrabbit and the JCR. The documentation is a little thin in some parts so I decided to share some of my experimentation with <code>NodeType</code> registry and SQL searching of Nodes.</p><p>The registration of custom NodeTypes is apparently not part of the 1.0 spec, since the only implementation for registering custom node types seems to be in a Jackrabbit-specific class, though it does have a note about changes in JCR 2.0 moving the functionality into the core interface, which is nice. The basic code needed to load and register node types is as follows:</p>
-<pre><code class="java">final NodeTypeManagerImpl manager = (NodeTypeManagerImpl)session.getWorkspace().getNodeTypeManager();
+</code></pre> 
+<p>It's nothing fancy, just a little code to poke around. There was apparently an Eclipse plug-in for navigating through JCR repos, but it has since died away. (Also, if you get errors running the code above, remove the last if block related to versioning... the versioning functionality is not well documented and this was bombing a lot for me). Interesting stuff, but not really what I was looking for. I will keep it in mind for future use.</p> 
+<h2>Further down the rabbit hole</h2> 
+<p>So far, the JCR is a very interesting and seemingly under-utilized API, but I for the purpose of this discussion I am going to assume that you already have a bare minimum of understanding of Jackrabbit and the JCR. The documentation is a little thin in some parts so I decided to share some of my experimentation with <code>NodeType</code> registry and SQL searching of Nodes.</p> 
+<p>The registration of custom NodeTypes is apparently not part of the 1.0 spec, since the only implementation for registering custom node types seems to be in a Jackrabbit-specific class, though it does have a note about changes in JCR 2.0 moving the functionality into the core interface, which is nice. The basic code needed to load and register node types is as follows:</p> 
+<pre><code class="language-java">final NodeTypeManagerImpl manager = (NodeTypeManagerImpl)session.getWorkspace().getNodeTypeManager();
 manager.registerNodeTypes(new FileInputStream(cndFile), NodeTypeManagerImpl.TEXT_X_JCR_CND, true);
-</code></pre><p>The <code>registerNodeTypes(...)</code> boolean parameter being true forces a reload of the node types even if they<br/>have already been installed. You will notice that the node types are contained in a separate "cnd" file (see<br/><a href="http://jackrabbit.apache.org/node-type-notation.html">Node Type Definition</a>). The file I used for my<br/>test was as follows:</p>
-<pre><code>&lt;baggage = &#39;http://baggage.sourceforge.net/baggage&#39;&gt;[baggage:Note] &gt; nt:base - baggage:text (string) = &#39;&#39;
+</code></pre> 
+<p>The <code>registerNodeTypes(...)</code> boolean parameter being true forces a reload of the node types even if they<br> have already been installed. You will notice that the node types are contained in a separate "cnd" file (see<br> <a href="http://jackrabbit.apache.org/node-type-notation.html">Node Type Definition</a>). The file I used for my<br> test was as follows:</p> 
+<pre><code>&lt;baggage = 'http://baggage.sourceforge.net/baggage'&gt;[baggage:Note] &gt; nt:base - baggage:text (string) = ''
 primary
 mandatory autocreated
 version
-</code></pre><p>I am not sure at this point whether or not this is a grammar that they created themselves or if it is some external<br/>standard. It seems a bit clunky, but it gets the job done. Basically I am creating a namespace called "baggage" and<br/>adding a new node type to it called "baggage:Note" which will have one auto-created required property called<br/>"baggage:text". It seems from some other tests I have done that you really need your own node types if you are going to<br/>do any querying of your content. You can use the default types but it could get really cluttered and cause your searches<br/>to slow down (Note: it uses Lucene internally for indexing and searching). Once the new node types have been registered<br/>we can use them simply by creating nodes with them:</p>
-<pre><code class="java">final Node root = session.getRootNode();
-final Node notesRoot = root.addNode(&quot;notes-root&quot;);
+</code></pre> 
+<p>I am not sure at this point whether or not this is a grammar that they created themselves or if it is some external<br> standard. It seems a bit clunky, but it gets the job done. Basically I am creating a namespace called "baggage" and<br> adding a new node type to it called "baggage:Note" which will have one auto-created required property called<br> "baggage:text". It seems from some other tests I have done that you really need your own node types if you are going to<br> do any querying of your content. You can use the default types but it could get really cluttered and cause your searches<br> to slow down (Note: it uses Lucene internally for indexing and searching). Once the new node types have been registered<br> we can use them simply by creating nodes with them:</p> 
+<pre><code class="language-java">final Node root = session.getRootNode();
+final Node notesRoot = root.addNode("notes-root");
 
-final Node node1 = notesRoot.addNode(&quot;Something Interesting&quot;,&quot;baggage:Note&quot;);
-node1.setProperty(&quot;baggage:text&quot;,&quot;This is some note that I would write.&quot;);
+final Node node1 = notesRoot.addNode("Something Interesting","baggage:Note");
+node1.setProperty("baggage:text","This is some note that I would write.");
 
-final Node node2 = notesRoot.addNode(&quot;Another Note&quot;,&quot;baggage:Note&quot;);
-node2.setProperty(&quot;baggage:text&quot;,&quot;More really cool text content.&quot;);
-</code></pre><p>which creates a "notes-root" node off of the main root node and then adds some "baggage:Note" nodes to it. Once you<br/>have a few nodes with content it might be nice to search through them. The JCR gives you a fairly straight-forward query<br/>functionality using either XPath or SQL. I chose SQL for my test. Let's find all the "baggage:Note" nodes that contain<br/>the text 'cool'. The following code shows how this is done:</p>
-<pre><code class="java">final QueryManager queryManager = session.getWorkspace().getQueryManager();
+final Node node2 = notesRoot.addNode("Another Note","baggage:Note");
+node2.setProperty("baggage:text","More really cool text content.");
+</code></pre> 
+<p>which creates a "notes-root" node off of the main root node and then adds some "baggage:Note" nodes to it. Once you<br> have a few nodes with content it might be nice to search through them. The JCR gives you a fairly straight-forward query<br> functionality using either XPath or SQL. I chose SQL for my test. Let's find all the "baggage:Note" nodes that contain<br> the text 'cool'. The following code shows how this is done:</p> 
+<pre><code class="language-java">final QueryManager queryManager = session.getWorkspace().getQueryManager();
 
-final String sql = &quot;select * from baggage:Note where contains(baggage:text,&#39;cool&#39;)&quot;;
+final String sql = "select * from baggage:Note where contains(baggage:text,'cool')";
 final Query xq = queryManager.createQuery(sql, Query.SQL);
 final QueryResult result = xq.execute();
 
 final RowIterator rows = result.getRows();
-log.info(&quot;Found: &quot; + rows.getSize());
+log.info("Found: " + rows.getSize());
 while(rows.hasNext()){
     final Row row = rows.nextRow();
     for(final String col : result.getColumnNames()){
-        log.info(col + &quot; = &quot; + row.getValue(col).getString());
+        log.info(col + " = " + row.getValue(col).getString());
     }
-    log.info(&quot;---&quot;);
+    log.info("---");
 }
-</code></pre><p>Using my sample nodes, it will find one matching node and send the following output to the log appender:</p>
+</code></pre> 
+<p>Using my sample nodes, it will find one matching node and send the following output to the log appender:</p> 
 <pre><code>556  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - Found: 1
 560  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - baggage:text = More really cool text content.
 560  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - jcr:primaryType = baggage:Note
 563  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - jcr:path = /notes-root/Another Note
 564  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - jcr:score = 5035
 564  [main] INFO  net.sourceforge.baggage.jcrex.JcrExp2  - ---
-</code></pre><p>The code for the whole test class is shown below:</p>
-<pre><code class="java">public class JcrExp2 {
+</code></pre> 
+<p>The code for the whole test class is shown below:</p> 
+<pre><code class="language-java">public class JcrExp2 {
     private static final Logger log = LoggerFactory.getLogger(JcrExp2.class);
 
     public static void main(final String[] args) throws Exception {
         final Repository repository = new TransientRepository();
-        final Session session = repository.login(new SimpleCredentials(&quot;username&quot;, &quot;password&quot;.toCharArray()));
+        final Session session = repository.login(new SimpleCredentials("username", "password".toCharArray()));
 
-        final String cndFile = &quot;baggage.cnd&quot;;
+        final String cndFile = "baggage.cnd";
 
         final NodeTypeManagerImpl manager = (NodeTypeManagerImpl)session.getWorkspace().getNodeTypeManager();
         manager.registerNodeTypes(new FileInputStream(cndFile), NodeTypeManagerImpl.TEXT_X_JCR_CND, true);
-        log.info(&quot;Registered Node types&quot;);
+        log.info("Registered Node types");
 
         try {
             final Node root = session.getRootNode();
-            final Node notesRoot = root.addNode(&quot;notes-root&quot;);
-            log.info(&quot;Added NotesRoot: &quot; + notesRoot);
+            final Node notesRoot = root.addNode("notes-root");
+            log.info("Added NotesRoot: " + notesRoot);
 
-            final Node node1 = notesRoot.addNode(&quot;Something Interesting&quot;,&quot;baggage:Note&quot;);
-            node1.setProperty(&quot;baggage:text&quot;,&quot;This is some note that I would write.&quot;);
+            final Node node1 = notesRoot.addNode("Something Interesting","baggage:Note");
+            node1.setProperty("baggage:text","This is some note that I would write.");
 
-            final Node node2 = notesRoot.addNode(&quot;Another Note&quot;,&quot;baggage:Note&quot;);
-            node2.setProperty(&quot;baggage:text&quot;,&quot;More really cool text content.&quot;);
+            final Node node2 = notesRoot.addNode("Another Note","baggage:Note");
+            node2.setProperty("baggage:text","More really cool text content.");
 
             session.save();
 
             // query
             final QueryManager queryManager = session.getWorkspace().getQueryManager();
 
-            //          final String sql = &quot;select * from baggage:Note&quot;;
-            final String sql = &quot;select * from baggage:Note where contains(baggage:text,&#39;cool&#39;)&quot;;
+            //          final String sql = "select * from baggage:Note";
+            final String sql = "select * from baggage:Note where contains(baggage:text,'cool')";
             final Query xq = queryManager.createQuery(sql, Query.SQL);
             final QueryResult result = xq.execute();
             final RowIterator rows = result.getRows();
-            log.info(&quot;Found: &quot; + rows.getSize());
+            log.info("Found: " + rows.getSize());
             while(rows.hasNext()){
                 final Row row = rows.nextRow();
                 for(final String col : result.getColumnNames()){
-                    log.info(col + &quot; = &quot; + row.getValue(col).getString());
+                    log.info(col + " = " + row.getValue(col).getString());
                 }
 
-                log.info(&quot;---&quot;);
+                log.info("---");
             }
 
             // cleanup
@@ -239,42 +257,46 @@ while(rows.hasNext()){
             notesRoot.remove();
             session.save();
         } catch(final Exception e){
-            log.error(&quot;Something bad has happened! &quot; + e.getMessage(),e);
+            log.error("Something bad has happened! " + e.getMessage(),e);
         } finally {
             session.logout();
         }
     }
 }
-</code></pre><p>You will need the JCR 1.0 jar as well as the jackrabbit 1.6 jar, both of which can be downloaded from the Jackrabbit downloads<br/>page. The JCR seems pretty useful and flexible. I am surprised that it is not used more than it seems to be.</p><h2>Versioning</h2><p>I figured out the basics of how to use its versioning functionality and decided I should do a little post about it so that I don't lose the code somewhere in the shuffle that is my project-space.</p><p>I'm going to start out by dumping out the code for my little test runner:</p>
-<pre><code class="java">public class JcrVersioning {
+</code></pre> 
+<p>You will need the JCR 1.0 jar as well as the jackrabbit 1.6 jar, both of which can be downloaded from the Jackrabbit downloads<br> page. The JCR seems pretty useful and flexible. I am surprised that it is not used more than it seems to be.</p> 
+<h2>Versioning</h2> 
+<p>I figured out the basics of how to use its versioning functionality and decided I should do a little post about it so that I don't lose the code somewhere in the shuffle that is my project-space.</p> 
+<p>I'm going to start out by dumping out the code for my little test runner:</p> 
+<pre><code class="language-java">public class JcrVersioning {
     private static final Logger log = LoggerFactory.getLogger(JcrVersioning.class);
     public static void main(final String[] args) throws Exception {
         final Repository repository = new TransientRepository();
-        final Session session = repository.login(new SimpleCredentials(&quot;username&quot;, &quot;password&quot;.toCharArray()));
+        final Session session = repository.login(new SimpleCredentials("username", "password".toCharArray()));
 
         try {
             final Node root = session.getRootNode();
             // Store content
-            final Node textNode = root.addNode(&quot;mynode&quot;);
+            final Node textNode = root.addNode("mynode");
 
-            final Node noteNode = textNode.addNode(&quot;alpha&quot;);
-            noteNode.addMixin(&quot;mix:versionable&quot;);
-            noteNode.setProperty(&quot;content&quot;, &quot;I like jackrabbit&quot;);
+            final Node noteNode = textNode.addNode("alpha");
+            noteNode.addMixin("mix:versionable");
+            noteNode.setProperty("content", "I like jackrabbit");
 
             session.save();
             noteNode.checkin();
 
             // Retrieve content
-            final Node node = root.getNode(&quot;mynode/alpha&quot;);
-            log.info(&quot;Path: &quot; + node.getPath() + &quot; --&gt; &quot; + node.getProperty(&quot;content&quot;).getString());
+            final Node node = root.getNode("mynode/alpha");
+            log.info("Path: " + node.getPath() + " --&gt; " + node.getProperty("content").getString());
 
             noteNode.checkout();
-            noteNode.setProperty(&quot;content&quot;,&quot;Jackrabbit is cool&quot;);
+            noteNode.setProperty("content","Jackrabbit is cool");
 
             session.save();
             noteNode.checkin();
 
-            log.info(&quot;After Modification: &quot; + noteNode.getPath() + &quot; --&gt; &quot; + noteNode.getProperty(&quot;content&quot;).getString());
+            log.info("After Modification: " + noteNode.getPath() + " --&gt; " + noteNode.getProperty("content").getString());
 
             ////
             final VersionHistory vh = noteNode.getVersionHistory();
@@ -287,7 +309,7 @@ while(rows.hasNext()){
 
                 while (ni.hasNext()) {
                     final Node nv = ni.nextNode();
-                    log.info(&quot; - Found version: &quot; + v.getCreated().getTime() + &quot; --&gt; &quot; + nv.getProperty(&quot;content&quot;).getString());
+                    log.info(" - Found version: " + v.getCreated().getTime() + " --&gt; " + nv.getProperty("content").getString());
                 }
             }
 
@@ -301,23 +323,25 @@ while(rows.hasNext()){
             noteNode.restore(versionIterator.nextVersion(), true);
             noteNode.checkin();
 
-            log.info(&quot;After Restore: &quot; + noteNode.getPath() + &quot; --&gt; &quot; + noteNode.getProperty(&quot;content&quot;).getString());
+            log.info("After Restore: " + noteNode.getPath() + " --&gt; " + noteNode.getProperty("content").getString());
 
             // Remove content
-            root.getNode(&quot;mynode&quot;).remove();
+            root.getNode("mynode").remove();
             session.save();
         } finally {
             session.logout();
         }
     }
 }
-</code></pre><p>which creates a couple nodes, one of which has content. The content is set, modified and then restored to it's<br/>initial revision using the JCR versioning functionality. The enabler for versioning the the <code>mix:versionable</code><br/>mixin set on the versionable node. Once that is set you need to be cautious of how your <code>save()</code> and <code>checkout()</code><br/>and <code>checkin()</code> calls interact. When you run this example you will get something like:</p>
+</code></pre> 
+<p>which creates a couple nodes, one of which has content. The content is set, modified and then restored to it's<br> initial revision using the JCR versioning functionality. The enabler for versioning the the <code>mix:versionable</code><br> mixin set on the versionable node. Once that is set you need to be cautious of how your <code>save()</code> and <code>checkout()</code><br> and <code>checkin()</code> calls interact. When you run this example you will get something like:</p> 
 <pre><code>INFO  JcrVersioning  - Path: /mynode/alpha --&gt; I like jackrabbit
 INFO  JcrVersioning  - After Modification: /mynode/alpha --&gt; Jackrabbit is cool
 INFO  JcrVersioning  -  - Found version: Wed Oct 28 19:26:59 CDT 2009 --&gt; I like jackrabbit
 INFO  JcrVersioning  -  - Found version: Wed Oct 28 19:26:59 CDT 2009 --&gt; Jackrabbit is cool
 INFO  JcrVersioning  - After Restore: /mynode/alpha --&gt; I like jackrabbit
-</code></pre><p>Like I said this is really just a storage are for some sample code I came up with... it is what it is. Hopefully it can help if you are stuck with JCR versioning.</p></p>
+</code></pre> 
+<p>Like I said this is really just a storage are for some sample code I came up with... it is what it is. Hopefully it can help if you are stuck with JCR versioning.</p></p>
 
 
             <div class="row">

@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 April 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>I recently had the idea that it would be interesting to have a <a href="http://springframework.org/">Spring</a> factory bean that<br/>would load a serialized object as its object contribution. I have no idea at this point what it would be useful for; it<br/>was just something that popped into my head. My example below describes a license key system that is not based on<br/>anything real so please don't expect this to be a good license key implementation... it's just an example of the<br/>deserialized bean factory idea.</p><p>First, we need something to serialize. As I mentioned earlier, I am doing a quick and dirty license key system so the<br/>key itself would be a good candidate for the serializable object. Let's create a license key object as follows:</p>
-<pre><code class="java">public class LicenseKey implements Serializable {
+	<p><p>I recently had the idea that it would be interesting to have a <a href="http://springframework.org/">Spring</a> factory bean that<br> would load a serialized object as its object contribution. I have no idea at this point what it would be useful for; it<br> was just something that popped into my head. My example below describes a license key system that is not based on<br> anything real so please don't expect this to be a good license key implementation... it's just an example of the<br> deserialized bean factory idea.</p> 
+<p>First, we need something to serialize. As I mentioned earlier, I am doing a quick and dirty license key system so the<br> key itself would be a good candidate for the serializable object. Let's create a license key object as follows:</p> 
+<pre><code class="language-java">public class LicenseKey implements Serializable {
     private static final long serialVersionUID = -3151020875557193150L;
     private long created;
     private String key;
@@ -116,16 +117,18 @@
 
     public String getKey() {return key;}
 }
-</code></pre><p>Notice that it implements the Serializable interface and has a couple of fields that we can later use to prove that<br/>the bean is deserialized and loaded properly. Next, we need to serialize this object into a license key file, which will<br/>later be used by the factory bean. I threw together a simple serializer which also utilizes the<br/><a href="http://commons.apache.org/lang">Jakarta Commons - Lang API</a>:</p>
-<pre><code class="java">public class Serializer {
+</code></pre> 
+<p>Notice that it implements the Serializable interface and has a couple of fields that we can later use to prove that<br> the bean is deserialized and loaded properly. Next, we need to serialize this object into a license key file, which will<br> later be used by the factory bean. I threw together a simple serializer which also utilizes the<br> <a href="http://commons.apache.org/lang">Jakarta Commons - Lang API</a>:</p> 
+<pre><code class="language-java">public class Serializer {
     public static void main(final String[] args) throws FileNotFoundException {
         final LicenseKey key = new LicenseKey(System.currentTimeMillis(),UUID.randomUUID().toString());
-        SerializationUtils.serialize(key, new FileOutputStream(new File(&quot;license.key&quot;)));
-        System.out.println(&quot;Done&quot;);
+        SerializationUtils.serialize(key, new FileOutputStream(new File("license.key")));
+        System.out.println("Done");
     }
 }
-</code></pre><p>This just creates a simple key object and serializes it to the current directory as the "license.key" file, which<br/>we will use later. Now that we have a serialized license key, we need a Spring factory bean to load and instantiate the<br/><code>LicenseKey</code> object it represents. The <code>DeserializedObjectFactory</code> is simply an extension of Spring's <code>AbstractFactoryBean</code><br/>that deserializes the given file resource and verifies that it is an instance of the specified class.</p>
-<pre><code class="java">public class DeserializedObjectFactory extends AbstractFactoryBean {
+</code></pre> 
+<p>This just creates a simple key object and serializes it to the current directory as the "license.key" file, which<br> we will use later. Now that we have a serialized license key, we need a Spring factory bean to load and instantiate the<br> <code>LicenseKey</code> object it represents. The <code>DeserializedObjectFactory</code> is simply an extension of Spring's <code>AbstractFactoryBean</code><br> that deserializes the given file resource and verifies that it is an instance of the specified class.</p> 
+<pre><code class="language-java">public class DeserializedObjectFactory extends AbstractFactoryBean {
     private final Class&lt;? extends Serializable&gt; objectType;
     private final Resource resource;
 
@@ -137,7 +140,7 @@
     @Override
     protected Object createInstance() throws Exception {
         final Object obj = SerializationUtils.deserialize(resource.getInputStream());
-        Assert.isInstanceOf(objectType, obj, &quot;Serialized object must be of type: &quot; + objectType);
+        Assert.isInstanceOf(objectType, obj, "Serialized object must be of type: " + objectType);
         return obj;
     }
 
@@ -146,8 +149,9 @@
         return objectType;
     }
 }
-</code></pre><p>The generic parameter restrictions and the instance checking add a bit of safety to the factory such that it keeps<br/>you from loading something completely unexpected. In order to make use of these beans, we will need some client class to<br/>actually use the deserialized object, and that's where the <code>LicenseVerifier</code> class comes in. The license verifier<br/>is a simple class that takes a license key as a parameter and has a verification method that will be used to ensure that<br/>a proper license key is configured.</p>
-<pre><code class="java">public class LicenseVerifier {
+</code></pre> 
+<p>The generic parameter restrictions and the instance checking add a bit of safety to the factory such that it keeps<br> you from loading something completely unexpected. In order to make use of these beans, we will need some client class to<br> actually use the deserialized object, and that's where the <code>LicenseVerifier</code> class comes in. The license verifier<br> is a simple class that takes a license key as a parameter and has a verification method that will be used to ensure that<br> a proper license key is configured.</p> 
+<pre><code class="language-java">public class LicenseVerifier {
     private static final Log log = LogFactory.getLog(LicenseVerifier.class);
     private LicenseKey licenseKey;
 
@@ -157,25 +161,30 @@
 
     public void verify(){
         // do some license verification
-        Assert.notNull(licenseKey, &quot;No license key exists!&quot;);
-        Assert.notNull(licenseKey.getKey(), &quot;Invalid key!&quot;);
-        log.info(&quot;License verified: created: &quot; + licenseKey.getCreated() + &quot;, key: &quot; + licenseKey.getKey());
+        Assert.notNull(licenseKey, "No license key exists!");
+        Assert.notNull(licenseKey.getKey(), "Invalid key!");
+        log.info("License verified: created: " + licenseKey.getCreated() + ", key: " + licenseKey.getKey());
     }
 }
-</code></pre><p>Finally we need the glue that brings all of this together, the Spring context file:</p>
-<pre><code class="xml">&lt;bean id=&quot;license.key&quot; class=&quot;spring.DeserializedObjectFactory&quot;&gt;
-    &lt;constructor-arg value=&quot;spring.LicenseKey&quot; /&gt;
-    &lt;constructor-arg value=&quot;license.key&quot; /&gt;
+</code></pre> 
+<p>Finally we need the glue that brings all of this together, the Spring context file:</p> 
+<pre><code class="language-xml">&lt;bean id="license.key" class="spring.DeserializedObjectFactory"&gt;
+    &lt;constructor-arg value="spring.LicenseKey" /&gt;
+    &lt;constructor-arg value="license.key" /&gt;
 &lt;/bean&gt;
 
-&lt;bean id=&quot;license.verifier&quot; class=&quot;spring.LicenseVerifier&quot; init-method=&quot;verify&quot;&gt;
-    &lt;property name=&quot;licenseKey&quot; ref=&quot;license.key&quot; /&gt;
+&lt;bean id="license.verifier" class="spring.LicenseVerifier" init-method="verify"&gt;
+    &lt;property name="licenseKey" ref="license.key" /&gt;
 &lt;/bean&gt;
-</code></pre><p>Notice the <code>init-method</code> on the license verifier bean; it is used to ensure that the license is verified<br/>when the context starts up. With that, you can startup the context and watch the magic happen:</p>
-<pre><code class="java">new FileSystemXmlApplicationContext(&quot;context.xml&quot;)
-</code></pre><p>You should get some miscellaneous logging and then the license verification log entry with populated data, which will<br/>look something like this (of course your values will be different):</p>
+</code></pre> 
+<p>Notice the <code>init-method</code> on the license verifier bean; it is used to ensure that the license is verified<br> when the context starts up. With that, you can startup the context and watch the magic happen:</p> 
+<pre><code class="language-java">new FileSystemXmlApplicationContext("context.xml")
+</code></pre> 
+<p>You should get some miscellaneous logging and then the license verification log entry with populated data, which will<br> look something like this (of course your values will be different):</p> 
 <pre><code>INFO: License verified: created: 1209321756486, key: 5ed38eba-799a-4b8c-9bfc-dd539c20bafe
-</code></pre><p>That's all there is to it. Like I said, I am not sure what it would really be useful for but it was an interesting<br/>little experiment. I found it interesting because it would be simple to swap out serialized object files as needed to<br/>provide different instances, in this case different licenses. This concept could also be used with other "serialization"<br/>methods, such as XML or some other custom serializer. I chose the default Java serialization just for ease of<br/>demonstration.</p><p>Again I must mention that this simply a demo and is NOT intended to be a legitimate licensing strategy and it<br/>contains MANY security holes. If you use it, you are on your own and I take no responsibility for the results.</p></p>
+</code></pre> 
+<p>That's all there is to it. Like I said, I am not sure what it would really be useful for but it was an interesting<br> little experiment. I found it interesting because it would be simple to swap out serialized object files as needed to<br> provide different instances, in this case different licenses. This concept could also be used with other "serialization"<br> methods, such as XML or some other custom serializer. I chose the default Java serialization just for ease of<br> demonstration.</p> 
+<p>Again I must mention that this simply a demo and is NOT intended to be a legitimate licensing strategy and it<br> contains MANY security holes. If you use it, you are on your own and I take no responsibility for the results.</p></p>
 
 
             <div class="row">

@@ -97,28 +97,31 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 September 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Say you have a <code>Map</code> and that you need to iterate over its contents and do something with both the key and<br/>the value for each mapping. I have often seen the following code used:</p>
-<pre><code class="java">Iterator i = map.keySet().iterator();
+	<p><p>Say you have a <code>Map</code> and that you need to iterate over its contents and do something with both the key and<br> the value for each mapping. I have often seen the following code used:</p> 
+<pre><code class="language-java">Iterator i = map.keySet().iterator();
     while(i.hasNext()){
     Object key = i.next();
     Object val = map.get(key);
     // do something with them
 }
-</code></pre><p>While this is correct and generally there is nothing wrong with it, you are doing an extra <code>get()</code> call into the<br/>map; however, if you iterate over the entry Set you can remove that extra call:</p>
-<pre><code class="java">Iterator i = map.entrySet().iterator();
+</code></pre> 
+<p>While this is correct and generally there is nothing wrong with it, you are doing an extra <code>get()</code> call into the<br> map; however, if you iterate over the entry Set you can remove that extra call:</p> 
+<pre><code class="language-java">Iterator i = map.entrySet().iterator();
 while(i.hasNext()){
     Entry entry = (Entry)i.next();
     Object key = entry.getKey();
     Object val = entry.getValue();
     // do something with them
 }
-</code></pre><p>Also, as a side note, with Java 5 and above you can use the new foreach loop to simplify things even more:</p>
-<pre><code class="java">for(Entry&amp;lt;object,object&amp;gt; entry : map.entrySet()){
+</code></pre> 
+<p>Also, as a side note, with Java 5 and above you can use the new foreach loop to simplify things even more:</p> 
+<pre><code class="language-java">for(Entry&amp;lt;object,object&amp;gt; entry : map.entrySet()){
     Object key = entry.getKey();
     Object val = entry.getValue();
     // do something
 }
-</code></pre><p>It's not going to double your processing speed or anything, but it is a little more efficient, especially when you are<br/>iterating over a large map of items.</p></p>
+</code></pre> 
+<p>It's not going to double your processing speed or anything, but it is a little more efficient, especially when you are<br> iterating over a large map of items.</p></p>
 
 
             <div class="row">

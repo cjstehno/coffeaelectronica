@@ -97,33 +97,35 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>The <code>java.text.MessageFormat</code> class is, in my opinion, underutilized. It is what <code>org.springframework.context.MessageSource</code> implementations use under the covers to provide message formatting, so they are probably used quite a bit, but do you really let them do what they are made to do... formatting? I am guilty of it to; you convert a Date object to a formatted string before handing it off to a <code>MessageSource</code> or <code>MessageFormat</code> instance... but no more. I wrote a quick<br/>little format dumper to show what each type of formatting prints out:</p>
-<pre><code class="java">Object[] params = new Object[]{ new Date() };
-out.println(&quot;Dates:&quot;);
-out.println(&quot;  default:\t&quot; + format(&quot;{0}&quot;,                 params) );
-out.println(&quot;  short:\t&quot;   + format(&quot;{0,date,short}&quot;,      params) );
-out.println(&quot;  medium:\t&quot;  + format(&quot;{0,date,medium}&quot;,     params) );
-out.println(&quot;  long:\t\t&quot;  + format(&quot;{0,date,long}&quot;,       params) );
-out.println(&quot;  custom:\t&quot;  + format(&quot;{0,date,d MMMM yyyy}&quot;,params) );
+	<p><p>The <code>java.text.MessageFormat</code> class is, in my opinion, underutilized. It is what <code>org.springframework.context.MessageSource</code> implementations use under the covers to provide message formatting, so they are probably used quite a bit, but do you really let them do what they are made to do... formatting? I am guilty of it to; you convert a Date object to a formatted string before handing it off to a <code>MessageSource</code> or <code>MessageFormat</code> instance... but no more. I wrote a quick<br> little format dumper to show what each type of formatting prints out:</p> 
+<pre><code class="language-java">Object[] params = new Object[]{ new Date() };
+out.println("Dates:");
+out.println("  default:\t" + format("{0}",                 params) );
+out.println("  short:\t"   + format("{0,date,short}",      params) );
+out.println("  medium:\t"  + format("{0,date,medium}",     params) );
+out.println("  long:\t\t"  + format("{0,date,long}",       params) );
+out.println("  custom:\t"  + format("{0,date,d MMMM yyyy}",params) );
 
-out.println(&quot;\nTime:&quot;);
-out.println(&quot;  default:\t&quot; + format(&quot;{0,time}&quot;,         params) );
-out.println(&quot;  short:\t&quot;   + format(&quot;{0,time,short}&quot;,   params) );
-out.println(&quot;  medium:\t&quot;  + format(&quot;{0,time,medium}&quot;,  params) );
-out.println(&quot;  long:\t\t&quot;  + format(&quot;{0,time,long}&quot;,    params) );
-out.println(&quot;  full:\t\t&quot;  + format(&quot;{0,time,full}&quot;,    params) );
-out.println(&quot;  custom:\t&quot;  + format(&quot;{0,time,HH:mm:ss}&quot;,params) );
+out.println("\nTime:");
+out.println("  default:\t" + format("{0,time}",         params) );
+out.println("  short:\t"   + format("{0,time,short}",   params) );
+out.println("  medium:\t"  + format("{0,time,medium}",  params) );
+out.println("  long:\t\t"  + format("{0,time,long}",    params) );
+out.println("  full:\t\t"  + format("{0,time,full}",    params) );
+out.println("  custom:\t"  + format("{0,time,HH:mm:ss}",params) );
 
 params = new Object[]{ new Float(31415.967F) };
-out.println(&quot;\nNumbers:&quot;);
-out.println(&quot;  default:\t&quot;  + format(&quot;{0}&quot;,                  params) );
-out.println(&quot;  integer:\t&quot;  + format(&quot;{0,number,integer}&quot;,   params) );
-out.println(&quot;  currency:\t&quot; + format(&quot;{0,number,currency}&quot;,  params) );
-out.println(&quot;  percent:\t&quot;  + format(&quot;{0,number,percent}&quot;,   params) );
-out.println(&quot;  custom:\t&quot;   + format(&quot;{0,number,#,###.0000}&quot;,params) );
-</code></pre><p>Note: I used static imports for <code>System.out</code> and <code>MessageFormat.format</code> so that I could minimize the code<br/>noise. For the same reason, I pulled the format label text outside of the formatting call; they could have easily been done as:</p>
-<pre><code class="java">out.println( format(&quot;  short:\t{0,time,short}&quot;, params) );
-</code></pre><p>It just seemed easier to see the formatting the other way. When I ran my format dumper I ended up with:</p>
+out.println("\nNumbers:");
+out.println("  default:\t"  + format("{0}",                  params) );
+out.println("  integer:\t"  + format("{0,number,integer}",   params) );
+out.println("  currency:\t" + format("{0,number,currency}",  params) );
+out.println("  percent:\t"  + format("{0,number,percent}",   params) );
+out.println("  custom:\t"   + format("{0,number,#,###.0000}",params) );
+</code></pre> 
+<p>Note: I used static imports for <code>System.out</code> and <code>MessageFormat.format</code> so that I could minimize the code<br> noise. For the same reason, I pulled the format label text outside of the formatting call; they could have easily been done as:</p> 
+<pre><code class="language-java">out.println( format("  short:\t{0,time,short}", params) );
+</code></pre> 
+<p>It just seemed easier to see the formatting the other way. When I ran my format dumper I ended up with:</p> 
 <pre><code>Dates:
   default: 11/23/09 7:59 PM
   short: 11/23/09
@@ -145,7 +147,8 @@ Numbers:
   currency: $31,415.97
   percent: 3,141,597%
   custom: 31,415.9668
-</code></pre><p>I am going to make a point to use these from now on, rather than converting manually beforehand.</p></p>
+</code></pre> 
+<p>I am going to make a point to use these from now on, rather than converting manually beforehand.</p></p>
 
 
             <div class="row">

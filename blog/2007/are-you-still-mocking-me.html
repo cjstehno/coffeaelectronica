@@ -97,74 +97,80 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 September 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p><a href="http://jmock.org/">JMock 2</a> came out not too long ago and after some initial worry about backwards compatibility I decided to<br/>give it a try. It plays very nicely with version one, but you will want to run out and convert all of your tests once you<br/>see how truly beautiful version two is. A few years ago, I wrote a brief article on unit testing with JMock called<br/>"<a href="Are-You-Mocking-Me%3F">Are You Mocking Me?</a>". I would like to showcase some of the new goodies in version two by<br/>revisiting that article and converting the examples to the newer version.</p><p>You should at least skim the other article to get a feel for the example at hand as I will be covering mocking<br/>differences, not the original issue of mock testing. In the example, our test was written as an extension of<br/><code>MockObjectTestCase</code>, this is still the case (pardon the pun), except that the package is different, we are<br/>now using the <code>org.jmock.integration.junit3.MockObjectTestCase</code> class from version two. It serves basically<br/>the same purpose, to provide some helper methods. Our our original test case was:</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+	<p><p><a href="http://jmock.org/">JMock 2</a> came out not too long ago and after some initial worry about backwards compatibility I decided to<br> give it a try. It plays very nicely with version one, but you will want to run out and convert all of your tests once you<br> see how truly beautiful version two is. A few years ago, I wrote a brief article on unit testing with JMock called<br> "<a href="Are-You-Mocking-Me%3F">Are You Mocking Me?</a>". I would like to showcase some of the new goodies in version two by<br> revisiting that article and converting the examples to the newer version.</p> 
+<p>You should at least skim the other article to get a feel for the example at hand as I will be covering mocking<br> differences, not the original issue of mock testing. In the example, our test was written as an extension of<br> <code>MockObjectTestCase</code>, this is still the case (pardon the pun), except that the package is different, we are<br> now using the <code>org.jmock.integration.junit3.MockObjectTestCase</code> class from version two. It serves basically<br> the same purpose, to provide some helper methods. Our our original test case was:</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
     }
 }
-</code></pre><p>which, when updated will become:</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>which, when updated will become:</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         final PageContext pageCtx = mock(PageContext.class);
         final HelloTag helloTag = new HelloTag();
         helloTag.setPageContext(pageCtx);
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;),helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!"),helloTag.buildOutput());
     }
 }
-</code></pre><p>The difference is subtle but very interesting. Now instead of a <code>Mock</code> object, we have an instance of the<br/>object that was mocked and we no longer need to call the <code>proxy()</code> method and do the casting. The second example<br/>adds a stubbed method, which after using JMock for a while I realized was not such a great thing, since it does not<br/>really verify that it was called, just that it can be called.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>The difference is subtle but very interesting. Now instead of a <code>Mock</code> object, we have an instance of the<br> object that was mocked and we no longer need to call the <code>proxy()</code> method and do the casting. The second example<br> adds a stubbed method, which after using JMock for a while I realized was not such a great thing, since it does not<br> really verify that it was called, just that it can be called.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;foo&quot;)).will(returnValue(&quot;Mr. Anderson&quot;));
+        mockPageCtx.stubs().method("findAttribute").with(eq("foo")).will(returnValue("Mr. Anderson"));
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
     }
 }
-</code></pre><p>The new version both takes care of that omission and updates the code to use the new expectation definition method:</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>The new version both takes care of that omission and updates the code to use the new expectation definition method:</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         final PageContext pageCtx = mock(PageContext.class);
         checking(new Expectations(){
             {
-                one(pageCtx).findAttribute(&quot;foo&quot;); will(returnValue(&quot;Mr. Anderson&quot;));
+                one(pageCtx).findAttribute("foo"); will(returnValue("Mr. Anderson"));
             }
         });
 
         final HelloTag helloTag = new HelloTag();
         helloTag.setPageContext(pageCtx);
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;),helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!"),helloTag.buildOutput());
     }
 }
-</code></pre><p>Now, the first time I saw the code in the checking method, I had to double check that I was looking at a Java<br/>example. Basically you are creating an anonymous extension of the <code>Expectations</code> class and then adding an<br/>instance initializer to it (the inner curly braces) to provide the expectations themselves. Notice that the method is<br/>actually being called on the mocked object; it's not a string, which means that refactoring will not break your mock<br/>tests. If you have never run into that problem with version one, count yourself lucky. Okay, I am going to jump down to<br/>the final code to finish up:</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>Now, the first time I saw the code in the checking method, I had to double check that I was looking at a Java<br> example. Basically you are creating an anonymous extension of the <code>Expectations</code> class and then adding an<br> instance initializer to it (the inner curly braces) to provide the expectations themselves. Notice that the method is<br> actually being called on the mocked object; it's not a string, which means that refactoring will not break your mock<br> tests. If you have never run into that problem with version one, count yourself lucky. Okay, I am going to jump down to<br> the final code to finish up:</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockJspWriter = new Mock(JspWriterMockAdapter.class);
-        mockJspWriter.expects(once()).method(&quot;print&quot;)
-            .with(eq(&quot;Hello, Mr. Anderson!&quot;));
+        mockJspWriter.expects(once()).method("print")
+            .with(eq("Hello, Mr. Anderson!"));
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;matrix&quot;))
-            .will(returnValue(&quot;Mr. Anderson&quot;));
-        mockPageCtx.stubs().method(&quot;getOut&quot;).withNoParameters()
+        mockPageCtx.stubs().method("findAttribute").with(eq("matrix"))
+            .will(returnValue("Mr. Anderson"));
+        mockPageCtx.stubs().method("getOut").withNoParameters()
             .will(returnValue((JspWriter)mockJspWriter.proxy()));
 
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        helloTag.setId(&quot;matrix&quot;);
+        helloTag.setId("matrix");
         helloTag.doStartTag();
         helloTag.doEndTag();
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
 
         mockJspWriter.verify();
     }
 }
-</code></pre><p>With version two you can mock objects that do not have an empty constructor, though you have to set a non-default<br/>"Imposterizer". This negates the need for the adapter class defined in the old article.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>With version two you can mock objects that do not have an empty constructor, though you have to set a non-default<br> "Imposterizer". This negates the need for the adapter class defined in the old article.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public HelloTagTest(){
         setImposterizer(ClassImposterizer.INSTANCE);
     }
@@ -173,28 +179,29 @@
         final JspWriter jspWriter = mock(JspWriter.class);
         checking(new Expectations(){
             {
-                one(jspWriter).print(&quot;Hello, Mr. Anderson!&quot;);
+                one(jspWriter).print("Hello, Mr. Anderson!");
             }
         });
 
         final PageContext pageCtx = mock(PageContext.class);
         checking(new Expectations(){
             {
-                one(pageCtx).findAttribute(&quot;martix&quot;); will(returnValue(&quot;Mr. Anderson&quot;));
+                one(pageCtx).findAttribute("martix"); will(returnValue("Mr. Anderson"));
                 one(pageCtx).getOut(); will(returnValue(jspWriter));
             }
         });
 
         final HelloTag helloTag = new HelloTag();
         helloTag.setPageContext(pageCtx);
-        helloTag.setId(&quot;matrix&quot;);
+        helloTag.setId("matrix");
         helloTag.doStartTag();
         helloTag.doEndTag();
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;),helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!"),helloTag.buildOutput());
     }
 }
-</code></pre><p>You can't tell me that is not cleaner and more straight-forward. You could actually collapse the<br/><code>checking()</code> methods into one if you wanted to. I tend to group them like the example above since it can often<br/>reveal common blocks of code that can be extracted into separate shared methods. The is a lot more to discuss with JMock<br/>but this gives you a good overview based on old version one code.</p></p>
+</code></pre> 
+<p>You can't tell me that is not cleaner and more straight-forward. You could actually collapse the<br> <code>checking()</code> methods into one if you wanted to. I tend to group them like the example above since it can often<br> reveal common blocks of code that can be extracted into separate shared methods. The is a lot more to discuss with JMock<br> but this gives you a good overview based on old version one code.</p></p>
 
 
             <div class="row">

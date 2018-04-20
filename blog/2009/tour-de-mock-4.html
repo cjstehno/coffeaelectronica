@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 23 July 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p><a href="http://easymock.org/">EasyMock</a> is a bit of a different breed. The latest version (2.5.x) seems more expressive than the previous version but it has an odd, and in my opinion cumbersome, need to call a replay method, while most of the other mocking APIs seemingly either negate the need for this or do it under the covers so you don't have to worry about it.</p><p>The <code>@Before</code> method is nothing very different from the other examples:</p>
-<pre><code class="java">@Before
+	<p><p><a href="http://easymock.org/">EasyMock</a> is a bit of a different breed. The latest version (2.5.x) seems more expressive than the previous version but it has an odd, and in my opinion cumbersome, need to call a replay method, while most of the other mocking APIs seemingly either negate the need for this or do it under the covers so you don't have to worry about it.</p> 
+<p>The <code>@Before</code> method is nothing very different from the other examples:</p> 
+<pre><code class="language-java">@Before
 public void before() throws ServletException {
     this.emailListService = createMock(EmailListService.class);
 
@@ -115,31 +116,33 @@ public void before() throws ServletException {
     this.request = createMock(HttpServletRequest.class);
     this.response = createMock(HttpServletResponse.class);
 }
-</code></pre><p>However, the code is reasonably expressive and gets the functional point across in a reasonable amount of code. The exception<br/>test is expressive; however, again as in the <code>before()</code> method we see that clunky <code>replay()</code> method that just feels like<br/>an out-of-place artifact of a poor design decision.</p>
-<pre><code class="java">@Test(expected=IOException.class)
+</code></pre> 
+<p>However, the code is reasonably expressive and gets the functional point across in a reasonable amount of code. The exception<br> test is expressive; however, again as in the <code>before()</code> method we see that clunky <code>replay()</code> method that just feels like<br> an out-of-place artifact of a poor design decision.</p> 
+<pre><code class="language-java">@Test(expected=IOException.class)
 public void doGet_without_list() throws Exception {
-    expect(request.getParameter(&quot;listName&quot;)).andReturn(null);
+    expect(request.getParameter("listName")).andReturn(null);
     expect(emailListService.getListByName(null)).andThrow(new IOException());
 
     replay(request,emailListService);
 
     servlet.doGet(request, response);
 }
-</code></pre><p>The sequential handling, in the "with list" test is fairly straight-forward, probably the least invasive of all the APIs so<br/>far in handling method invocation sequences.</p>
-<pre><code class="java">@Test
+</code></pre> 
+<p>The sequential handling, in the "with list" test is fairly straight-forward, probably the least invasive of all the APIs so<br> far in handling method invocation sequences.</p> 
+<pre><code class="language-java">@Test
 public void doGet_with_list() throws Exception {
-    expect(request.getParameter(&quot;listName&quot;)).andReturn(&quot;foolist&quot;);
+    expect(request.getParameter("listName")).andReturn("foolist");
 
-    final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
-    expect(emailListService.getListByName(&quot;foolist&quot;)).andReturn(list);
+    final List&lt;String&gt; list = Arrays.asList("larry@stooge.com","moe@stooge.com","curley@stooge.com");
+    expect(emailListService.getListByName("foolist")).andReturn(list);
 
     final PrintWriter writer = createMock(PrintWriter.class);
     checkOrder(writer,true);
     expect(response.getWriter()).andReturn(writer);
 
-    writer.println(&quot;larry@stooge.com&quot;);
-    writer.println(&quot;moe@stooge.com&quot;);
-    writer.println(&quot;curley@stooge.com&quot;);
+    writer.println("larry@stooge.com");
+    writer.println("moe@stooge.com");
+    writer.println("curley@stooge.com");
     writer.close();
 
     replay(request,response,writer,emailListService);
@@ -147,8 +150,9 @@ public void doGet_with_list() throws Exception {
     servlet.doGet(request, response);
     verify(writer);
 }
-</code></pre><p>The code for the entire test case is as follows:</p>
-<pre><code class="java">public class EmailListServlet_EasyMockTest {
+</code></pre> 
+<p>The code for the entire test case is as follows:</p> 
+<pre><code class="language-java">public class EmailListServlet_EasyMockTest {
 
     private EmailListServlet servlet;
     private HttpServletRequest request;
@@ -175,7 +179,7 @@ public void doGet_with_list() throws Exception {
 
     @Test(expected=IOException.class)
     public void doGet_without_list() throws Exception {
-        expect(request.getParameter(&quot;listName&quot;)).andReturn(null);
+        expect(request.getParameter("listName")).andReturn(null);
         expect(emailListService.getListByName(null)).andThrow(new IOException());
 
         replay(request,emailListService);
@@ -185,18 +189,18 @@ public void doGet_with_list() throws Exception {
 
     @Test
     public void doGet_with_list() throws Exception {
-        expect(request.getParameter(&quot;listName&quot;)).andReturn(&quot;foolist&quot;);
+        expect(request.getParameter("listName")).andReturn("foolist");
 
-        final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
-        expect(emailListService.getListByName(&quot;foolist&quot;)).andReturn(list);
+        final List&lt;String&gt; list = Arrays.asList("larry@stooge.com","moe@stooge.com","curley@stooge.com");
+        expect(emailListService.getListByName("foolist")).andReturn(list);
 
         final PrintWriter writer = createMock(PrintWriter.class);
         checkOrder(writer,true);
         expect(response.getWriter()).andReturn(writer);
 
-        writer.println(&quot;larry@stooge.com&quot;);
-        writer.println(&quot;moe@stooge.com&quot;);
-        writer.println(&quot;curley@stooge.com&quot;);
+        writer.println("larry@stooge.com");
+        writer.println("moe@stooge.com");
+        writer.println("curley@stooge.com");
         writer.close();
 
         replay(request,response,writer,emailListService);
@@ -206,8 +210,10 @@ public void doGet_with_list() throws Exception {
         verify(writer);
     }
 }
-</code></pre><p>Maybe it's because I am used to a different mocking strategy, or perhaps it's just an older API (I think EasyMock was one<br/>of the first), but I am not really fond of EasyMock. It's another tool in the toolbox and I know there are quite a few<br/>developers out there who swear by it. It's not one that I will use often.</p>
-<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</code></pre> 
+<p>Maybe it's because I am used to a different mocking strategy, or perhaps it's just an older API (I think EasyMock was one<br> of the first), but I am not really fond of EasyMock. It's another tool in the toolbox and I know there are quite a few<br> developers out there who swear by it. It's not one that I will use often.</p> 
+<blockquote> 
+ <p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p> 
 </blockquote></p>
 
 

@@ -97,25 +97,32 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 07 December 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I came across a question related to this on <a href="http://eclipsezone.com/">EclipseZone</a> where I posted a<br/><a href="http://eclipsezone.com/eclipse/forums/t104065.html">response</a> (and a follow-up). It seemed like<br/>something that I should blog about for future reference.</p><h2>Export Working Set Definition</h2><p>If you just want to share your working set definition with other members on your team, it's very easy.</p>
-<ol>
-  <li>Via the menu bar: File &gt; "Export..."</li>
-  <li>Select "General" / "Working Sets"</li>
-  <li>Click "Next &gt;"</li>
-  <li>Select the working set(s) you want to export and where you want to export the file.</li>
-  <li>Click "Finish" to perform the export.</li>
-</ol><p>You will have a file containing the project-based definition of your working set. This can be imported by your team so<br/>that they can have the same working set, as long as they have the files that it represents with the same paths.<br/>Generally, this is probably a safe assumption for people on the same team using the same IDE.</p><h2>Export Working Set Files</h2><p>If you want to export the actual files contained in your working set, the steps are a little different, but they make<br/>sense once you think about it.</p>
-<blockquote><p><em>Note:</em> I generally have the "Top Level Emements" of my views set to "Working Sets", so this is based on that<br/>assumption. It is easy to toggle (View arrow menu).</p>
-</blockquote>
-<ol>
-  <li>Right-click on the working set you want to export</li>
-  <li>Select "Export..."</li>
-  <li>Select "File System" (jar and archive will probably work with this too)</li>
-  <li>You will then have the File system export dialog with your working set pre-populated.</li>
-  <li>Select the directory you want to export to</li>
-  <li>You can either export only the directories explicitly defined in your working set using "Create only selected directories" or you can create any missing parent directories using "Create directory structure for files".</li>
-  <li>Click Finish and you have your exported files.</li>
-</ol><p>This method does not export the working set definition, just the files themselves. Using both methods you could export<br/>the working set and the files so that your team can have everything they need. These techniques are useful when sharing<br/>files or when you want to extract a component and create a new project from it.</p></p>
+	<p><p>I came across a question related to this on <a href="http://eclipsezone.com/">EclipseZone</a> where I posted a<br> <a href="http://eclipsezone.com/eclipse/forums/t104065.html">response</a> (and a follow-up). It seemed like<br> something that I should blog about for future reference.</p> 
+<h2>Export Working Set Definition</h2> 
+<p>If you just want to share your working set definition with other members on your team, it's very easy.</p> 
+<ol> 
+ <li>Via the menu bar: File &gt; "Export..."</li> 
+ <li>Select "General" / "Working Sets"</li> 
+ <li>Click "Next &gt;"</li> 
+ <li>Select the working set(s) you want to export and where you want to export the file.</li> 
+ <li>Click "Finish" to perform the export.</li> 
+</ol> 
+<p>You will have a file containing the project-based definition of your working set. This can be imported by your team so<br> that they can have the same working set, as long as they have the files that it represents with the same paths.<br> Generally, this is probably a safe assumption for people on the same team using the same IDE.</p> 
+<h2>Export Working Set Files</h2> 
+<p>If you want to export the actual files contained in your working set, the steps are a little different, but they make<br> sense once you think about it.</p> 
+<blockquote> 
+ <p><em>Note:</em> I generally have the "Top Level Emements" of my views set to "Working Sets", so this is based on that<br> assumption. It is easy to toggle (View arrow menu).</p> 
+</blockquote> 
+<ol> 
+ <li>Right-click on the working set you want to export</li> 
+ <li>Select "Export..."</li> 
+ <li>Select "File System" (jar and archive will probably work with this too)</li> 
+ <li>You will then have the File system export dialog with your working set pre-populated.</li> 
+ <li>Select the directory you want to export to</li> 
+ <li>You can either export only the directories explicitly defined in your working set using "Create only selected directories" or you can create any missing parent directories using "Create directory structure for files".</li> 
+ <li>Click Finish and you have your exported files.</li> 
+</ol> 
+<p>This method does not export the working set definition, just the files themselves. Using both methods you could export<br> the working set and the files so that your team can have everything they need. These techniques are useful when sharing<br> files or when you want to extract a component and create a new project from it.</p></p>
 
 
             <div class="row">

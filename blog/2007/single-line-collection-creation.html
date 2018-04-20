@@ -97,9 +97,11 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 09 October 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I like having nice compact code. No, I am not one of those "write the whole app on one line" developers, but I do<br/>like code collapsed and out of the way. One of the things that has always annoyed me was that while you can create and<br/>populate an array on one line, you cannot do the same with <code>Map</code>s, <code>List</code>s, and <code>Set</code>s: but, I finally realized that<br/>there is a very simple way to do it using instance initializers.</p>
-<pre><code class="java">Map&lt;String,String&gt; map = new HashMap&lt;String, String&gt;(){{ put(&quot;akey&quot;,&quot;avalue&quot;); }}
-</code></pre><p>Basically you are anonymously extending the <code>HashMap</code> and calling the <code>put()</code> method to populate the data. Notice the<br/>double curley braces, which signify instance initialization.</p><p>I am not suggesting that all of your collection populating should be done this way; however, it is nice when you simply<br/>want a single value put in a map for some reason.</p></p>
+	<p><p>I like having nice compact code. No, I am not one of those "write the whole app on one line" developers, but I do<br> like code collapsed and out of the way. One of the things that has always annoyed me was that while you can create and<br> populate an array on one line, you cannot do the same with <code>Map</code>s, <code>List</code>s, and <code>Set</code>s: but, I finally realized that<br> there is a very simple way to do it using instance initializers.</p> 
+<pre><code class="language-java">Map&lt;String,String&gt; map = new HashMap&lt;String, String&gt;(){{ put("akey","avalue"); }}
+</code></pre> 
+<p>Basically you are anonymously extending the <code>HashMap</code> and calling the <code>put()</code> method to populate the data. Notice the<br> double curley braces, which signify instance initialization.</p> 
+<p>I am not suggesting that all of your collection populating should be done this way; however, it is nice when you simply<br> want a single value put in a map for some reason.</p></p>
 
 
             <div class="row">

@@ -97,19 +97,24 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 August 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Way back when I was in high school my typing teacher (yes, on a mechanical typewriter) taught us how to center blocks of text on a page. This has been a useful skill as I got into web development and programming as not everything has a built-in "center" alignment property.</p><p>I have never been asked how to do this, so it may be common knowledge, but I thought I would share anyway since I have not been blogging much. Basically, think about your viewing area as a page and what you are centering as a rectangle drawn on that page. Now fold that page in half and you will see that half of your rectangle is contained on half the page... makes sense. You are finding the horizontal position (x coordinate) of the left edge of your rectangle by subtracting half of its width from half the width of the page:</p>
+	<p><p>Way back when I was in high school my typing teacher (yes, on a mechanical typewriter) taught us how to center blocks of text on a page. This has been a useful skill as I got into web development and programming as not everything has a built-in "center" alignment property.</p> 
+<p>I have never been asked how to do this, so it may be common knowledge, but I thought I would share anyway since I have not been blogging much. Basically, think about your viewing area as a page and what you are centering as a rectangle drawn on that page. Now fold that page in half and you will see that half of your rectangle is contained on half the page... makes sense. You are finding the horizontal position (x coordinate) of the left edge of your rectangle by subtracting half of its width from half the width of the page:</p> 
 <pre><code>x = [page_width]/2 - [item_width]/2
-</code></pre><p>or after a little simplification</p>
+</code></pre> 
+<p>or after a little simplification</p> 
 <pre><code>x = ( [page_width] - [item_width] )/2
-</code></pre><p>This is exactly the same way you would center vertically. The equation from above expressed with more meaningful terms:</p>
+</code></pre> 
+<p>This is exactly the same way you would center vertically. The equation from above expressed with more meaningful terms:</p> 
 <pre><code>y = ( [page_height] - [item_height] )/2
-</code></pre><p>Now to bring this into the Java world you can center a JFrame in the center of your monitor screen:</p>
-<pre><code class="java">Dimension frameSize = new Dimension(800,600);
+</code></pre> 
+<p>Now to bring this into the Java world you can center a JFrame in the center of your monitor screen:</p> 
+<pre><code class="language-java">Dimension frameSize = new Dimension(800,600);
 Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 int x = (screenSize.width-frameSize.width)/2;
 int y = (screenSize.height-frameSize.height)/2;
 frame.setBounds( x, y, frameSize.width, frameSize.height );
-</code></pre><p>Not too bad at all, but it has always surprised me that Swing does not provide helper methods to center components inside of other components.</p></p>
+</code></pre> 
+<p>Not too bad at all, but it has always surprised me that Swing does not provide helper methods to center components inside of other components.</p></p>
 
 
             <div class="row">

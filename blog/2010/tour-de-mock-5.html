@@ -97,12 +97,13 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 29 October 2010</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>I decided to add another post to my series of mocking comparisons. I have been working a lot with <a href="http://groovy.codehaus.org/">Groovy</a><br/>and felt that it would make an interesting addition considering the language provides a rich mocking ability without any additional libraries required.</p><p>The <code>@Before</code> method shows the flexibility of Groovy right away with the mocking of the service interface as well as the<br/><code>ServletContext</code> and <code>ServletConfig</code> interfaces:</p>
-<pre><code class="groovy">@Before
+	<p><p>I decided to add another post to my series of mocking comparisons. I have been working a lot with <a href="http://groovy.codehaus.org/">Groovy</a><br> and felt that it would make an interesting addition considering the language provides a rich mocking ability without any additional libraries required.</p> 
+<p>The <code>@Before</code> method shows the flexibility of Groovy right away with the mocking of the service interface as well as the<br> <code>ServletContext</code> and <code>ServletConfig</code> interfaces:</p> 
+<pre><code class="language-groovy">@Before
 void before(){
     emailListService = [
         getListByName:{ name-&gt;
-            if( &#39;foolist&#39; == name ){ return LIST }
+            if( 'foolist' == name ){ return LIST }
             throw new IOException()
         }
     ] as EmailListService
@@ -119,25 +120,27 @@ void before(){
     emailListServlet = new EmailListServlet()
     emailListServlet.init servletConfig
 }
-</code></pre><p>Groovy allows you to take a map of closures keyed with the method name and cast it as an instance of an interface,<br/>basically built-in mocking. The first test is where we test the doGet method with no listName parameter:</p>
-<pre><code class="groovy">@Test(expected=IOException.class)
+</code></pre> 
+<p>Groovy allows you to take a map of closures keyed with the method name and cast it as an instance of an interface,<br> basically built-in mocking. The first test is where we test the doGet method with no listName parameter:</p> 
+<pre><code class="language-groovy">@Test(expected=IOException.class)
 void doGet_without_list(){
     def request = [
         getParameter:{ pname-&gt;
-            assertEquals &#39;listName&#39;, pname
+            assertEquals 'listName', pname
             null
         }
     ] as HttpServletRequest
 
     emailListServlet.doGet request, [] as HttpServletResponse
 }
-</code></pre><p>If you don't use Groovy much, these mocked instances may seem less readable than some of the other mocking APIs;<br/>however, with a little practice you can really see the broad scope of mocking capabilities it has. The test with<br/>listName data shows a successful result:</p>
-<pre><code class="groovy">@Test
+</code></pre> 
+<p>If you don't use Groovy much, these mocked instances may seem less readable than some of the other mocking APIs;<br> however, with a little practice you can really see the broad scope of mocking capabilities it has. The test with<br> listName data shows a successful result:</p> 
+<pre><code class="language-groovy">@Test
 void doGet_with_list(){
     def request = [
         getParameter:{ pname-&gt;
-            assertEquals &#39;listName&#39;, pname
-            &#39;foolist&#39;
+            assertEquals 'listName', pname
+            'foolist'
         }
     ] as HttpServletRequest
 
@@ -148,8 +151,9 @@ void doGet_with_list(){
 
     emailListServlet.doGet request, response
 }
-</code></pre><p>where we can also see the generally tricking mocking of the PrintWriter and its ordered sequence of calls. In this<br/>case you are working with simple code rather than any additional API functionality. The list of expected email strings<br/>is provided in the order they are to be called and the mock PrintWriter verifies that the current call is the same as<br/>the next expected value. The whole test case is shown below:</p>
-<pre><code class="groovy">package com.stehno.mockery;
+</code></pre> 
+<p>where we can also see the generally tricking mocking of the PrintWriter and its ordered sequence of calls. In this<br> case you are working with simple code rather than any additional API functionality. The list of expected email strings<br> is provided in the order they are to be called and the mock PrintWriter verifies that the current call is the same as<br> the next expected value. The whole test case is shown below:</p> 
+<pre><code class="language-groovy">package com.stehno.mockery;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -162,14 +166,14 @@ import org.junit.Before
 import com.stehno.mockery.service.EmailListService
 
 class EmailListServlet_GroovyMockTest {
-    private def LIST = [&#39;larry@stooge.com&#39;,&#39;moe@stooge.com&#39;,&#39;curley@stooge.com&#39;]
+    private def LIST = ['larry@stooge.com','moe@stooge.com','curley@stooge.com']
     private def emailListServlet
     private def emailListService
 
     @Before void before(){
         emailListService = [
             getListByName:{ name-&gt;
-                if( &#39;foolist&#39; == name ){ return LIST }
+                if( 'foolist' == name ){ return LIST }
                 throw new IOException()
             }
         ] as EmailListService
@@ -190,7 +194,7 @@ class EmailListServlet_GroovyMockTest {
     @Test(expected=IOException.class) void doGet_without_list(){
         def request = [
             getParameter:{ pname-&gt;
-                assertEquals &#39;listName&#39;, pname
+                assertEquals 'listName', pname
                 null
             }
         ] as HttpServletRequest
@@ -201,8 +205,8 @@ class EmailListServlet_GroovyMockTest {
     @Test void doGet_with_list(){
         def request = [
             getParameter:{ pname-&gt;
-                assertEquals &#39;listName&#39;, pname
-                &#39;foolist&#39;
+                assertEquals 'listName', pname
+                'foolist'
             }
         ] as HttpServletRequest
 
@@ -214,8 +218,10 @@ class EmailListServlet_GroovyMockTest {
         emailListServlet.doGet request, response
     }
 }
-</code></pre><p>I found Groovy to be a very useful mocking tool and would recommend it, especially if you are already using Groovy in your<br/>project. Beyond this basic functionality there are also some mocking APIs written for Groovy that add additional<br/>features or provide simpler mocking capabilities.</p>
-<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</code></pre> 
+<p>I found Groovy to be a very useful mocking tool and would recommend it, especially if you are already using Groovy in your<br> project. Beyond this basic functionality there are also some mocking APIs written for Groovy that add additional<br> features or provide simpler mocking capabilities.</p> 
+<blockquote> 
+ <p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p> 
 </blockquote></p>
 
 

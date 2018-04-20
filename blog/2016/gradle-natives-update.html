@@ -97,16 +97,15 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a></p>
 
-	<p><div class="paragraph">
-<p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p>
-</div>
-<div class="paragraph">
-<p>With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the
-LWJGL <a href="https://www.lwjgl.org/guide">Getting Started Guide</a> we have:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">import org.lwjgl.*;
+	<p><div class="paragraph"> 
+ <p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the LWJGL <a href="https://www.lwjgl.org/guide">Getting Started Guide</a> we have:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 
@@ -211,15 +210,15 @@ public class HelloWorld {
 		new HelloWorld().run();
 	}
 
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If we put this in a simple Gradle project with <code>build.gradle</code> as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>If we put this in a simple Gradle project with <code>build.gradle</code> as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
     id 'com.stehno.natives' version '0.2.4'
     id 'java'
     id 'application'
@@ -245,15 +244,15 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     gradleVersion = "2.14"
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We can view the native libraries for all platforms using <code>./gradlew listNatives</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>:listNatives
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We can view the native libraries for all platforms using <code>./gradlew listNatives</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>:listNatives
 Native libraries found for configurations (compile, runtime)...
  - lwjgl-platform-3.0.0-natives-linux.jar:
         [LINUX] libjemalloc.so
@@ -273,21 +272,20 @@ Native libraries found for configurations (compile, runtime)...
         [WINDOWS] glfw.dll
         [WINDOWS] glfw32.dll
         [WINDOWS] jemalloc32.dll
-        [WINDOWS] OpenAL32.dll</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and we can build and run the <code>HelloWorld</code> application with <code>./gradlew clean build run</code>, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.</p>
-</div>
-<div class="paragraph">
-<p>You can inlude the native libraries in the build using <code>./gradlew clean build includeNatives</code> which will unpack the native libraries into the project
-<code>build</code> directory.</p>
-</div>
-<div class="paragraph">
-<p>There are still a number of configuration options available through the <code>natives</code> DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the <code>compile</code> and <code>runtime</code> configurations for all platforms unpacked into the <code>build/natives</code> directory.</p>
-</div>
-<div class="paragraph">
-<p>This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.</p>
+        [WINDOWS] OpenAL32.dll</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and we can build and run the <code>HelloWorld</code> application with <code>./gradlew clean build run</code>, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>You can inlude the native libraries in the build using <code>./gradlew clean build includeNatives</code> which will unpack the native libraries into the project <code>build</code> directory.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>There are still a number of configuration options available through the <code>natives</code> DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the <code>compile</code> and <code>runtime</code> configurations for all platforms unpacked into the <code>build/natives</code> directory.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.</p> 
 </div></p>
 
 

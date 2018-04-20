@@ -97,128 +97,144 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>Most of us agree that unit testing is an important part of development and that unit tests should be isolated as<br/>much as possible from external configuration and management issues so that you test only the object under examination<br/>and not the rest of the environment surrounding them; this is where mocking comes in handy.</p><p>Let's say I want to develop a JSP tag that pulls a name from somewhere in the scope available to the tag and then renders a<br/>hello message to the given name. It's not a very useful tag, but it will work as an example. First, setup the test and a<br/>method to test for the desired output.</p>
-<pre><code class="java">public class HelloTagTest extends TestCase {
+	<p><p>Most of us agree that unit testing is an important part of development and that unit tests should be isolated as<br> much as possible from external configuration and management issues so that you test only the object under examination<br> and not the rest of the environment surrounding them; this is where mocking comes in handy.</p> 
+<p>Let's say I want to develop a JSP tag that pulls a name from somewhere in the scope available to the tag and then renders a<br> hello message to the given name. It's not a very useful tag, but it will work as an example. First, setup the test and a<br> method to test for the desired output.</p> 
+<pre><code class="language-java">public class HelloTagTest extends TestCase {
     public void testHello() throws Exception {
         HelloTag helloTag = new HelloTag();
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;, helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!", helloTag.buildOutput());
     }
 }
-</code></pre><p>I am using test-driven development techniques here, so we want to start simple and build only what we need to<br/>accomplish our goal. When you compile this code (I am intentionally leaving out imports to save space) it will fail<br/>because we have not yet created a HelloTag class. Let's do that now.</p>
-<pre><code class="java">public class HelloTag extends TagSupport {
+</code></pre> 
+<p>I am using test-driven development techniques here, so we want to start simple and build only what we need to<br> accomplish our goal. When you compile this code (I am intentionally leaving out imports to save space) it will fail<br> because we have not yet created a HelloTag class. Let's do that now.</p> 
+<pre><code class="language-java">public class HelloTag extends TagSupport {
     String buildOutput(){}
 }
-</code></pre><p>Notice that I also added the <code>buildOutput()</code> method. It is a package-scoped method because it is the method<br/>we will be testing for the tag output. This allows the testing of the tag without having to worry about start and end<br/>tag support right away. Both classes should now compile, but the test will fail. The quickest way to get the test to<br/>work is to fake the return value from <code>buildOutput()</code>.</p>
-<pre><code class="java">public class HelloTag extends TagSupport {
+</code></pre> 
+<p>Notice that I also added the <code>buildOutput()</code> method. It is a package-scoped method because it is the method<br> we will be testing for the tag output. This allows the testing of the tag without having to worry about start and end<br> tag support right away. Both classes should now compile, but the test will fail. The quickest way to get the test to<br> work is to fake the return value from <code>buildOutput()</code>.</p> 
+<pre><code class="language-java">public class HelloTag extends TagSupport {
     String buildOutput(){
-        return( &quot;Hello, Mr. Anderson!&quot; );
+        return( "Hello, Mr. Anderson!" );
     }
 }
-</code></pre><p>If you run the test now, everything is green, though not very useful. We want to be able to pull the name of the<br/>person from the page context. The page context is passed to the tag by the tag container, so how do we use it "out of<br/>the container" This is where mocking comes into play. I use <a href="http://jmock.org/">JMock</a> for mocking. It is<br/>easy to use once you get the hang of it, and very powerful. We need to create a mock <code>PageContext</code> so that we<br/>don't need a whole servlet container to test this one little tag. Let's flesh out the mock context and then add it to<br/>the test case.</p>
-<pre><code class="java">Mock mockPageCtx = new Mock(PageContext.class);
-</code></pre><p>You will need to import the <a href="http://cglib.sourceforge.net/">cglib</a> version of the mock api (org.jmock.cglib.*) due to the<br/>fact that <code>PageContext</code> is not an interface. With JMock you can mock interfaces or classes as long as they have an empty<br/>constructor. To use the mock object as the "real" thing, you just create a proxy.</p>
-<pre><code class="java">PageContext pageCtx = (PageContext)mockPageCtx.proxy();
-</code></pre><p>Let's add this to our test case.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>If you run the test now, everything is green, though not very useful. We want to be able to pull the name of the<br> person from the page context. The page context is passed to the tag by the tag container, so how do we use it "out of<br> the container" This is where mocking comes into play. I use <a href="http://jmock.org/">JMock</a> for mocking. It is<br> easy to use once you get the hang of it, and very powerful. We need to create a mock <code>PageContext</code> so that we<br> don't need a whole servlet container to test this one little tag. Let's flesh out the mock context and then add it to<br> the test case.</p> 
+<pre><code class="language-java">Mock mockPageCtx = new Mock(PageContext.class);
+</code></pre> 
+<p>You will need to import the <a href="http://cglib.sourceforge.net/">cglib</a> version of the mock api (org.jmock.cglib.*) due to the<br> fact that <code>PageContext</code> is not an interface. With JMock you can mock interfaces or classes as long as they have an empty<br> constructor. To use the mock object as the "real" thing, you just create a proxy.</p> 
+<pre><code class="language-java">PageContext pageCtx = (PageContext)mockPageCtx.proxy();
+</code></pre> 
+<p>Let's add this to our test case.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        assertEquals( &quot;Hello, Mr. Anderson!&quot;, helloTag.buildOutput());
+        assertEquals( "Hello, Mr. Anderson!", helloTag.buildOutput());
     }
 }
-</code></pre><p>Notice that we are using <code>MockObjectTestCase</code> instead of <code>TestCase</code>. If you run the test, everything is still fine. We<br/>are not using the <code>PageContext</code> yet. We need the page context to be able to provide the name for us when we request it.<br/>Let's say its stored somewhere in scope under the id foo. We need to tell the <code>mockPageCtx</code> to return the correct value<br/>when the right conditions are met. This is where the real mocking comes in (and the power of JMock).</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>Notice that we are using <code>MockObjectTestCase</code> instead of <code>TestCase</code>. If you run the test, everything is still fine. We<br> are not using the <code>PageContext</code> yet. We need the page context to be able to provide the name for us when we request it.<br> Let's say its stored somewhere in scope under the id foo. We need to tell the <code>mockPageCtx</code> to return the correct value<br> when the right conditions are met. This is where the real mocking comes in (and the power of JMock).</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;foo&quot;)).will(returnValue( &quot;Mr. Anderson&quot; ));
+        mockPageCtx.stubs().method("findAttribute").with(eq("foo")).will(returnValue( "Mr. Anderson" ));
 
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
     }
 }
-</code></pre><p>We added one line of code that probably looks a little confusing... it did to me when I first learned <a href="http://jmock.org/">JMock</a>.<br/>You can break it down to:</p>
-<blockquote><p>I want to stub out the method findAttribute that takes the parameter foo and will return the value "Mr. Anderson".</p>
-</blockquote><p>You are mocking the response of the <code>PageContext</code> instance. The test still runs, but now we need to modify the tag itself<br/>to actually use the page context.</p>
-<pre><code class="java">public class HelloTag extends TagSupport {
+</code></pre> 
+<p>We added one line of code that probably looks a little confusing... it did to me when I first learned <a href="http://jmock.org/">JMock</a>.<br> You can break it down to:</p> 
+<blockquote> 
+ <p>I want to stub out the method findAttribute that takes the parameter foo and will return the value "Mr. Anderson".</p> 
+</blockquote> 
+<p>You are mocking the response of the <code>PageContext</code> instance. The test still runs, but now we need to modify the tag itself<br> to actually use the page context.</p> 
+<pre><code class="language-java">public class HelloTag extends TagSupport {
     String buildOutput(){
-        String name = (String)pageContext.findAttribute(&quot;foo&quot;);
-        return(&quot;Hello, &quot; + name + &quot;!&quot;);
+        String name = (String)pageContext.findAttribute("foo");
+        return("Hello, " + name + "!");
     }
 }
-</code></pre><p>Now run the test and everything is still green. Your tag thinks it has a real <code>PageContext</code>. Now, let's say<br/>that we want to be able to specify the name of the attribute using a tag attribute called id. As you probably know, tag<br/>attributes are simply setters in the tag class.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>Now run the test and everything is still green. Your tag thinks it has a real <code>PageContext</code>. Now, let's say<br> that we want to be able to specify the name of the attribute using a tag attribute called id. As you probably know, tag<br> attributes are simply setters in the tag class.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;foo&quot;)).will(returnValue(&quot;Mr. Anderson&quot;));
+        mockPageCtx.stubs().method("findAttribute").with(eq("foo")).will(returnValue("Mr. Anderson"));
 
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        helloTag.setId(&quot;matrix&quot;);
+        helloTag.setId("matrix");
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
     }
 }
-</code></pre><p>Then we need to add the setter to the tag and use the id in the output.</p>
-<pre><code class="java">public class HelloTag extends TagSupport {
+</code></pre> 
+<p>Then we need to add the setter to the tag and use the id in the output.</p> 
+<pre><code class="language-java">public class HelloTag extends TagSupport {
     private String id;
 
     public void setId(String id){ this.id = id; }
 
     String buildOutput(){
         String name = (String)pageContext.findAttribute(id);
-        return(&quot;Hello, &quot; + name + &quot;!&quot;);
+        return("Hello, " + name + "!");
     }
 }
-</code></pre><p>Aww, but now the test fails. The expected <code>findAttribute()</code> parameter was not found. We need to modify our<br/>test to expect the right one.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>Aww, but now the test fails. The expected <code>findAttribute()</code> parameter was not found. We need to modify our<br> test to expect the right one.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;matrix&quot;))
-            .will(returnValue(&quot;Mr. Anderson&quot;));
+        mockPageCtx.stubs().method("findAttribute").with(eq("matrix"))
+            .will(returnValue("Mr. Anderson"));
 
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        helloTag.setId(&quot;matrix&quot;);
+        helloTag.setId("matrix");
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
     }
 }
-</code></pre><p>And now everything is green again. Let's take a break for a second and look at what we have. We have a completely<br/>tested JSP tag (though not fully implemented) that does everything we need it to do. Now we just need to add the rest of<br/>the tag support so that it will work in a servlet container. Let's write out our output in the <code>doEndTag()</code><br/>method. Can we test this to make sure we are outputting the right data? Yes, another job for JMock, with a little help<br/>from a concrete mock helper. We need to mock <code>JspWriter</code>, which is abstract and has no empty constructor... no<br/>JMock friendly. So, what I do is make a simple mock adapter for it.</p>
-<pre><code class="java">public abstract JspWriterMockAdapter extends JspWriter {
+</code></pre> 
+<p>And now everything is green again. Let's take a break for a second and look at what we have. We have a completely<br> tested JSP tag (though not fully implemented) that does everything we need it to do. Now we just need to add the rest of<br> the tag support so that it will work in a servlet container. Let's write out our output in the <code>doEndTag()</code><br> method. Can we test this to make sure we are outputting the right data? Yes, another job for JMock, with a little help<br> from a concrete mock helper. We need to mock <code>JspWriter</code>, which is abstract and has no empty constructor... no<br> JMock friendly. So, what I do is make a simple mock adapter for it.</p> 
+<pre><code class="language-java">public abstract JspWriterMockAdapter extends JspWriter {
     public JspWriterMockAdapter(){
         super(1024,false);
     }
 }
-</code></pre><p>Which we can then use with JMock to test for the expected output.</p>
-<pre><code class="java">public class HelloTagTest extends MockObjectTestCase {
+</code></pre> 
+<p>Which we can then use with JMock to test for the expected output.</p> 
+<pre><code class="language-java">public class HelloTagTest extends MockObjectTestCase {
     public void testHello() throws Exception {
         Mock mockJspWriter = new Mock(JspWriterMockAdapter.class);
-        mockJspWriter.expects(once()).method(&quot;print&quot;)
-            .with(eq(&quot;Hello, Mr. Anderson!&quot;));
+        mockJspWriter.expects(once()).method("print")
+            .with(eq("Hello, Mr. Anderson!"));
 
         Mock mockPageCtx = new Mock(PageContext.class);
-        mockPageCtx.stubs().method(&quot;findAttribute&quot;).with(eq(&quot;matrix&quot;))
-            .will(returnValue(&quot;Mr. Anderson&quot;));
+        mockPageCtx.stubs().method("findAttribute").with(eq("matrix"))
+            .will(returnValue("Mr. Anderson"));
 
-        mockPageCtx.stubs().method(&quot;getOut&quot;).withNoParameters()
+        mockPageCtx.stubs().method("getOut").withNoParameters()
             .will(returnValue((JspWriter)mockJspWriter.proxy()));
 
         HelloTag helloTag = new HelloTag();
         helloTag.setPageContext((PageContext)mockPageCtx.proxy());
-        helloTag.setId(&quot;matrix&quot;);
+        helloTag.setId("matrix");
         helloTag.doStartTag();
         helloTag.doEndTag();
 
-        assertEquals(&quot;Hello, Mr. Anderson!&quot;,helloTag.buildOutput());
+        assertEquals("Hello, Mr. Anderson!",helloTag.buildOutput());
 
         mockJspWriter.verify();
     }
 }
-</code></pre><p>This expectation checking shows the other way to use JMock. You can test for an expected method call on the mock<br/>object. Here we are saying that the mock <code>JspWriter</code> expects the <code>print()</code> method to be called only once<br/>with the given string. I also added a method stub to return the mock <code>JspWriter</code> when <code>getOut()</code> is called<br/>on the <code>PageContext</code>. The last statement in the test method is also important. The verify method is called on the<br/>mock object when you want to test for expected method calls. If they are not found, the test fails. If we run the test<br/>now, it will fail because we are not doing anything in the <code>doEndTag()</code> method.</p>
-<pre><code class="java">public class HelloTag extends TagSupport {
+</code></pre> 
+<p>This expectation checking shows the other way to use JMock. You can test for an expected method call on the mock<br> object. Here we are saying that the mock <code>JspWriter</code> expects the <code>print()</code> method to be called only once<br> with the given string. I also added a method stub to return the mock <code>JspWriter</code> when <code>getOut()</code> is called<br> on the <code>PageContext</code>. The last statement in the test method is also important. The verify method is called on the<br> mock object when you want to test for expected method calls. If they are not found, the test fails. If we run the test<br> now, it will fail because we are not doing anything in the <code>doEndTag()</code> method.</p> 
+<pre><code class="language-java">public class HelloTag extends TagSupport {
     private String id;
 
     public void setId(String id){ this.id = id; }
@@ -232,12 +248,14 @@
 
         String buildOutput(){
             String name = (String)pageContext.findAttribute(id);
-            return(&quot;Hello, &quot; + name + &quot;!&quot;);
+            return("Hello, " + name + "!");
         }
     }
 }
-</code></pre><p>Run the test again and everything is green. Now you also see why I use a separate method to build the output. This<br/>keeps your tag methods very simple and allows for greater test coverage. This is as far as I am going to go with this<br/>example. It is a fully working JSP tag. If you build a tag descriptor for it and use it, you would see the output we are<br/>testing for. Don't get me wrong, this approach does not necessarily negate the need for in-container testing, but it can<br/>lessen that need in most cases. You can use something like Cactus to do your in-container testing once your mock testing<br/>is done. Though my servlet container can fire up pretty fast, it's still slower than the mock approach when you are in a<br/>rapid test-driven cycle.</p>
-<blockquote><p><em>Update:</em> <a href="http://jmock.org/">JMock 2</a> is a radical change from version one. See <a href="Are-You-Still-Mocking-Me%3F">Are You Still Mocking Me?</a> for an updated version of this posting.</p>
+</code></pre> 
+<p>Run the test again and everything is green. Now you also see why I use a separate method to build the output. This<br> keeps your tag methods very simple and allows for greater test coverage. This is as far as I am going to go with this<br> example. It is a fully working JSP tag. If you build a tag descriptor for it and use it, you would see the output we are<br> testing for. Don't get me wrong, this approach does not necessarily negate the need for in-container testing, but it can<br> lessen that need in most cases. You can use something like Cactus to do your in-container testing once your mock testing<br> is done. Though my servlet container can fire up pretty fast, it's still slower than the mock approach when you are in a<br> rapid test-driven cycle.</p> 
+<blockquote> 
+ <p><em>Update:</em> <a href="http://jmock.org/">JMock 2</a> is a radical change from version one. See <a href="Are-You-Still-Mocking-Me%3F">Are You Still Mocking Me?</a> for an updated version of this posting.</p> 
 </blockquote></p>
 
 

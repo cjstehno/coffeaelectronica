@@ -97,12 +97,16 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 20 December 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Sometimes you run into an operation that is a little on the flaky side and might sometimes fail on one execution<br/>but then work fine on the next; apart from fixing the underlying issue which may not be within your control, you can<br/>implement an operation retry strategy. With an operation retry strategy you attempt to execute an operation and then<br/>retry it if it fails. After a specified number of attempts (or under certain exceptions) you can allow the operation to<br/>fail gracefully. This gives you greater isolation of the questionable service while also allowing you more control what<br/>happens on a failure.</p><p>I have run into this issue a few years back with a twitchy SMTP server, and now again with a slightly-flaky database<br/>connection pool. Last time I wrote a very code-specific retry strategy (and like a doof, never blogged about it), but<br/>this time something more reusable is in order since this component would be used extensively throughout the code.</p><p>Basically the requirement is the ability to run a repeatable operation some number of times until it either succeeds or<br/>exceeds a specified number of attempts, at which point it will stop trying and fail. Since there are no closures in<br/>Java yet, I came up with a <code>Retriable</code> interface with a single method which will execute the operation and return it's<br/>return value if there is one.</p>
-<pre><code class="java">public interface Retriable&lt;T&gt; {
+	<p><p>Sometimes you run into an operation that is a little on the flaky side and might sometimes fail on one execution<br> but then work fine on the next; apart from fixing the underlying issue which may not be within your control, you can<br> implement an operation retry strategy. With an operation retry strategy you attempt to execute an operation and then<br> retry it if it fails. After a specified number of attempts (or under certain exceptions) you can allow the operation to<br> fail gracefully. This gives you greater isolation of the questionable service while also allowing you more control what<br> happens on a failure.</p> 
+<p>I have run into this issue a few years back with a twitchy SMTP server, and now again with a slightly-flaky database<br> connection pool. Last time I wrote a very code-specific retry strategy (and like a doof, never blogged about it), but<br> this time something more reusable is in order since this component would be used extensively throughout the code.</p> 
+<p>Basically the requirement is the ability to run a repeatable operation some number of times until it either succeeds or<br> exceeds a specified number of attempts, at which point it will stop trying and fail. Since there are no closures in<br> Java yet, I came up with a <code>Retriable</code> interface with a single method which will execute the operation and return it's<br> return value if there is one.</p> 
+<pre><code class="language-java">public interface Retriable&lt;T&gt; {
     public T execute() throws Exception;
 }
-</code></pre><p>I had originally considered using <code>java.lang.Runnable</code>; however, a return value simplifies cases where you<br/>are trying to extract some value from the operation. Similarly I considered the <code>org.apache.commons.lang.Closure</code><br/>class and discarded if for the same reason.</p><p>The retry logic itself is pretty straight-forward. The failure condition is based on exceptions thrown by the operation<br/>execution. If an execption is thrown that is not contained in the "catchAndThrow" list, the counter will be incremented and the operation will be tried again if the max number of<br/>tries has not been exceeded. The "catchAndThrow" list is an array of Exception classes which if caught are to be thrown<br/>out of the handler rather than initiating a retry. This allows some desired exceptions to be handled by the calling<br/>method.</p>
-<pre><code class="java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
+</code></pre> 
+<p>I had originally considered using <code>java.lang.Runnable</code>; however, a return value simplifies cases where you<br> are trying to extract some value from the operation. Similarly I considered the <code>org.apache.commons.lang.Closure</code><br> class and discarded if for the same reason.</p> 
+<p>The retry logic itself is pretty straight-forward. The failure condition is based on exceptions thrown by the operation<br> execution. If an execption is thrown that is not contained in the "catchAndThrow" list, the counter will be incremented and the operation will be tried again if the max number of<br> tries has not been exceeded. The "catchAndThrow" list is an array of Exception classes which if caught are to be thrown<br> out of the handler rather than initiating a retry. This allows some desired exceptions to be handled by the calling<br> method.</p> 
+<pre><code class="language-java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
     boolean retry = true;
     int count = 0;
     do {
@@ -114,24 +118,27 @@
             retry = ++count &lt; maxRetries;
 
             if(log.isWarnEnabled() &amp;&amp; !retry) {
-                log.warn(&quot;RetriesFailed[&quot; + op.getClass().getName() + &quot;]: &quot; + e.getMessage(), e);
+                log.warn("RetriesFailed[" + op.getClass().getName() + "]: " + e.getMessage(), e);
             }
         }
     } while( retry );
 
     throw new MaxRetriesExceededException(maxRetries,op.getClass().getName());
 }
-</code></pre><p>You will notice that if all the retries fail, a <code>MaxRetriesExceededException</code> is thrown. This allows calling<br/>methods to catch and handle the case when total failure occurs in a method-specific manner.</p><p>A more advanced retry strategy could also be derived from this where the failure condition is based on an injected<br/>object (ala strategy pattern) so that other criteria could be used to determine success and failure. The exception catch<br/>and throw filter could also be enhanced in this manner.<br/><br/>The retry object itself, which I have called<br/>the <code>Retrier</code> is a reusable thread-safe POJO so it can be configured via dependency injection (Spring) and used for any<br/>number of <code>Retriable</code> operations.</p>
-<pre><code class="xml">&lt;bean id=&quot;retrier&quot; class=&quot;retry.Retrier&quot;&gt;
-    &lt;property name=&quot;maxRetries&quot; value=&quot;3&quot; /&gt;
-    &lt;property name=&quot;catchAndThrow&quot;&gt;
+</code></pre> 
+<p>You will notice that if all the retries fail, a <code>MaxRetriesExceededException</code> is thrown. This allows calling<br> methods to catch and handle the case when total failure occurs in a method-specific manner.</p> 
+<p>A more advanced retry strategy could also be derived from this where the failure condition is based on an injected<br> object (ala strategy pattern) so that other criteria could be used to determine success and failure. The exception catch<br> and throw filter could also be enhanced in this manner.<br><br>The retry object itself, which I have called<br> the <code>Retrier</code> is a reusable thread-safe POJO so it can be configured via dependency injection (Spring) and used for any<br> number of <code>Retriable</code> operations.</p> 
+<pre><code class="language-xml">&lt;bean id="retrier" class="retry.Retrier"&gt;
+    &lt;property name="maxRetries" value="3" /&gt;
+    &lt;property name="catchAndThrow"&gt;
         &lt;list&gt;
             &lt;value&gt;java.lang.NullPointerException&lt;/value&gt;
         &lt;/list&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
-</code></pre><p>What you end up with is a very clean way to perform retiable logic:</p>
-<pre><code class="java">final long id = someBeanId;
+</code></pre> 
+<p>What you end up with is a very clean way to perform retiable logic:</p> 
+<pre><code class="language-java">final long id = someBeanId;
 final String criteria = searchCriteria;
 
 SomeBean resultBean = retrier.execute( new Retriable&lt;SomeBean&gt;(){
@@ -139,8 +146,11 @@ SomeBean resultBean = retrier.execute( new Retriable&lt;SomeBean&gt;(){
         return searchDao.findBean(id,criteria);
     }
 } );
-</code></pre><p>In this sample code a searchDao is being called in a retriable manner using parameters from the calling method. As<br/>long as parameters are final they can be passed into the anonymous inner class craeted by the inline creation of the<br/><code>Retriable</code>. You will also see that with the use of generics you get a seamless integration of the retiable<br/>operation into your code.</p><h2>Slightly Different Approach</h2><p>After a bit more thought, I came up with a slightly different approach to the retry execution method:</p>
-<pre><code class="java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
+</code></pre> 
+<p>In this sample code a searchDao is being called in a retriable manner using parameters from the calling method. As<br> long as parameters are final they can be passed into the anonymous inner class craeted by the inline creation of the<br> <code>Retriable</code>. You will also see that with the use of generics you get a seamless integration of the retiable<br> operation into your code.</p> 
+<h2>Slightly Different Approach</h2> 
+<p>After a bit more thought, I came up with a slightly different approach to the retry execution method:</p> 
+<pre><code class="language-java">public &lt;T&gt; T execute( final Retriable&lt;T&gt; op ) throws Exception {
     for(int r=0; r&lt;maxRetries; r++){
         try {
             return op.execute();
@@ -148,19 +158,21 @@ SomeBean resultBean = retrier.execute( new Retriable&lt;SomeBean&gt;(){
             if( ArrayUtils.contains(catchAndThrow, e.getClass()) ) throw e;
 
             if(log.isWarnEnabled()){
-                log.warn(&quot;RetryCaughtException[&quot; + r + &quot;]: &quot; + e.getMessage());
+                log.warn("RetryCaughtException[" + r + "]: " + e.getMessage());
             }
         }
     }
 
     if(log.isWarnEnabled()) {
-        log.warn(&quot;RetriesFailed: &quot; + op.getClass().getName());
+        log.warn("RetriesFailed: " + op.getClass().getName());
     }
 
     throw new MaxRetriesExceededException(maxRetries,op.getClass().getName());
 }
-</code></pre><p>This approach does not rely on the boolean to end the loop. If an exception is thrown it will try again until a<br/>return value is returned or the retry count has been exceeded. With this approach you only fall out of the loop on a<br/>retry exceeded condition, hence the logging and the thrown exception. This feels a little cleaner than the other<br/>approach. I have not run it through the unit testing so, you might do that first if you intend to use this code.</p>
-<blockquote><p>I have added this code to my <a href="https://github.com/cjstehno/codeperks">CodePerks</a> project.</p>
+</code></pre> 
+<p>This approach does not rely on the boolean to end the loop. If an exception is thrown it will try again until a<br> return value is returned or the retry count has been exceeded. With this approach you only fall out of the loop on a<br> retry exceeded condition, hence the logging and the thrown exception. This feels a little cleaner than the other<br> approach. I have not run it through the unit testing so, you might do that first if you intend to use this code.</p> 
+<blockquote> 
+ <p>I have added this code to my <a href="https://github.com/cjstehno/codeperks">CodePerks</a> project.</p> 
 </blockquote></p>
 
 

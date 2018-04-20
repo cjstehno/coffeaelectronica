@@ -97,14 +97,18 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 25 January 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>Another one of those, "well, duh" moments... a very easy way to do wrap-around or circular array indexing.</p>
-<pre><code class="java">i = (i + 1) % N
-</code></pre><p>Where i is your current index and N is the length of the array. Say you have an array of five elements. When you<br/>are currently on element of index 2, your next index will be:</p>
-<pre><code class="java">i = (2 + 1) % 5 = 3
-</code></pre><p>However, once you get to the last element, index 4:</p>
-<pre><code class="java">i = (4 + 1) % 5 = 0
-</code></pre><p>Viola, you are back at 0 again. I don't know why but I really neglect the mod operator (%). It has some interesting<br/>uses.</p><p>As an example, below is a simple Groovy <code>CircularArray</code> implementation:</p>
-<pre><code class="groovy">class CircularArray {
+	<p><p>Another one of those, "well, duh" moments... a very easy way to do wrap-around or circular array indexing.</p> 
+<pre><code class="language-java">i = (i + 1) % N
+</code></pre> 
+<p>Where i is your current index and N is the length of the array. Say you have an array of five elements. When you<br> are currently on element of index 2, your next index will be:</p> 
+<pre><code class="language-java">i = (2 + 1) % 5 = 3
+</code></pre> 
+<p>However, once you get to the last element, index 4:</p> 
+<pre><code class="language-java">i = (4 + 1) % 5 = 0
+</code></pre> 
+<p>Viola, you are back at 0 again. I don't know why but I really neglect the mod operator (%). It has some interesting<br> uses.</p> 
+<p>As an example, below is a simple Groovy <code>CircularArray</code> implementation:</p> 
+<pre><code class="language-groovy">class CircularArray {
 
     def items = []
     int index = -1
@@ -114,13 +118,14 @@
     }
 }
 
-def circ = new CircularArray( items:[&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;] )
+def circ = new CircularArray( items:['a','b','c','d'] )
 
 10.times {
     def k = circ.next()
-    println &quot;$it: $k&quot;
+    println "$it: $k"
 }
-</code></pre><p>which, when run, will yield:</p>
+</code></pre> 
+<p>which, when run, will yield:</p> 
 <pre><code>0: a
 1: b
 2: c
@@ -131,7 +136,8 @@ def circ = new CircularArray( items:[&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&
 7: d
 8: a
 9: b
-</code></pre><p>A good one to keep handy.</p></p>
+</code></pre> 
+<p>A good one to keep handy.</p></p>
 
 
             <div class="row">

@@ -97,36 +97,39 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 15 October 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>Every now and then I have needed to access the parent page enclosing an <code>IFrame</code> and I have never really found a good<br/>straight-forward example of how to do it, so I end up having to work it out each time I need it.</p><p>So, for a parent (enclosing page) with an <code>IFrame</code> as follows:</p>
-<pre><code class="html">&lt;html&gt;
+	<p><p>Every now and then I have needed to access the parent page enclosing an <code>IFrame</code> and I have never really found a good<br> straight-forward example of how to do it, so I end up having to work it out each time I need it.</p> 
+<p>So, for a parent (enclosing page) with an <code>IFrame</code> as follows:</p> 
+<pre><code class="language-html">&lt;html&gt;
     &lt;head&gt;&lt;title&gt;IFrame test&lt;/title&gt;
-    &lt;script type=&quot;text/javascript&quot;&gt;
+    &lt;script type="text/javascript"&gt;
         function closeIFrame(){
-            if(confirm(&quot;Are you sure you want to close the iframe?&quot;)){
-                document.getElementById(&quot;frame&quot;).style.display = &#39;none&#39;;
+            if(confirm("Are you sure you want to close the iframe?")){
+                document.getElementById("frame").style.display = 'none';
             }
         }
         &lt;/script&gt;
     &lt;/head&gt;
     &lt;body&gt;
-        &lt;iframe id=&quot;frame&quot; src=&quot;visitor.html&quot; width=&quot;200&quot; height=&quot;200&quot;&gt;&lt;/iframe&gt;
+        &lt;iframe id="frame" src="visitor.html" width="200" height="200"&gt;&lt;/iframe&gt;
     &lt;/body&gt;
 &lt;/html&gt;
-</code></pre><p>where the "visitor.html" page called by the <code>IFrame</code> is given as:</p>
-<pre><code class="html">&lt;html&gt;
+</code></pre> 
+<p>where the "visitor.html" page called by the <code>IFrame</code> is given as:</p> 
+<pre><code class="language-html">&lt;html&gt;
     &lt;head&gt;
         &lt;title&gt;Visitor&lt;/title&gt;
-        &lt;script type=&quot;text/javascript&quot;&gt;
+        &lt;script type="text/javascript"&gt;
             function closeMe(){
                 parent.closeIFrame();
             }
         &lt;/script&gt;
     &lt;/head&gt;
     &lt;body&gt;
-        &lt;p&gt;Hello, just visiting.&lt;/p&gt;&lt;button onclick=&quot;closeMe()&quot;&gt;Close Me&lt;/button&gt;
+        &lt;p&gt;Hello, just visiting.&lt;/p&gt;&lt;button onclick="closeMe()"&gt;Close Me&lt;/button&gt;
     &lt;/body&gt;
 &lt;/html&gt;
-</code></pre><p>When the "Close Me" button is clicked, the parent page will dispose of the <code>IFrame</code>, but the JavaScript<br/>function to do this actually resides in the parent page. One thing to note, is that both pages must reside on the same<br/>domain (or sub-domain) or else the script will not work, due to security restrictions.</p></p>
+</code></pre> 
+<p>When the "Close Me" button is clicked, the parent page will dispose of the <code>IFrame</code>, but the JavaScript<br> function to do this actually resides in the parent page. One thing to note, is that both pages must reside on the same<br> domain (or sub-domain) or else the script will not work, due to security restrictions.</p></p>
 
 
             <div class="row">

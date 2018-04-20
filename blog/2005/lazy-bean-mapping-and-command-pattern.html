@@ -97,21 +97,23 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 26 October 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>In doing some refactoring recently, I came up with a useful base class for my command pattern managers (manager<br/>beans that have a bunch of commands associated with them), here I will call it the <code>LazyBeanManager</code>.</p><p>Consider a case where you have a manger that manages a bunch of actions, and that you want the whole setup to be very<br/>lazy -- only load the manager when it is used AND only load a command action when it is requested. This is very simple to<br/>accomplish. First assume you have the following spring config:</p>
-<pre><code class="xml">&lt;bean id=&quot;manager&quot; class=&quot;example.MyManager&quot; lazy-init=&quot;true&quot;&gt;
-    &lt;property name=&quot;commands&quot;&gt;
+	<p><p>In doing some refactoring recently, I came up with a useful base class for my command pattern managers (manager<br> beans that have a bunch of commands associated with them), here I will call it the <code>LazyBeanManager</code>.</p> 
+<p>Consider a case where you have a manger that manages a bunch of actions, and that you want the whole setup to be very<br> lazy -- only load the manager when it is used AND only load a command action when it is requested. This is very simple to<br> accomplish. First assume you have the following spring config:</p> 
+<pre><code class="language-xml">&lt;bean id="manager" class="example.MyManager" lazy-init="true"&gt;
+    &lt;property name="commands"&gt;
         &lt;map&gt;
-            &lt;entry key=&quot;cmdA&quot; value=&quot;commandA&quot; /&gt;
-            &lt;entry key=&quot;cmdB&quot; value=&quot;commandB&quot; /&gt;
+            &lt;entry key="cmdA" value="commandA" /&gt;
+            &lt;entry key="cmdB" value="commandB" /&gt;
         &lt;/map&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
 
-&lt;bean id=&quot;commandA&quot; class=&quot;example.CommandA&quot; lazy-init=&quot;true&quot; /&gt;
+&lt;bean id="commandA" class="example.CommandA" lazy-init="true" /&gt;
 
-&lt;bean id=&quot;commandB&quot; class=&quot;example.CommandB&quot; lazy-init=&quot;true&quot; /&gt;
-</code></pre><p>You see that we have a simple command pattern configured. There is a manager which somehow routes control to a<br/>command bean. The first bit of laziness you should notice is the <code>lazy-init=&quot;true&quot;</code> set on all three beans. This<br/>tells Spring not to load these beans until something else references them. The second bit of laziness is that the<br/>command beans are referenced by value (their bean id) rather than reference, which prevents the command beans from<br/>loading when the manager bean loads. At this point, Spring does not know how to do anything with the map of command<br/>beanIds. The following simple class will take care of that:</p>
-<pre><code class="java">public class MyManager implements ApplicationContextAware {
+&lt;bean id="commandB" class="example.CommandB" lazy-init="true" /&gt;
+</code></pre> 
+<p>You see that we have a simple command pattern configured. There is a manager which somehow routes control to a<br> command bean. The first bit of laziness you should notice is the <code>lazy-init="true"</code> set on all three beans. This<br> tells Spring not to load these beans until something else references them. The second bit of laziness is that the<br> command beans are referenced by value (their bean id) rather than reference, which prevents the command beans from<br> loading when the manager bean loads. At this point, Spring does not know how to do anything with the map of command<br> beanIds. The following simple class will take care of that:</p> 
+<pre><code class="language-java">public class MyManager implements ApplicationContextAware {
     private Map commands;
     private ApplicationContext context;
 
@@ -135,9 +137,12 @@
         return(obj);
     }
 }
-</code></pre>
-<blockquote><p><em>Note:</em> Some un-important classes are not shown here. This is just to give you the general idea of the manager.</p>
-</blockquote><p>You will notice that the <code>ApplicationContext</code> is injected into the manager by Spring through the implementation<br/>of the <code>ApplicationContextAware</code> interface. Now, when your application needs to execute one of these commands,<br/>you simply pull the manager bean out of spring (which will load only the manager), call the execute(String) method with<br/>the desired command id. Then, only the desired command bean will be loaded and executed. This has come in very handy<br/>recently for handling front end interface actions. This laziness allows the system to start up faster, be more stable,<br/>and more memory efficient. Sometimes being lazy is a good thing.</p><p>In my development, I have created an abstract lazy mapping manager using this strategy... it works great. What I would like<br/>to come up with is a version of this that not only does lazy loading, but then unloads the bean after a period of idle<br/>time - I am not sure whether Spring currently supports this or not. Something to look into.</p></p>
+</code></pre> 
+<blockquote> 
+ <p><em>Note:</em> Some un-important classes are not shown here. This is just to give you the general idea of the manager.</p> 
+</blockquote> 
+<p>You will notice that the <code>ApplicationContext</code> is injected into the manager by Spring through the implementation<br> of the <code>ApplicationContextAware</code> interface. Now, when your application needs to execute one of these commands,<br> you simply pull the manager bean out of spring (which will load only the manager), call the execute(String) method with<br> the desired command id. Then, only the desired command bean will be loaded and executed. This has come in very handy<br> recently for handling front end interface actions. This laziness allows the system to start up faster, be more stable,<br> and more memory efficient. Sometimes being lazy is a good thing.</p> 
+<p>In my development, I have created an abstract lazy mapping manager using this strategy... it works great. What I would like<br> to come up with is a version of this that not only does lazy loading, but then unloads the bean after a period of idle<br> time - I am not sure whether Spring currently supports this or not. Something to look into.</p></p>
 
 
             <div class="row">

@@ -93,12 +93,13 @@
     </nav>
 
 	
-	<h1>IOTemplate API </h1>
+	<h1>IOTemplate API</h1>
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 August 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I had an idea recently that I have coded up into my <a href="http://github.com/cjstehno/codeperks">CodePerks</a> project. I was writing<br/>a Spring MVC Controller that had to write the response output directly rather than to a view, but the content written<br/>differed based on some other criteria.</p><p>That got me thinking about how often we write and rewrite the standard IO handling construct.</p>
-<pre><code class="java">OutputStream out = null;
+	<p><p>I had an idea recently that I have coded up into my <a href="http://github.com/cjstehno/codeperks">CodePerks</a> project. I was writing<br> a Spring MVC Controller that had to write the response output directly rather than to a view, but the content written<br> differed based on some other criteria.</p> 
+<p>That got me thinking about how often we write and rewrite the standard IO handling construct.</p> 
+<pre><code class="language-java">OutputStream out = null;
 try {
     out = // create your stream
     // use the stream
@@ -109,8 +110,9 @@ try {
         try { out.close(); } catch(Exception ex){}
     }
 }
-</code></pre><p>It's not rocket science code, but I have seen it done wrong more often than you would expect. If nothing else, it gets<br/>tedious to write when you have to do it or something like it more than once in a project. Inspired by the<br/><a href="http://springsource.org/">SpringFramework</a>'s use of the template pattern and factory methods, I thought that there should<br/>be something along those same lines for handling IO streams such that you still maintain the current flexibility while<br/>also adding an additional layer of abstraction to remove the repetitive, potentially error-prone parts. Most of the code<br/>in the <a href="http://github.com/cjstehno/codeperks/tree/master/src/main/java/com/stehno/codeperks/io">CodePerks IO API</a> is what<br/>I came up with to answer that need. Basically what it boils down to is that you have a factory and a callback interface.<br/>The Factory is used to create the specific stream or reader/writer you need, while the callback is provided so that operations<br/>can be performed on the stream without the need to manage resource cleanup yourself.</p>
-<pre><code class="java">final OutputStreamFactory&lt;ServletOutputStream&gt; osf = new OutuputStreamFactory&lt;ServletOutputStream&gt;(){
+</code></pre> 
+<p>It's not rocket science code, but I have seen it done wrong more often than you would expect. If nothing else, it gets<br> tedious to write when you have to do it or something like it more than once in a project. Inspired by the<br> <a href="http://springsource.org/">SpringFramework</a>'s use of the template pattern and factory methods, I thought that there should<br> be something along those same lines for handling IO streams such that you still maintain the current flexibility while<br> also adding an additional layer of abstraction to remove the repetitive, potentially error-prone parts. Most of the code<br> in the <a href="http://github.com/cjstehno/codeperks/tree/master/src/main/java/com/stehno/codeperks/io">CodePerks IO API</a> is what<br> I came up with to answer that need. Basically what it boils down to is that you have a factory and a callback interface.<br> The Factory is used to create the specific stream or reader/writer you need, while the callback is provided so that operations<br> can be performed on the stream without the need to manage resource cleanup yourself.</p> 
+<pre><code class="language-java">final OutputStreamFactory&lt;ServletOutputStream&gt; osf = new OutuputStreamFactory&lt;ServletOutputStream&gt;(){
     public ServletOutputStream outputStream() throws IOException {
         return response.getOutputStream();
     }
@@ -118,24 +120,27 @@ try {
 
 final OutputStreamCallback&lt;ServletOutputStream&gt; osc = new OutputStreamCallback&lt;ServletOutputStream&gt;(){
     public void output(ServletOutputStream out) throws IOException {
-        out.println(&quot;shun the&quot;);
-        out.println(&quot;nonbeliever&quot;);
-        out.println(&quot;charlie&quot;);
+        out.println("shun the");
+        out.println("nonbeliever");
+        out.println("charlie");
     }
 };
 
 IoTemplate.output(osf,osc);
-</code></pre><p>You can even simplify this down for cases such as that shown above, when you already have a stream you are working with.<br/>The <code>IoTemplate</code> class provides wrapper methods as a convenience for the standard IO types.</p>
-<pre><code class="java">final OutputStreamCallback&lt;ServletOutputStream&gt; osc = new OutputStreamCallback&lt;ServletOutputStream&gt;(){
+</code></pre> 
+<p>You can even simplify this down for cases such as that shown above, when you already have a stream you are working with.<br> The <code>IoTemplate</code> class provides wrapper methods as a convenience for the standard IO types.</p> 
+<pre><code class="language-java">final OutputStreamCallback&lt;ServletOutputStream&gt; osc = new OutputStreamCallback&lt;ServletOutputStream&gt;(){
     public void output(ServletOutputStream out) throws IOException {
-        out.println(&quot;shun the&quot;);
-        out.println(&quot;nonbeliever&quot;);
-        out.println(&quot;charlie&quot;);
+        out.println("shun the");
+        out.println("nonbeliever");
+        out.println("charlie");
     }
 };
 
 IoTemplate.output(response.getOutputStream(), osc);
-</code></pre><p>Leaving you to focus on writing your functionality, not all that boilerplate code. You could create a reusable factory for<br/>your application, or use one of the file-based or adapter implementations provided. Then each time you need to perform an<br/>IO operation you could use that factory and create a new callback, or even come up with a reusable set. I will admit that<br/>this does not really cut down on the code all that much and I think I see the reason why Spring has not implemented anything<br/>like this. It's hard to do it in an elegant manner without injecting a lot of assumptions and/or restrictions. I went for<br/>the shotgun approach of trying to cover everything.</p><p>Also, there are APIs such as the <a href="http://commons.apache.org/io">Jakarta Commons IO API</a> which do a much more compact job of<br/>reading/writing data all at once; however, that is not really what this API is for. CodePerks IO is meant for those<br/>situations where you need a bit more fine-grained control over how things are handled but still want some re-usability and<br/>abstraction from boilerplate code. Perhaps someone else will find it useful too. I will be maintaining that project and<br/>will eventually produce a release. Drop me an email if you are using it or would like to use it... sometimes that can get<br/>me to move things along faster.</p></p>
+</code></pre> 
+<p>Leaving you to focus on writing your functionality, not all that boilerplate code. You could create a reusable factory for<br> your application, or use one of the file-based or adapter implementations provided. Then each time you need to perform an<br> IO operation you could use that factory and create a new callback, or even come up with a reusable set. I will admit that<br> this does not really cut down on the code all that much and I think I see the reason why Spring has not implemented anything<br> like this. It's hard to do it in an elegant manner without injecting a lot of assumptions and/or restrictions. I went for<br> the shotgun approach of trying to cover everything.</p> 
+<p>Also, there are APIs such as the <a href="http://commons.apache.org/io">Jakarta Commons IO API</a> which do a much more compact job of<br> reading/writing data all at once; however, that is not really what this API is for. CodePerks IO is meant for those<br> situations where you need a bit more fine-grained control over how things are handled but still want some re-usability and<br> abstraction from boilerplate code. Perhaps someone else will find it useful too. I will be maintaining that project and<br> will eventually produce a release. Drop me an email if you are using it or would like to use it... sometimes that can get<br> me to move things along faster.</p></p>
 
 
             <div class="row">

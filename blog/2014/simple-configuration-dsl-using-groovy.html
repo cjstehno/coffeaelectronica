@@ -97,15 +97,17 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 19 July 2014</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the <code>missingMethod()</code> calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.</p><p>To start out with, we need a configuration holder class, which we'll just call <code>Configuration</code>:</p>
-<pre><code class="groovy">class Configuration {
+	<p><p>Recently at work we were talking about being able to process large configuration files from legacy applications where the config file had a fairly simple text-based format. One of my co-workers mentioned that you could probably just run the configuration file like a Groovy script and just handle the <code>missingMethod()</code> calls and use them to populate a configuration object. This sounded like an interesting little task to play with so I threw together a basic implementation - and it's actually easier than I thought.</p> 
+<p>To start out with, we need a configuration holder class, which we'll just call <code>Configuration</code>:</p> 
+<pre><code class="language-groovy">class Configuration {
     String hostName
     String protocol
     int port
     Headers headers
 }
-</code></pre><p>Say we are collecting configuration information for some sort of HTTP request util or something, it's a contrived example, but shows the concept nicely. The <code>Headers</code> class is a simple delegated builder in itself, and looks like:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
+</code></pre> 
+<p>Say we are collecting configuration information for some sort of HTTP request util or something, it's a contrived example, but shows the concept nicely. The <code>Headers</code> class is a simple delegated builder in itself, and looks like:</p> 
+<pre><code class="language-groovy">@ToString(includeNames=true)
 class Headers {
     Map&lt;String,Object&gt; values = [:]
 
@@ -120,17 +122,20 @@ class Headers {
         values[name] = value
     }
 }
-</code></pre><p>I won't explain much about the <code>Headers</code> class, other than it takes a closure and delegates the method calls of it onto a <code>Headers</code> instance to populate it. For our purposes it just makes a nice simple way to show closure usage in the example.</p><p>Now, we need a configuration file to load. It's just a simple text file:</p>
-<pre><code class="text">hostname &#39;localhost&#39;
-protocol = &#39;https&#39;
+</code></pre> 
+<p>I won't explain much about the <code>Headers</code> class, other than it takes a closure and delegates the method calls of it onto a <code>Headers</code> instance to populate it. For our purposes it just makes a nice simple way to show closure usage in the example.</p> 
+<p>Now, we need a configuration file to load. It's just a simple text file:</p> 
+<pre><code class="language-text">hostname 'localhost'
+protocol = 'https'
 port 2468
 
 headers {
-    header &#39;Content-type&#39;,&#39;text/html&#39;
-    header &#39;Content-length&#39;,10101
+    header 'Content-type','text/html'
+    header 'Content-length',10101
 }
-</code></pre><p>The script-based configuration is similar to the delegated builder, in that the method calls of the "script" (text configuration file) will be delegated to an instance of the <code>Configuration</code> class. For that to work, we could override the <code>missingMethod()</code> method and handle each desired operation, or if we have a good idea of the configuration (as we do in our case), we could just add the missing methods, as follows:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
+</code></pre> 
+<p>The script-based configuration is similar to the delegated builder, in that the method calls of the "script" (text configuration file) will be delegated to an instance of the <code>Configuration</code> class. For that to work, we could override the <code>missingMethod()</code> method and handle each desired operation, or if we have a good idea of the configuration (as we do in our case), we could just add the missing methods, as follows:</p> 
+<pre><code class="language-groovy">@ToString(includeNames=true)
 class Configuration {
 
     String hostName
@@ -149,8 +154,10 @@ class Configuration {
         this.headers = Headers.headers( closure )
     }
 }
-</code></pre><p>Basically, they are just setters in our case; however, you could do whatever conversion or validation you need, they're just method calls. Also, notice that the <code>protocol</code> property in the configuration file is actually setting the property directly with an equals <code>=</code> rather than using a method call - this is also valid, though personally I like the way it looks without all the equals signs.</p><p>The final part needed to make this work, is the Groovy magic. We need to load the text as a script in a <code>GroovyShell</code>, parse it and run it. The whole code for the <code>Configuration</code> object is shown below:</p>
-<pre><code class="groovy">@ToString(includeNames=true)
+</code></pre> 
+<p>Basically, they are just setters in our case; however, you could do whatever conversion or validation you need, they're just method calls. Also, notice that the <code>protocol</code> property in the configuration file is actually setting the property directly with an equals <code>=</code> rather than using a method call - this is also valid, though personally I like the way it looks without all the equals signs.</p> 
+<p>The final part needed to make this work, is the Groovy magic. We need to load the text as a script in a <code>GroovyShell</code>, parse it and run it. The whole code for the <code>Configuration</code> object is shown below:</p> 
+<pre><code class="language-groovy">@ToString(includeNames=true)
 class Configuration {
 
     String hostName
@@ -184,14 +191,18 @@ class Configuration {
         return configuration
     }
 }
-</code></pre><p>The important parts are the use of the <code>DelegatingScript</code> as the <code>scriptBaseClass</code> and then setting the <code>Configuration</code> instance as the delegate for the script. Now if you run the following:</p>
-<pre><code>def conf = Configuration.configure( new File(&#39;conf.txt&#39;) )
+</code></pre> 
+<p>The important parts are the use of the <code>DelegatingScript</code> as the <code>scriptBaseClass</code> and then setting the <code>Configuration</code> instance as the delegate for the script. Now if you run the following:</p> 
+<pre><code>def conf = Configuration.configure( new File('conf.txt') )
 println conf
-</code></pre><p>You get something like the following output: </p>
+</code></pre> 
+<p>You get something like the following output:</p> 
 <pre><code>Configuration(protocol:https, hostName:localhost, port:2468, headers:Headers(values:[Content-type:text/html, Content-length:10101]))
-</code></pre>
-<blockquote><p>Notice, that in the example we didn't define a method for <code>protocol</code>, which means that the only way you can set it in the configuration is as a property; however, we could use the property format to set the value of the other fields, such as <code>port</code> since there is a setter method available along with the helper method (options are nice).</p>
-</blockquote><p>Groovy makes simple DSLs, well... simple.</p></p>
+</code></pre> 
+<blockquote> 
+ <p>Notice, that in the example we didn't define a method for <code>protocol</code>, which means that the only way you can set it in the configuration is as a property; however, we could use the property format to set the value of the other fields, such as <code>port</code> since there is a setter method available along with the helper method (options are nice).</p> 
+</blockquote> 
+<p>Groovy makes simple DSLs, well... simple.</p></p>
 
 
             <div class="row">

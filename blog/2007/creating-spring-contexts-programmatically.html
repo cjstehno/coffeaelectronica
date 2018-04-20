@@ -97,23 +97,30 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 01 November 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>If you are familiar with the <a href="http://springframework.org/">Spring Framework</a> I am sure that you know how to create a<br/>context and fill it with beans using XML (DTD or Schema) or maybe even using properties files (have to try that one<br/>sometime), but have you ever tried creating a context programmatically... purely in Java? It's actually not all that<br/>difficult, just a little verbose.</p><p>The context itself is created as the <code>GenericWebApplicationContext</code>. Let's consider a scenario in which you have two<br/>beans, a Spring MVC <code>Controller</code> implementation called <code>AddressController</code>, and a service bean, called <code>AddressService</code>,<br/>such that the service bean must be injected into the controller bean. First we create the context:</p>
-<pre><code class="java">GenericWebApplicationContext context = new GenericWebApplicationContext();
-</code></pre><p>Then we create the service bean and add it to the context:</p>
-<pre><code class="java">RootBeanDefinition addressSvcBean = new RootBeanDefinition(AddressService.class);
-context.registerBeanDefinition(&quot;addressService&quot;,addressSvcBean);
-</code></pre><p>Not too bad. Now the interesting one, the controller will also need a reference to the service bean.</p>
-<pre><code class="java">RootBeanDefinition addressCtrBean = new RootBeanDefinition(AddressController.class);
+	<p><p>If you are familiar with the <a href="http://springframework.org/">Spring Framework</a> I am sure that you know how to create a<br> context and fill it with beans using XML (DTD or Schema) or maybe even using properties files (have to try that one<br> sometime), but have you ever tried creating a context programmatically... purely in Java? It's actually not all that<br> difficult, just a little verbose.</p> 
+<p>The context itself is created as the <code>GenericWebApplicationContext</code>. Let's consider a scenario in which you have two<br> beans, a Spring MVC <code>Controller</code> implementation called <code>AddressController</code>, and a service bean, called <code>AddressService</code>,<br> such that the service bean must be injected into the controller bean. First we create the context:</p> 
+<pre><code class="language-java">GenericWebApplicationContext context = new GenericWebApplicationContext();
+</code></pre> 
+<p>Then we create the service bean and add it to the context:</p> 
+<pre><code class="language-java">RootBeanDefinition addressSvcBean = new RootBeanDefinition(AddressService.class);
+context.registerBeanDefinition("addressService",addressSvcBean);
+</code></pre> 
+<p>Not too bad. Now the interesting one, the controller will also need a reference to the service bean.</p> 
+<pre><code class="language-java">RootBeanDefinition addressCtrBean = new RootBeanDefinition(AddressController.class);
 MutablePropertyValues props = new MutablePropertyValues();
-props.addPropertyValue(&quot;addressService&quot;,addressSvcBean);
+props.addPropertyValue("addressService",addressSvcBean);
 addressCtrBean.setPropertyValues(props);
-context.registerBeanDefinition(&quot;addressController&quot;,addressCtrBean);
-</code></pre><p>Notice that you pass in the <code>addressSvcBean</code> object to the <code>addressService</code> property; this is the dependency injection<br/>in action. You now have a context with two beans, one of which depends on the other.</p>
-<blockquote><p><em>Note:</em> that an actual controller implementation would probably require more properties to be specified but this is just to show you how it's done.</p>
-</blockquote><p>Finally you will need to startup the context:</p>
-<pre><code class="java">context.refresh();
+context.registerBeanDefinition("addressController",addressCtrBean);
+</code></pre> 
+<p>Notice that you pass in the <code>addressSvcBean</code> object to the <code>addressService</code> property; this is the dependency injection<br> in action. You now have a context with two beans, one of which depends on the other.</p> 
+<blockquote> 
+ <p><em>Note:</em> that an actual controller implementation would probably require more properties to be specified but this is just to show you how it's done.</p> 
+</blockquote> 
+<p>Finally you will need to startup the context:</p> 
+<pre><code class="language-java">context.refresh();
 context.start();
-</code></pre><p>Why would you ever want to do this over one of the less tedious methods? Maybe you just like doing things in code<br/>or you need a simple context with a few beans, some of which are mocked, and its just easier to handle in code. If<br/>nothing else it's nice to know that it can be done. I guess that it would also be useful if you had some other<br/>configuration format that you wanted to support... your "parser" would call/generate this code underneath.</p></p>
+</code></pre> 
+<p>Why would you ever want to do this over one of the less tedious methods? Maybe you just like doing things in code<br> or you need a simple context with a few beans, some of which are mocked, and its just easier to handle in code. If<br> nothing else it's nice to know that it can be done. I guess that it would also be useful if you had some other<br> configuration format that you wanted to support... your "parser" would call/generate this code underneath.</p></p>
 
 
             <div class="row">

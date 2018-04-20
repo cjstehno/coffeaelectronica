@@ -97,36 +97,44 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 23 September 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/vanilla.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> vanilla</span></a></p>
 
-	<p><p>A co-worker and I were discussing the Groovy <code>@Immutable</code> annotation recently where I was thinking it would be useful if it allowed you to work on the object as a mutable object until you were ready to make it permanent, and then you could "seal" it and make it immutable. This would give you a bit more freedom in how the object is configured - sometimes the standard immutable approach can be overly restrictive.</p><p>Consider the case of of an immutable <code>Person</code> object:</p>
-<pre><code class="groovy">@Immutable
+	<p><p>A co-worker and I were discussing the Groovy <code>@Immutable</code> annotation recently where I was thinking it would be useful if it allowed you to work on the object as a mutable object until you were ready to make it permanent, and then you could "seal" it and make it immutable. This would give you a bit more freedom in how the object is configured - sometimes the standard immutable approach can be overly restrictive.</p> 
+<p>Consider the case of of an immutable <code>Person</code> object:</p> 
+<pre><code class="language-groovy">@Immutable
 class Person {
     String firstName
     String middleName
     String lastName
     int age
 }
-</code></pre><p>With <code>@Immutable</code> you have to create the object all at once:</p>
-<pre><code class="groovy">def person = new Person(&#39;Chris&#39;,&#39;J&#39;,&#39;Stehno&#39;,42)
-</code></pre><p>and then you're stuck with it. You can create a copy of it with one or more different properties using the <code>copyWith</code> method, but you need to specify the <code>copyWith=true</code> in the annotation itself, then you can do something like:</p>
-<pre><code class="groovy">Person otherPerson = person.copyWith(firstName:&#39;Bob&#39;, age:50)
-</code></pre><p>I'm not sure who "Bob J Stehno" is though. With more complicated immutables, this all at once requirement can be annoying. This is where the <code>@LazyImmutable</code> annotation comes in (part of my <a href="http://stehno.com/vanilla/">Vanilla - Core library</a>). With a similar <code>Person</code> class:</p>
-<pre><code class="groovy">@LazyImmutable @Canonical
+</code></pre> 
+<p>With <code>@Immutable</code> you have to create the object all at once:</p> 
+<pre><code class="language-groovy">def person = new Person('Chris','J','Stehno',42)
+</code></pre> 
+<p>and then you're stuck with it. You can create a copy of it with one or more different properties using the <code>copyWith</code> method, but you need to specify the <code>copyWith=true</code> in the annotation itself, then you can do something like:</p> 
+<pre><code class="language-groovy">Person otherPerson = person.copyWith(firstName:'Bob', age:50)
+</code></pre> 
+<p>I'm not sure who "Bob J Stehno" is though. With more complicated immutables, this all at once requirement can be annoying. This is where the <code>@LazyImmutable</code> annotation comes in (part of my <a href="http://stehno.com/vanilla/">Vanilla - Core library</a>). With a similar <code>Person</code> class:</p> 
+<pre><code class="language-groovy">@LazyImmutable @Canonical
 class Person {
     String firstName
     String middleName
     String lastName
     int age
 }
-</code></pre><p>using the new annotation, you can create and populate the instance over time:</p>
-<pre><code class="groovy">def person = new Person(&#39;Chris&#39;)
-person.middleName = &#39;J&#39;
-person.lastName = &#39;Stehno&#39;
+</code></pre> 
+<p>using the new annotation, you can create and populate the instance over time:</p> 
+<pre><code class="language-groovy">def person = new Person('Chris')
+person.middleName = 'J'
+person.lastName = 'Stehno'
 person.age = 42
-</code></pre><p>Notice that the <code>@LazyImmutable</code> annotation does not apply any other transforms (as the standard <code>@Immutable</code> does). It's a standard Groovy object, but with an added method: the <code>asImmutable()</code> method is injected via AST Transformation. This method will take the current state of the object and create an immutable version of the object - this does imply that the properties of lazy immutable objects should follow the same rules as those of the standard immutable so that the conversion is determinate. For our example case:</p>
-<pre><code class="groovy">Person immutablePerson = person.asImmutable()
-</code></pre><p>The created object is the same immutable object as would have been created by using the <code>@Immutable</code> annotation and it is generated as an extension of the class you created so that it's type is still valid. The immutable version of the object also has a useful added method, the <code>asMutable()</code> method is used to create a copy of the original mutable object.</p>
-<pre><code class="groovy">Person otherMutable = immutablePerson.asMutable()
-</code></pre><p>It's a fairly simple helper annotation, but it just fills one of those little functional gaps that you run into every now and then. Maybe someone else will find it useful.</p></p>
+</code></pre> 
+<p>Notice that the <code>@LazyImmutable</code> annotation does not apply any other transforms (as the standard <code>@Immutable</code> does). It's a standard Groovy object, but with an added method: the <code>asImmutable()</code> method is injected via AST Transformation. This method will take the current state of the object and create an immutable version of the object - this does imply that the properties of lazy immutable objects should follow the same rules as those of the standard immutable so that the conversion is determinate. For our example case:</p> 
+<pre><code class="language-groovy">Person immutablePerson = person.asImmutable()
+</code></pre> 
+<p>The created object is the same immutable object as would have been created by using the <code>@Immutable</code> annotation and it is generated as an extension of the class you created so that it's type is still valid. The immutable version of the object also has a useful added method, the <code>asMutable()</code> method is used to create a copy of the original mutable object.</p> 
+<pre><code class="language-groovy">Person otherMutable = immutablePerson.asMutable()
+</code></pre> 
+<p>It's a fairly simple helper annotation, but it just fills one of those little functional gaps that you run into every now and then. Maybe someone else will find it useful.</p></p>
 
 
             <div class="row">

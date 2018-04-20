@@ -97,36 +97,49 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 15 May 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a> <a href='/tags/vanilla.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> vanilla</span></a></p>
 
-	<p><p>Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a <code>FixtureBuilder</code> and <code>Fixture</code> class to my <a href="http://github.com/cjstehno/vanilla">Vanilla-Testing</a> library.</p><p>Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, <code>Person</code> defined as:</p>
-<pre><code class="groovy">class Person {
+	<p><p>Unit testing with data fixtures is good practice to get into, and having a simple means of creating and managing reusable fixture data makes it much more likely. I have added a <code>FixtureBuilder</code> and <code>Fixture</code> class to my <a href="http://github.com/cjstehno/vanilla">Vanilla-Testing</a> library.</p> 
+<p>Unit testing with domain object, entities and DTOs can become tedious and you can end up with a lot of duplication around creating the test fixtures for each test. Say you have an object, <code>Person</code> defined as:</p> 
+<pre><code class="language-groovy">class Person {
     Name name
     LocalDate birthDate
     int score
 }
-</code></pre><p>You are writing your unit tests for services and controllers that may need to create and compare various instances of <code>Person</code> and you end up with some constants somewhere or duplication of code with custom instances all over the test code.</p><p>Using <code>com.stehno.vanilla.test.FixtureBuilder</code> you can create reusable fixtures with a simple DSL. I tend to create a main class to contain my fixtures and to also provide the set of supported fixture keys, something like:</p>
-<pre><code class="groovy">class PersonFixtures {
+</code></pre> 
+<p>You are writing your unit tests for services and controllers that may need to create and compare various instances of <code>Person</code> and you end up with some constants somewhere or duplication of code with custom instances all over the test code.</p> 
+<p>Using <code>com.stehno.vanilla.test.FixtureBuilder</code> you can create reusable fixtures with a simple DSL. I tend to create a main class to contain my fixtures and to also provide the set of supported fixture keys, something like:</p> 
+<pre><code class="language-groovy">class PersonFixtures {
 
-    static final String BOB = &#39;Bob&#39;
-    static final String LARRY = &#39;Larry&#39;
+    static final String BOB = 'Bob'
+    static final String LARRY = 'Larry'
     
     static final Fixture FIXTURES = define {
-        fix BOB, [ name:new Name(&#39;Bob&#39;,&#39;Q&#39;,&#39;Public&#39;), birthDate:LocalDate.of(1952,5,14), score:120 ]
-        fix LARRY, [ name:new Name(&#39;Larry&#39;,&#39;G&#39;,&#39;Larson&#39;), birthDate:LocalDate.of(1970,2,8), score:100 ]
+        fix BOB, [ name:new Name('Bob','Q','Public'), birthDate:LocalDate.of(1952,5,14), score:120 ]
+        fix LARRY, [ name:new Name('Larry','G','Larson'), birthDate:LocalDate.of(1970,2,8), score:100 ]
     }
 }
-</code></pre><p>Notice that the <code>define</code> method is where you create the data contained by the fixtures, each mapped with an object key. The key can be any object which may be used as a Map key (proper <code>equals</code> and <code>hashCode</code> implementation).</p><p>The reasoning behind using Maps is that Groovy allows them to be used as constructor arguments for creating objects; therefore, the maps give you a reusable and detached dataset for use in creating your test fixture instances. Two objects instances created from the same fixture data will be equivalent at the level of the properties defined by the fixture; however, each can be manipulated without effecting the other.</p><p>Once your fixtures are defined, you can use them in various ways. You can request the immutable data map for a fixture:</p>
+</code></pre> 
+<p>Notice that the <code>define</code> method is where you create the data contained by the fixtures, each mapped with an object key. The key can be any object which may be used as a Map key (proper <code>equals</code> and <code>hashCode</code> implementation).</p> 
+<p>The reasoning behind using Maps is that Groovy allows them to be used as constructor arguments for creating objects; therefore, the maps give you a reusable and detached dataset for use in creating your test fixture instances. Two objects instances created from the same fixture data will be equivalent at the level of the properties defined by the fixture; however, each can be manipulated without effecting the other.</p> 
+<p>Once your fixtures are defined, you can use them in various ways. You can request the immutable data map for a fixture:</p> 
 <pre><code>Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB)
-</code></pre><p>You can create an instance of the target object using the data mapped to a specified fixture:</p>
+</code></pre> 
+<p>You can create an instance of the target object using the data mapped to a specified fixture:</p> 
 <pre><code>Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY)
-</code></pre><p>Or, you can request the data or an instance for a fixture while applying additional (or overridden) properties to the fixture data:</p>
+</code></pre> 
+<p>Or, you can request the data or an instance for a fixture while applying additional (or overridden) properties to the fixture data:</p> 
 <pre><code>Map data = PersonFixtures.FIXTURES.map(PersonFixtures.BOB, score:53)
 Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, score:200)
-</code></pre><p>You can easily retrieve field property values for each fixture for use in your tests:</p>
-<pre><code>assert 100 == PersonFixtures.FIXTURES.field(&#39;score&#39;, PersonFixtures.LARRY)
-</code></pre><p>This allows field-by-field comparisons for testing and the ability to use the field values as parameters as needed.</p><p>Lastly, you can verify that an object instance contains the expected data that is associated with a fixture:</p>
+</code></pre> 
+<p>You can easily retrieve field property values for each fixture for use in your tests:</p> 
+<pre><code>assert 100 == PersonFixtures.FIXTURES.field('score', PersonFixtures.LARRY)
+</code></pre> 
+<p>This allows field-by-field comparisons for testing and the ability to use the field values as parameters as needed.</p> 
+<p>Lastly, you can verify that an object instance contains the expected data that is associated with a fixture:</p> 
 <pre><code>assert PersonFixtures.FIXTURES.verify(person, PersonFixtures.LARRY)
-</code></pre><p>which will compare the given object to the specified fixture and return true of all of the properties defined in the fixture match the same properties of the given object. There is also a second version of the method which allows property customizations before comparison.</p><p>One step farther... you can combine fixtures with <a href="http://coffeaelectronica.com/blog/2015/property-randomization.html">property randomizaiton</a> to make fixture creation even simpler for those cases where you don't care about what the properties are, just that you can get at them reliably.</p>
-<pre><code class="groovy">static final Fixture FIXTURES = define {
+</code></pre> 
+<p>which will compare the given object to the specified fixture and return true of all of the properties defined in the fixture match the same properties of the given object. There is also a second version of the method which allows property customizations before comparison.</p> 
+<p>One step farther... you can combine fixtures with <a href="http://coffeaelectronica.com/blog/2015/property-randomization.html">property randomizaiton</a> to make fixture creation even simpler for those cases where you don't care about what the properties are, just that you can get at them reliably.</p> 
+<pre><code class="language-groovy">static final Fixture FIXTURES = define {
     fix FIX_A, [ name:randomize(Name).one(), birthDate:LocalDate.of(1952,5,14), score:120 ]
     fix FIX_B, randomize(Person){
         typeRandomizers(
@@ -135,7 +148,10 @@ Person person = PersonFixtures.FIXTURES.object(Person, PersonFixtures.LARRY, sco
         )
     }
 }
-</code></pre><p>The fixture mapper accepts <code>PropertyRandomizer</code> instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.</p><p>One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the <code>asImmutable()</code> method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.</p><p>Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.</p></p>
+</code></pre> 
+<p>The fixture mapper accepts <code>PropertyRandomizer</code> instances and will use them to generate the random content once, when the fixture is created and then it will be available unchanged during the testing.</p> 
+<p>One thing to note about the fixtures is that the fixture container and the maps that are passed in as individual fixture data are all made immutable via the <code>asImmutable()</code> method; however, if the data inside the fixture is mutable, it still may have the potential for being changed. Be aware of this and take proper precautions when you create an interact with such data types.</p> 
+<p>Reusable text fixtures can really help to clean up your test code base, and they are a good habit to get into.</p></p>
 
 
             <div class="row">

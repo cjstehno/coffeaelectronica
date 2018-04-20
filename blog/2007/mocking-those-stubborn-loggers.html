@@ -97,26 +97,30 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 24 November 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p>I have run into a couple instances where I would benefit from being able to mock logging, such as when the result<br/>of an operation is only some output to a log file. Reflection comes in very handy for this.</p><p>I created a utility method called <code>injectFieldValue</code> which allows a specified value to be injected into a non-final<br/>field of an object.</p>
-<pre><code class="java">public static void injectFieldValue(Object target, String fieldName, Object fieldValue) throws Exception {
+	<p><p>I have run into a couple instances where I would benefit from being able to mock logging, such as when the result<br> of an operation is only some output to a log file. Reflection comes in very handy for this.</p> 
+<p>I created a utility method called <code>injectFieldValue</code> which allows a specified value to be injected into a non-final<br> field of an object.</p> 
+<pre><code class="language-java">public static void injectFieldValue(Object target, String fieldName, Object fieldValue) throws Exception {
     final Field logField = target.getClass().getDeclaredField(fieldName);
     logField.setAccessible(true);
     logField.set(target, fieldValue);
 }
-</code></pre><p>It allows you to inject a value into any non-final field of the target class. With this method you can now create a<br/>mock Log object and inject it into your target object under test which then allows you to put expectations on the<br/>logging so that you are sure that it is called correctly. Your mock test code could look something like this:</p>
-<pre><code class="java">public void testLog() throws Exception {
+</code></pre> 
+<p>It allows you to inject a value into any non-final field of the target class. With this method you can now create a<br> mock Log object and inject it into your target object under test which then allows you to put expectations on the<br> logging so that you are sure that it is called correctly. Your mock test code could look something like this:</p> 
+<pre><code class="language-java">public void testLog() throws Exception {
     final Log log = mock(Log.class);
     checking(new Expectations(){
         {
-            one(log).info(&quot;something&quot;);
+            one(log).info("something");
         }
     });
-    MockUtils.injectFieldValue(target,&quot;log&quot;,log);
+    MockUtils.injectFieldValue(target,"log",log);
 
     target.doSomething();
 }
-</code></pre><p>I don't recommend this approach for normal coding, but for testing the gloves can come off. Also, I don't recommend<br/>this for everywhere you have logging, just for those cases when logging is an expected result that needs to be<br/>validated... in other words, not very often. This technique will work for <code>static</code> loggers but not <code>final</code>.</p>
-<blockquote><p><em>Note:</em> If the field you are mocking is in a parent of your target object, you will need to rewrite this method to<br/>walk up the hierarchy to find the target field. Not hard to do, just not done here.</p>
+</code></pre> 
+<p>I don't recommend this approach for normal coding, but for testing the gloves can come off. Also, I don't recommend<br> this for everywhere you have logging, just for those cases when logging is an expected result that needs to be<br> validated... in other words, not very often. This technique will work for <code>static</code> loggers but not <code>final</code>.</p> 
+<blockquote> 
+ <p><em>Note:</em> If the field you are mocking is in a parent of your target object, you will need to rewrite this method to<br> walk up the hierarchy to find the target field. Not hard to do, just not done here.</p> 
 </blockquote></p>
 
 

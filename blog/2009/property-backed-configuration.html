@@ -97,25 +97,31 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 23 May 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>A useful trick I started doing for property-backed configuration files is to provide something a little more rich<br/>than a simple <code>Properties</code> object as a provider.</p><p>Use a <code>Properties</code> instance as a delegate to pull out the properties, but provide a more useful interface for the values themselves. Say you have a<br/>properties file such as:</p>
+	<p><p>A useful trick I started doing for property-backed configuration files is to provide something a little more rich<br> than a simple <code>Properties</code> object as a provider.</p> 
+<p>Use a <code>Properties</code> instance as a delegate to pull out the properties, but provide a more useful interface for the values themselves. Say you have a<br> properties file such as:</p> 
 <pre><code>path.storage = /some/path
-</code></pre><p>You could simply access these via a <code>Properties</code> instance, and use it directly as in:</p>
-<pre><code class="java">String path = props.getProperty(&quot;path.storage&quot;);
-File file = new File(path,&quot;archive.zip&quot;);
-</code></pre><p>but consider a potentially more useful approach</p>
-<pre><code class="java">File file = config.getStorageFile(&quot;archive.zip&quot;);
-</code></pre><p>with</p>
-<pre><code class="java">public File getStorageFile(String name){
-    return new File( props.getProperty(&quot;path.storage&quot;), name );
+</code></pre> 
+<p>You could simply access these via a <code>Properties</code> instance, and use it directly as in:</p> 
+<pre><code class="language-java">String path = props.getProperty("path.storage");
+File file = new File(path,"archive.zip");
+</code></pre> 
+<p>but consider a potentially more useful approach</p> 
+<pre><code class="language-java">File file = config.getStorageFile("archive.zip");
+</code></pre> 
+<p>with</p> 
+<pre><code class="language-java">public File getStorageFile(String name){
+    return new File( props.getProperty("path.storage"), name );
 }
-</code></pre><p>You could even pull the file extension into the method if it made sense to do so... say, if all files in that path<br/>were .zip files you could then enforce more control on how it was used such as:</p>
-<pre><code class="java">public File getStorageFile(String name){
-    return new File(props.getProperty(&quot;path.storage&quot;),name + &quot;.zip&quot;);
+</code></pre> 
+<p>You could even pull the file extension into the method if it made sense to do so... say, if all files in that path<br> were .zip files you could then enforce more control on how it was used such as:</p> 
+<pre><code class="language-java">public File getStorageFile(String name){
+    return new File(props.getProperty("path.storage"),name + ".zip");
 }
 
-File file = config.getStorageFile(&quot;archive&quot;);
-</code></pre><p>These helper methods would be part of a class called Config or something similar that delegates to an internal <code>Properties</code> object:</p>
-<pre><code class="java">public class Config {
+File file = config.getStorageFile("archive");
+</code></pre> 
+<p>These helper methods would be part of a class called Config or something similar that delegates to an internal <code>Properties</code> object:</p> 
+<pre><code class="language-java">public class Config {
     private final Properties props;
 
     public Config(Properties p){
@@ -123,10 +129,11 @@ File file = config.getStorageFile(&quot;archive&quot;);
     }
 
     public File getStorageFile(String name){
-        return new File(props.getProperty(&quot;path.storage&quot;),name);
+        return new File(props.getProperty("path.storage"),name);
     }
 }
-</code></pre><p>You could also do the loading of the properties file inside this class. Some property validation could also be helpful.<br/>This strategy really helped to clean up a project that originally had a lot of properties that were used all over the<br/>place with very little order. Converting to this approach actually made the code more understandable and less error prone as well.</p></p>
+</code></pre> 
+<p>You could also do the loading of the properties file inside this class. Some property validation could also be helpful.<br> This strategy really helped to clean up a project that originally had a lot of properties that were used all over the<br> place with very little order. Converting to this approach actually made the code more understandable and less error prone as well.</p></p>
 
 
             <div class="row">

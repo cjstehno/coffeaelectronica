@@ -97,8 +97,8 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>I had the need to scale some large JPG images from my camera so I whipped up a quick little<br/><a href="http://groovy.codehaus.org/">Groovy</a> script to do the trick.</p>
-<pre><code class="groovy">// groovy ScaleImages.groovy DIRNAME SCALE%
+	<p><p>I had the need to scale some large JPG images from my camera so I whipped up a quick little<br> <a href="http://groovy.codehaus.org/">Groovy</a> script to do the trick.</p> 
+<pre><code class="language-groovy">// groovy ScaleImages.groovy DIRNAME SCALE%
 import javax.imageio.ImageIO
 import java.io.File
 import java.awt.Image
@@ -110,7 +110,7 @@ class ScaleImages {
     static void main(String[] args){
         def directory = new File(args[0])
         if(!directory.isDirectory()){
-            println &#39;You must specify a valid directory!&#39;
+            println 'You must specify a valid directory!'
             System.exit(0)
         }
 
@@ -127,15 +127,16 @@ class ScaleImages {
             def graphics = newImage.createGraphics()
             graphics.drawImage(scaled,0,0,w,h,Color.white,null)
 
-            if(ImageIO.write(newImage,&quot;jpg&quot;,new File(it.getParent(),&quot;scaled_${it.name}&quot;))){
-                println &quot;scaled: $it&quot;
+            if(ImageIO.write(newImage,"jpg",new File(it.getParent(),"scaled_${it.name}"))){
+                println "scaled: $it"
             } else {
-                println &quot;failed: $it&quot;
+                println "failed: $it"
             }
         }
     }
 }
-</code></pre><p>It's pretty simple. You load the image file to create a <code>BufferedImage</code>. You then create a scaled<br/><code>Image</code> and draw it onto the new empty <code>BufferedImage</code> and save it off. I would recommend some performance<br/>enhancements if you are doing huge batches of images but for a directory containing a handful of images it works great<br/>and pretty fast. Also, note that this does not handle sub-directories of images, only the directory that you give it.</p></p>
+</code></pre> 
+<p>It's pretty simple. You load the image file to create a <code>BufferedImage</code>. You then create a scaled<br> <code>Image</code> and draw it onto the new empty <code>BufferedImage</code> and save it off. I would recommend some performance<br> enhancements if you are doing huge batches of images but for a directory containing a handful of images it works great<br> and pretty fast. Also, note that this does not handle sub-directories of images, only the directory that you give it.</p></p>
 
 
             <div class="row">

@@ -97,10 +97,14 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 08 March 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a> <a href='/tags/vanilla.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> vanilla</span></a></p>
 
-	<p><p>While working on my <a href="https://github.com/cjstehno/effigy">Effigy</a> project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.</p><p>After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it's actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)</p><p>The key to making transforms testable is the <code>GroovyClassLoader</code> which gives you the ability to compile Groovy code on the fly:</p>
+	<p><p>While working on my <a href="https://github.com/cjstehno/effigy">Effigy</a> project, I have gone deep into the world of Groovy AST Transformations and found that they are, in my opinion, the most interesting and useful feature of the Groovy language; however, developing them is a bit of a poorly-documented black art, especially around writing unit tests for your transformations. Since the code you are writing is run at compile-time, you generally have little access or view to what is going on at that point and it can be quite frustrating to try and figure out why something is failing.</p> 
+<p>After some Googling and experimentation, I have been able to piece together a good method for testing your transformation code, and it's actually not all that hard. Also, you can do your development and testing in a single project, rather than in a main project and testing project (to account for the need to compile the code for testing)</p> 
+<p>The key to making transforms testable is the <code>GroovyClassLoader</code> which gives you the ability to compile Groovy code on the fly:</p> 
 <pre><code>def clazz = new GroovyClassLoader().parseClass(sourceCode)
-</code></pre><p>During that <code>parseClass</code> method is when all the AST magic happens. This means you can not only easily test your code, but also debug into your transformations to get a better feel for what is going wrong when things break - and they often do.</p><p>For my testing, I have started building a <code>ClassBuilder</code> code helper that is a shell for String-based source code. You provide a code template that acts as your class shell, and then you inject code for your specific test case. You end up with a reasonably clean means of building test code and instantiating it:</p>
-<pre><code class="groovy">private final ClassBuilder code = forCode(&#39;&#39;&#39;
+</code></pre> 
+<p>During that <code>parseClass</code> method is when all the AST magic happens. This means you can not only easily test your code, but also debug into your transformations to get a better feel for what is going wrong when things break - and they often do.</p> 
+<p>For my testing, I have started building a <code>ClassBuilder</code> code helper that is a shell for String-based source code. You provide a code template that acts as your class shell, and then you inject code for your specific test case. You end up with a reasonably clean means of building test code and instantiating it:</p> 
+<pre><code class="language-groovy">private final ClassBuilder code = forCode('''
     package testing
 
     import com.stehno.ast.annotation.Counted
@@ -108,24 +112,29 @@
     class CountingTester {
         $code
     }
-&#39;&#39;&#39;)
+''')
 
-@Test void &#39;single method&#39;(){
-    def instance = code.inject(&#39;&#39;&#39;
+@Test void 'single method'(){
+    def instance = code.inject('''
         @Counted
         String sayHello(String name){
-            &quot;Hello, $name&quot;
+            "Hello, $name"
         }
-    &#39;&#39;&#39;).instantiate()
+    ''').instantiate()
 
-    assert instance.sayHello(&#39;AST&#39;) == &#39;Hello, AST&#39;
+    assert instance.sayHello('AST') == 'Hello, AST'
     assert instance.getSayHelloCount() == 1
 
-    assert instance.sayHello(&#39;Counting&#39;) == &#39;Hello, Counting&#39;
+    assert instance.sayHello('Counting') == 'Hello, Counting'
     assert instance.getSayHelloCount() == 2
 }
-</code></pre><p>The <code>forCode</code> method creates the builder and prepares the code shell. This construct may be reused for each of your tests.</p><p>The <code>inject</code> method adds in the actual code you care about, meaning your transformation code being tested.</p><p>The <code>instantiate</code> method uses the <code>GroovyClassLoader</code> internally to load the class and then instantiate it for testing.</p><p>I am going to add a version of the <code>ClassBuilder</code> to my <a href="https://github.com/cjstehno/vanilla">Vanilla</a> project once it is more stable; however, I have a version of it and a simple AST testing demo project in the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing">ast-testing</a> CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).</p>
-<blockquote><p>Note: I have recently discovered the <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html">groovy.tools.ast.TransformTestHelper</a> class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.</p>
+</code></pre> 
+<p>The <code>forCode</code> method creates the builder and prepares the code shell. This construct may be reused for each of your tests.</p> 
+<p>The <code>inject</code> method adds in the actual code you care about, meaning your transformation code being tested.</p> 
+<p>The <code>instantiate</code> method uses the <code>GroovyClassLoader</code> internally to load the class and then instantiate it for testing.</p> 
+<p>I am going to add a version of the <code>ClassBuilder</code> to my <a href="https://github.com/cjstehno/vanilla">Vanilla</a> project once it is more stable; however, I have a version of it and a simple AST testing demo project in the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/ast-testing">ast-testing</a> CoffeaElectronica sub-repo. This sample code builds a simple AST Transformation for counting method invocations and writes normal unit tests for it (the code above is taken from one of the tests).</p> 
+<blockquote> 
+ <p>Note: I have recently discovered the <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/tools/ast/TransformTestHelper.html">groovy.tools.ast.TransformTestHelper</a> class; I have not yet tried it out, but it seems to provide a similar base functionality set to what I have described here.</p> 
 </blockquote></p>
 
 

@@ -97,33 +97,36 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 01 November 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>I had the need recently to inject an array of strings into a bean property and I was curious about whether or not I could<br/>inject the strings as comma-separated values (CSV). With a little poking around in the <a href="http://springframework.org/">Spring API</a><br/>I found that the supporting <code>PropertyEditor</code> is already there, but not configured by default. My next question was about<br/>how you go about configuring custom property editors. Configuring custom property editors is quite easy, you add a<br/><code>CustomEditorConfigurer</code> bean to your context which will register itself with the bean factory at load-time. By mapping<br/>your custom editors to the <code>CustomEditorConfigurer</code>, you register them with the enclosing bean factory... pretty simple:</p>
-<pre><code class="xml">&lt;bean id=&quot;customEditorConfigurer&quot; class=&quot;org.springframework.beans.factory.config.CustomEditorConfigurer&quot;&gt;
-    &lt;property name=&quot;customEditors&quot;&gt;
+	<p><p>I had the need recently to inject an array of strings into a bean property and I was curious about whether or not I could<br> inject the strings as comma-separated values (CSV). With a little poking around in the <a href="http://springframework.org/">Spring API</a><br> I found that the supporting <code>PropertyEditor</code> is already there, but not configured by default. My next question was about<br> how you go about configuring custom property editors. Configuring custom property editors is quite easy, you add a<br> <code>CustomEditorConfigurer</code> bean to your context which will register itself with the bean factory at load-time. By mapping<br> your custom editors to the <code>CustomEditorConfigurer</code>, you register them with the enclosing bean factory... pretty simple:</p> 
+<pre><code class="language-xml">&lt;bean id="customEditorConfigurer" class="org.springframework.beans.factory.config.CustomEditorConfigurer"&gt;
+    &lt;property name="customEditors"&gt;
         &lt;map&gt;
-            &lt;entry key=&quot;java.lang.String[]&quot;&gt;
-                &lt;bean class=&quot;org.springframework.beans.propertyeditors.StringArrayPropertyEditor&quot;&gt;
-                    &lt;constructor-arg value=&quot;:&quot; /&gt;
+            &lt;entry key="java.lang.String[]"&gt;
+                &lt;bean class="org.springframework.beans.propertyeditors.StringArrayPropertyEditor"&gt;
+                    &lt;constructor-arg value=":" /&gt;
                 &lt;/bean&gt;
             &lt;/entry&gt;
         &lt;/map&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
-</code></pre><p>Note that the value of the entry key attribute is the full class name of the property type to be handled by the editor.<br/>Only one editor can be registered for a given type. The <code>StringArrayPropertyEditor</code> is available with the core<br/>Spring API and it will convert a delimited string into a string array. The delimiter is configurable as a constructor<br/>argument; it defaults to comma, but I have overridden it here to use a colon in this case as an example. Once you have<br/>this in place, the added configuration work is done. Let's create a simple test bean to ensure that the editor is<br/>registered properly:</p>
-<pre><code class="java">public class SomeBean {
+</code></pre> 
+<p>Note that the value of the entry key attribute is the full class name of the property type to be handled by the editor.<br> Only one editor can be registered for a given type. The <code>StringArrayPropertyEditor</code> is available with the core<br> Spring API and it will convert a delimited string into a string array. The delimiter is configurable as a constructor<br> argument; it defaults to comma, but I have overridden it here to use a colon in this case as an example. Once you have<br> this in place, the added configuration work is done. Let's create a simple test bean to ensure that the editor is<br> registered properly:</p> 
+<pre><code class="language-java">public class SomeBean {
     private String[] array;
 
     public void setArray(String[] array) {this.array = array;}
 
     public String[] getArray() {return array;}
 }
-</code></pre><p>Add it to the spring context:</p>
-<pre><code class="xml">&lt;bean id=&quot;someBean&quot; class=&quot;SomeBean&quot;&gt;
-    &lt;property name=&quot;array&quot; value=&quot;one:two:three:four&quot; /&gt;
+</code></pre> 
+<p>Add it to the spring context:</p> 
+<pre><code class="language-xml">&lt;bean id="someBean" class="SomeBean"&gt;
+    &lt;property name="array" value="one:two:three:four" /&gt;
 &lt;/bean&gt;
-</code></pre><p>Now if you load the context and pull the bean out you will find that the array property contains four elements, with<br/>values of "one", "two", "three", and "four" respectively. It's just that easy! Just to verify that we have not lost any<br/>pre-existing functionality, you can add another bean that loads the array using the spring list tag:</p>
-<pre><code class="xml">&lt;bean id=&quot;someBean2&quot; class=&quot;SomeBean&quot;&gt;
-    &lt;property name=&quot;array&quot;&gt;
+</code></pre> 
+<p>Now if you load the context and pull the bean out you will find that the array property contains four elements, with<br> values of "one", "two", "three", and "four" respectively. It's just that easy! Just to verify that we have not lost any<br> pre-existing functionality, you can add another bean that loads the array using the spring list tag:</p> 
+<pre><code class="language-xml">&lt;bean id="someBean2" class="SomeBean"&gt;
+    &lt;property name="array"&gt;
         &lt;list&gt;
             &lt;value&gt;alpha&lt;/value&gt;
             &lt;value&gt;bravo&lt;/value&gt;
@@ -131,7 +134,8 @@
         &lt;/list&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
-</code></pre><p>You will notice that this method still works fine as well. There are a few other custom editors that spring provides in<br/>the <code>org.springframework.bean.propertyeditors</code> package, and it is also quite easy to implement your own, but I<br/>will save that for another day.</p></p>
+</code></pre> 
+<p>You will notice that this method still works fine as well. There are a few other custom editors that spring provides in<br> the <code>org.springframework.bean.propertyeditors</code> package, and it is also quite easy to implement your own, but I<br> will save that for another day.</p></p>
 
 
             <div class="row">

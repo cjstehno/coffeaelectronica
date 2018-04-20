@@ -97,15 +97,17 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 13 July 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>The other day I ran into something I had never tried to do with <a href="http://springframework.org/">Spring</a> before; define a<br/>bean as an instance of an inner class. I did a little searching through the Spring docs, but could not find anything<br/>about it, negative or positive. So, I just gave it a try. Consider the class:</p>
-<pre><code class="java">public abstract class IService {
+	<p><p>The other day I ran into something I had never tried to do with <a href="http://springframework.org/">Spring</a> before; define a<br> bean as an instance of an inner class. I did a little searching through the Spring docs, but could not find anything<br> about it, negative or positive. So, I just gave it a try. Consider the class:</p> 
+<pre><code class="language-java">public abstract class IService {
     public static class ServiceImpl extends IService {
         // something useful...
     }
 }
-</code></pre><p>which would have a bean definition of:</p>
-<pre><code class="xml">&lt;bean id=&quot;myService&quot; class=&quot;com.some.pkg.IService$ServiceImpl&quot; /&gt;
-</code></pre><p>where the $ is the separator between the main class and the inner class. This is how its represented in the actual<br/>class file so it makes sense. Nice.</p></p>
+</code></pre> 
+<p>which would have a bean definition of:</p> 
+<pre><code class="language-xml">&lt;bean id="myService" class="com.some.pkg.IService$ServiceImpl" /&gt;
+</code></pre> 
+<p>where the $ is the separator between the main class and the inner class. This is how its represented in the actual<br> class file so it makes sense. Nice.</p></p>
 
 
             <div class="row">

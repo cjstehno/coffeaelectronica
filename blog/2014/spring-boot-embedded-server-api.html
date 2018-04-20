@@ -97,8 +97,10 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 15 September 2014</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a></p>
 
-	<p><p>I have been investigating <a href="http://projects.spring.io/spring-boot/">Spring-Boot</a> for both work and personal projects and while it seems very all-encompassing and useful, I have found that its "opinionated" approach to development was a bit too aggressive for the project conversion I was doing at work; however, I did come to the realization that you don't have to use Spring-Boot as your projects core - you can use it and most of its features in your own project, just like any other java library.</p><p>The project I was working on had a customized embedded Jetty solution with a lot of tightly-coupled Jetty-specific configuration code with configuration being pulled from a Spring Application context. I did a little digging around in the Spring-Boot documentation and found that their API provides direct access to the embedded server abstraction used by a Boot project. On top of that, it's actually a very sane and friendly API to use. During my exploration and experimentation I was able to build up a simple demo application, which seemed like good fodder for a blog post - we're not going to solve any problems here, just a little playtime with the Spring-Boot embedded server API.</p><p>To start off, we need a project to work with; I called mine "spring-shoe" (not big enough for the whole boot, right?). I used Java 8, Groovy 2.3.2 and Gradle 2.0, but slightly older versions should also work fine - the build file looks like:</p>
-<pre><code class="groovy">apply plugin: &#39;groovy&#39;
+	<p><p>I have been investigating <a href="http://projects.spring.io/spring-boot/">Spring-Boot</a> for both work and personal projects and while it seems very all-encompassing and useful, I have found that its "opinionated" approach to development was a bit too aggressive for the project conversion I was doing at work; however, I did come to the realization that you don't have to use Spring-Boot as your projects core - you can use it and most of its features in your own project, just like any other java library.</p> 
+<p>The project I was working on had a customized embedded Jetty solution with a lot of tightly-coupled Jetty-specific configuration code with configuration being pulled from a Spring Application context. I did a little digging around in the Spring-Boot documentation and found that their API provides direct access to the embedded server abstraction used by a Boot project. On top of that, it's actually a very sane and friendly API to use. During my exploration and experimentation I was able to build up a simple demo application, which seemed like good fodder for a blog post - we're not going to solve any problems here, just a little playtime with the Spring-Boot embedded server API.</p> 
+<p>To start off, we need a project to work with; I called mine "spring-shoe" (not big enough for the whole boot, right?). I used Java 8, Groovy 2.3.2 and Gradle 2.0, but slightly older versions should also work fine - the build file looks like:</p> 
+<pre><code class="language-groovy">apply plugin: 'groovy'
 
 compileJava {
     sourceCompatibility = 1.8
@@ -114,29 +116,32 @@ repositories {
 }
 
 dependencies {
-    compile &#39;org.codehaus.groovy:groovy-all:2.3.2&#39;
+    compile 'org.codehaus.groovy:groovy-all:2.3.2'
 
-    compile &#39;javax.servlet:javax.servlet-api:3.0.1&#39;
-    compile &#39;org.eclipse.jetty:jetty-webapp:8.1.15.v20140411&#39;
+    compile 'javax.servlet:javax.servlet-api:3.0.1'
+    compile 'org.eclipse.jetty:jetty-webapp:8.1.15.v20140411'
 
-    compile &#39;org.springframework.boot:spring-boot:1.1.5.RELEASE&#39;
-    compile &#39;org.springframework:spring-web:4.0.6.RELEASE&#39;
-    compile &#39;org.springframework:spring-webmvc:4.0.6.RELEASE&#39;
+    compile 'org.springframework.boot:spring-boot:1.1.5.RELEASE'
+    compile 'org.springframework:spring-web:4.0.6.RELEASE'
+    compile 'org.springframework:spring-webmvc:4.0.6.RELEASE'
 }
-</code></pre><p>Notice, that I am using the spring-boot library, not the Gradle plugin or "starter" dependencies - this also means that you have to bring in other libraries yourself (e.g. the web and webmvc libraries above).</p><p>Next, we need an application starter, which just instantiates a specialized Application context, the <code>AnnotationConfigEmbeddedWebApplicationContext</code>:</p>
-<pre><code class="groovy">package shoe
+</code></pre> 
+<p>Notice, that I am using the spring-boot library, not the Gradle plugin or "starter" dependencies - this also means that you have to bring in other libraries yourself (e.g. the web and webmvc libraries above).</p> 
+<p>Next, we need an application starter, which just instantiates a specialized Application context, the <code>AnnotationConfigEmbeddedWebApplicationContext</code>:</p> 
+<pre><code class="language-groovy">package shoe
 
 import org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext
 import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext
 
 class Shoe {
     static void main( args ){
-        EmbeddedWebApplicationContext context = new AnnotationConfigEmbeddedWebApplicationContext(&#39;shoe.config&#39;)
-        println &quot;Started context on ${new Date(context.startupDate)}&quot;
+        EmbeddedWebApplicationContext context = new AnnotationConfigEmbeddedWebApplicationContext('shoe.config')
+        println "Started context on ${new Date(context.startupDate)}"
     }
 }
-</code></pre><p>Where the package <code>shoe.config</code> is where my configuration class lives - the package will be auto-scanned. When this class' main method is run, it instantiates the context and just prints out the context start date. Internally this context will search for the embedded server configuration beans as well as any servlets and filters to be loaded on the server - but I am jumping ahead; we need a configuration class:</p>
-<pre><code class="groovy">package shoe.config
+</code></pre> 
+<p>Where the package <code>shoe.config</code> is where my configuration class lives - the package will be auto-scanned. When this class' main method is run, it instantiates the context and just prints out the context start date. Internally this context will search for the embedded server configuration beans as well as any servlets and filters to be loaded on the server - but I am jumping ahead; we need a configuration class:</p> 
+<pre><code class="language-groovy">package shoe.config
 
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
@@ -152,12 +157,15 @@ class ShoeConfig {
         new JettyEmbeddedServletContainerFactory( 10101 )
     }
 }
-</code></pre><p>As you can see, it's just a simple Java-based configuration class. The <code>EmbeddedServletContainerFactory</code> class is the crucial part here. The context loader searches for a configured bean of that type and then loads it to create the embedded servlet container - a Jetty container in this case, running on port 10101.</p><p>Now, if you run <code>Shoe.main()</code> you will see some logging similar to what is shown below:</p>
+</code></pre> 
+<p>As you can see, it's just a simple Java-based configuration class. The <code>EmbeddedServletContainerFactory</code> class is the crucial part here. The context loader searches for a configured bean of that type and then loads it to create the embedded servlet container - a Jetty container in this case, running on port 10101.</p> 
+<p>Now, if you run <code>Shoe.main()</code> you will see some logging similar to what is shown below:</p> 
 <pre><code>...
 INFO: Jetty started on port: 10101
 Started context on Thu Sep 04 18:59:24 CDT 2014
-</code></pre><p>You have a running server, though its pretty boring since you have nothing useful configured. Let's start make it say hello using a simple servlet named <code>HelloServlet</code>:</p>
-<pre><code class="groovy">package shoe.servlet
+</code></pre> 
+<p>You have a running server, though its pretty boring since you have nothing useful configured. Let's start make it say hello using a simple servlet named <code>HelloServlet</code>:</p> 
+<pre><code class="language-groovy">package shoe.servlet
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServlet
@@ -169,18 +177,21 @@ class HelloServlet extends HttpServlet {
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException{
         resp.writer.withPrintWriter { w-&gt;
-            w.println &quot;Hello, ${req.getParameter(&#39;name&#39;)}&quot;
+            w.println "Hello, ${req.getParameter('name')}"
         }
     }
 }
-</code></pre><p>It's just a simple <code>HttpServlet</code> extension that says "hello" with the input value from the "name" parameter. Nothing really special here. We could have just as easily used an extension of Spring's <code>HttpServletBean</code> here instead. Moving back to the <code>ShoeConfig</code> class, the modifications are minimal, you just create the servlet and register it as a bean.</p>
-<pre><code class="groovy">@Bean HttpServlet helloServlet(){
+</code></pre> 
+<p>It's just a simple <code>HttpServlet</code> extension that says "hello" with the input value from the "name" parameter. Nothing really special here. We could have just as easily used an extension of Spring's <code>HttpServletBean</code> here instead. Moving back to the <code>ShoeConfig</code> class, the modifications are minimal, you just create the servlet and register it as a bean.</p> 
+<pre><code class="language-groovy">@Bean HttpServlet helloServlet(){
     new HelloServlet()
 }
-</code></pre><p>Now fire the server up again, and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> and you will get a response of:</p>
+</code></pre> 
+<p>Now fire the server up again, and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> and you will get a response of:</p> 
 <pre><code>Hello, Chris
-</code></pre><p>Actually, any path will resolve to that servlet since it's the only one configured. I will come back to configuration of multiple servlets and how to specify the url-mappings in a little bit, but let's take the next step and setup a <code>Filter</code> implementation. Let's create a Filter that counts requests as they come in and then passes the current count along with the continuing request.</p>
-<pre><code class="groovy">package shoe.servlet
+</code></pre> 
+<p>Actually, any path will resolve to that servlet since it's the only one configured. I will come back to configuration of multiple servlets and how to specify the url-mappings in a little bit, but let's take the next step and setup a <code>Filter</code> implementation. Let's create a Filter that counts requests as they come in and then passes the current count along with the continuing request.</p> 
+<pre><code class="language-groovy">package shoe.servlet
 
 import org.springframework.web.filter.GenericFilterBean
 
@@ -196,35 +207,42 @@ class RequestCountFilter extends GenericFilterBean {
 
     @Override
     void doFilter( ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException, ServletException{
-        request.setAttribute(&#39;request-count&#39;, count.incrementAndGet())
+        request.setAttribute('request-count', count.incrementAndGet())
 
         chain.doFilter( request, response )
     }
 }
-</code></pre><p>In this case, I am using the Spring helper, <code>GenericFilterBean</code> simply so I only have one method to implement, rather than three. I could have used a simple <code>Filter</code> implementation.</p><p>In order to make use of this new count information, we can tweak the <code>HelloServlet</code> so that it prints out the current count with the response - just change the <code>println</code> statement to:</p>
-<pre><code class="groovy">w.println &quot;&lt;${req.getAttribute(&#39;request-count&#39;)}&gt; Hello, ${req.getParameter(&#39;name&#39;)}&quot;
-</code></pre><p>Lastly for this case, we need to register the filter as a bean in the <code>ShoeConfig</code> class:</p>
-<pre><code class="groovy">@Bean Filter countingFilter(){
+</code></pre> 
+<p>In this case, I am using the Spring helper, <code>GenericFilterBean</code> simply so I only have one method to implement, rather than three. I could have used a simple <code>Filter</code> implementation.</p> 
+<p>In order to make use of this new count information, we can tweak the <code>HelloServlet</code> so that it prints out the current count with the response - just change the <code>println</code> statement to:</p> 
+<pre><code class="language-groovy">w.println "&lt;${req.getAttribute('request-count')}&gt; Hello, ${req.getParameter('name')}"
+</code></pre> 
+<p>Lastly for this case, we need to register the filter as a bean in the <code>ShoeConfig</code> class:</p> 
+<pre><code class="language-groovy">@Bean Filter countingFilter(){
     new RequestCountFilter()
 }
-</code></pre><p>Now, run the application again and hit the hello servlet a few times and you will see something like:</p>
+</code></pre> 
+<p>Now, run the application again and hit the hello servlet a few times and you will see something like:</p> 
 <pre><code>&lt;10&gt; Hello, Chris
-</code></pre><p>The default url-mapping for the filter is "/*" (all requests). While, this may be useful for some quick demo cases, it would be much more useful to be able to define the servlet and filter configuration similar to what you would do in the web container configuration - well, that's where the <code>RegistrationBeans</code> come into play.</p><p>Revisiting the servlet and filter configuration in <code>ShoeConfig</code> we can now provide a more detailed configuration with the help of the <code>ServletRegistrationBean</code> and the <code>FilterRegistrationBean</code> classes, as follows:</p>
-<pre><code class="groovy">@Bean ServletRegistrationBean helloServlet(){
+</code></pre> 
+<p>The default url-mapping for the filter is "/*" (all requests). While, this may be useful for some quick demo cases, it would be much more useful to be able to define the servlet and filter configuration similar to what you would do in the web container configuration - well, that's where the <code>RegistrationBeans</code> come into play.</p> 
+<p>Revisiting the servlet and filter configuration in <code>ShoeConfig</code> we can now provide a more detailed configuration with the help of the <code>ServletRegistrationBean</code> and the <code>FilterRegistrationBean</code> classes, as follows:</p> 
+<pre><code class="language-groovy">@Bean ServletRegistrationBean helloServlet(){
     new ServletRegistrationBean(
-        urlMappings:[ &#39;/hello&#39; ],
+        urlMappings:[ '/hello' ],
         servlet: new HelloServlet()
     )
 }
 
 @Bean FilterRegistrationBean countingFilter(){
     new FilterRegistrationBean(
-        urlPatterns:[ &#39;/*&#39; ],
+        urlPatterns:[ '/*' ],
         filter: new RequestCountFilter()
     )
 }
-</code></pre><p>We still leave the filter mapped to all requests, but you now have access to any of the filter mapping configuration parameters. For instance, we can add a simple init-param to the <code>RequestCountingFilter</code>, such as:</p>
-<pre><code class="groovy">int startValue = 0
+</code></pre> 
+<p>We still leave the filter mapped to all requests, but you now have access to any of the filter mapping configuration parameters. For instance, we can add a simple init-param to the <code>RequestCountingFilter</code>, such as:</p> 
+<pre><code class="language-groovy">int startValue = 0
 
 private AtomicInteger count
 
@@ -232,18 +250,21 @@ private AtomicInteger count
 protected void initFilterBean() throws ServletException {
     count = new AtomicInteger(startValue)
 }
-</code></pre><p>This will allow the starting value of the count to be specified as a filter init-parameter, which can be easily configured in the filter configuration:</p>
-<pre><code class="groovy">@Bean FilterRegistrationBean countingFilter(){
+</code></pre> 
+<p>This will allow the starting value of the count to be specified as a filter init-parameter, which can be easily configured in the filter configuration:</p> 
+<pre><code class="language-groovy">@Bean FilterRegistrationBean countingFilter(){
     new FilterRegistrationBean(
-        urlPatterns:[ &#39;/*&#39; ],
+        urlPatterns:[ '/*' ],
         filter: new RequestCountFilter(),
-        initParameters:[ &#39;startValue&#39;: &#39;1000&#39; ]
+        initParameters:[ 'startValue': '1000' ]
     )
 }
-</code></pre><p>Nice and simple. Now, when you run the application again and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> you get a 404 error. Why? Well, now you have specified a url-mapping for the servlet, try <a href="http://localhost:10101/hello?name=Chris">http://localhost:10101/hello?name=Chris</a> and you will see the expected result, something like:</p>
+</code></pre> 
+<p>Nice and simple. Now, when you run the application again and browse to <a href="http://localhost:10101/helloServlet?name=Chris">http://localhost:10101/helloServlet?name=Chris</a> you get a 404 error. Why? Well, now you have specified a url-mapping for the servlet, try <a href="http://localhost:10101/hello?name=Chris">http://localhost:10101/hello?name=Chris</a> and you will see the expected result, something like:</p> 
 <pre><code>&lt;1004&gt; Hello, Chris
-</code></pre><p>You can also register <code>ServletContextListeners</code> in a similar manner. Let's create a simple one:</p>
-<pre><code class="groovy">package shoe.servlet
+</code></pre> 
+<p>You can also register <code>ServletContextListeners</code> in a similar manner. Let's create a simple one:</p> 
+<pre><code class="language-groovy">package shoe.servlet
 
 import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
@@ -252,28 +273,33 @@ class LoggingListener implements ServletContextListener {
 
     @Override
     void contextInitialized(ServletContextEvent sce) {
-        println &quot;Initialized: $sce&quot;
+        println "Initialized: $sce"
     }
 
     @Override
     void contextDestroyed(ServletContextEvent sce) {
-        println &quot;Destroyed: $sce&quot;
+        println "Destroyed: $sce"
     }
 }
-</code></pre><p>And then configure it in <code>ShoeConfig</code>:</p>
-<pre><code class="groovy">@Bean ServletListenerRegistrationBean listener(){
+</code></pre> 
+<p>And then configure it in <code>ShoeConfig</code>:</p> 
+<pre><code class="language-groovy">@Bean ServletListenerRegistrationBean listener(){
     new ServletListenerRegistrationBean(
         listener: new LoggingListener()
     )
 }
-</code></pre><p>Then, when you run the application, you will get a message in the server output like:</p>
+</code></pre> 
+<p>Then, when you run the application, you will get a message in the server output like:</p> 
 <pre><code>Initialized: javax.servlet.ServletContextEvent[source=ServletContext@o.s.b.c.e.j.JettyEmbeddedWebAppContext{/,null}]
-</code></pre><p>Now, let's do something a bit more interesting - let's setup a Spring-MVC configuration inside our embedded server.</p><p>The first thing you need for a minimal Spring-MVC configuration is a <code>DispatcherServlet</code> which, at its heart, is just an <code>HttpServlet</code> so we can just configure it as a bean in <code>ShoeConfig</code>:</p>
-<pre><code class="groovy">@Bean HttpServlet dispatcherServlet(){
+</code></pre> 
+<p>Now, let's do something a bit more interesting - let's setup a Spring-MVC configuration inside our embedded server.</p> 
+<p>The first thing you need for a minimal Spring-MVC configuration is a <code>DispatcherServlet</code> which, at its heart, is just an <code>HttpServlet</code> so we can just configure it as a bean in <code>ShoeConfig</code>:</p> 
+<pre><code class="language-groovy">@Bean HttpServlet dispatcherServlet(){
     new DispatcherServlet()
 }
-</code></pre><p>Then, we need a controller to make sure this configuration works - how about a simple controller that responds with the current time; we will also dump the request count to show that the filter is still in play. The controller looks like:</p>
-<pre><code class="groovy">package shoe.controller
+</code></pre> 
+<p>Then, we need a controller to make sure this configuration works - how about a simple controller that responds with the current time; we will also dump the request count to show that the filter is still in play. The controller looks like:</p> 
+<pre><code class="language-groovy">package shoe.controller
 
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -283,19 +309,24 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 class TimeController {
 
-    @RequestMapping(&#39;/time&#39;)
+    @RequestMapping('/time')
     String time( HttpServletRequest request ){
-        &quot;&lt;${request.getAttribute(&#39;request-count&#39;)}&gt; Current-time: ${new Date()}&quot;
+        "&lt;${request.getAttribute('request-count')}&gt; Current-time: ${new Date()}"
     }
 }
-</code></pre><p>Lastly for this example, we need to load the controller into the configuration; just add a <code>@ComponentScan</code> annotation to the <code>ShoeConfig</code> as:</p>
-<pre><code class="groovy">@ComponentScan(basePackages=[&#39;shoe.controller&#39;])
-</code></pre><p>Fire up the server and hit the <a href="http://localhost:10101/time">http://localhost:10101/time</a> controller and you see something similar to:</p>
+</code></pre> 
+<p>Lastly for this example, we need to load the controller into the configuration; just add a <code>@ComponentScan</code> annotation to the <code>ShoeConfig</code> as:</p> 
+<pre><code class="language-groovy">@ComponentScan(basePackages=['shoe.controller'])
+</code></pre> 
+<p>Fire up the server and hit the <a href="http://localhost:10101/time">http://localhost:10101/time</a> controller and you see something similar to:</p> 
 <pre><code>&lt;1002&gt; Current-time: Fri Sep 05 07:02:36 CDT 2014
-</code></pre><p>Now you have the ability to do any of your Spring-MVC work with this configuration, while the standard filter and servlet still work as before.</p>
-<blockquote><p>As a best-practice, I would suggest keeping this server configuration code separate from other configuration code for anything more than a trivial application (i.e. you wouldn't do your security and database config in this same file).</p>
-</blockquote><p>For my last discussion point, I want to point out that the embedded server configuration also allows you to do additional customization to the actual server instance during startup. To handle this additional configuration, Spring provides the <code>JettyServerCustomizer</code> interface. You simply implement this interface and add it to your sever configuration factory bean. Let's do a little customization:</p>
-<pre><code class="groovy">class ShoeCustomizer implements JettyServerCustomizer {
+</code></pre> 
+<p>Now you have the ability to do any of your Spring-MVC work with this configuration, while the standard filter and servlet still work as before.</p> 
+<blockquote> 
+ <p>As a best-practice, I would suggest keeping this server configuration code separate from other configuration code for anything more than a trivial application (i.e. you wouldn't do your security and database config in this same file).</p> 
+</blockquote> 
+<p>For my last discussion point, I want to point out that the embedded server configuration also allows you to do additional customization to the actual server instance during startup. To handle this additional configuration, Spring provides the <code>JettyServerCustomizer</code> interface. You simply implement this interface and add it to your sever configuration factory bean. Let's do a little customization:</p> 
+<pre><code class="language-groovy">class ShoeCustomizer implements JettyServerCustomizer {
 
     @Override
     void customize( Server server ){
@@ -309,16 +340,20 @@ class TimeController {
         server.setSendDateHeader(true)
     }
 }
-</code></pre><p>Basically just a tweak of the main connector and also telling the server to send an additional response header with the date value. This needs to be wired into the factory configuration, so that bean definition becomes:</p>
-<pre><code class="groovy">@Bean EmbeddedServletContainerFactory embeddedServletContainerFactory(){
+</code></pre> 
+<p>Basically just a tweak of the main connector and also telling the server to send an additional response header with the date value. This needs to be wired into the factory configuration, so that bean definition becomes:</p> 
+<pre><code class="language-groovy">@Bean EmbeddedServletContainerFactory embeddedServletContainerFactory(){
     def factory = new JettyEmbeddedServletContainerFactory( 10101 )
     factory.addServerCustomizers( new ShoeCustomizer() )
     return factory
 }
-</code></pre><p>Now when you start the server and hit the time controller you will see an additional header in the response:</p>
+</code></pre> 
+<p>Now when you start the server and hit the time controller you will see an additional header in the response:</p> 
 <pre><code>Date:Fri, 05 Sep 2014 12:15:27 GMT
-</code></pre><p>As you can see from this long discussion, the Spring-Boot embedded server API is quite useful all on its own. It's nice to see that Spring has exposed this functionality as part of its public API rather than hiding it under the covers somewhere.</p>
-<blockquote><p>The code I used for this article can be found in the main repository for this project, under the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/spring-shoe">spring-shoe</a> directory.</p>
+</code></pre> 
+<p>As you can see from this long discussion, the Spring-Boot embedded server API is quite useful all on its own. It's nice to see that Spring has exposed this functionality as part of its public API rather than hiding it under the covers somewhere.</p> 
+<blockquote> 
+ <p>The code I used for this article can be found in the main repository for this project, under the <a href="https://github.com/cjstehno/coffeaelectronica/tree/master/spring-shoe">spring-shoe</a> directory.</p> 
 </blockquote></p>
 
 

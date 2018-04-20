@@ -97,14 +97,18 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 April 2012</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>Here's a quick tip I found recently. I am sure we have all done this or run into this while coding time duration values, most of which end up being milliseconds.</p>
-<pre><code class="groovy">long waitTime = 2 * 60 * 1000 // 2 minutes
-</code></pre><p>or worse yet, you run into the less descriptive version:</p>
-<pre><code class="groovy">long waitTime = 120000
-</code></pre><p>Neither of these is wrong or even all that horrible considering the fact that generally you set these values and forget them; however, there is a clean way to do this that is also much more explicit using TimeUnit:</p>
-<pre><code class="groovy">import java.util.concurrent.TimeUnit
+	<p><p>Here's a quick tip I found recently. I am sure we have all done this or run into this while coding time duration values, most of which end up being milliseconds.</p> 
+<pre><code class="language-groovy">long waitTime = 2 * 60 * 1000 // 2 minutes
+</code></pre> 
+<p>or worse yet, you run into the less descriptive version:</p> 
+<pre><code class="language-groovy">long waitTime = 120000
+</code></pre> 
+<p>Neither of these is wrong or even all that horrible considering the fact that generally you set these values and forget them; however, there is a clean way to do this that is also much more explicit using TimeUnit:</p> 
+<pre><code class="language-groovy">import java.util.concurrent.TimeUnit
 long waitTime1 = TimeUnit.MILLISECONDS.convert( 2, TimeUnit.MINUTES )
-</code></pre><p>which says, "Give me 2 minutes, in milliseconds".</p><p>This allows you to have the expression of the units involved right in the code while making it trivial to change the value as needed without potential math errors (yes, I have seen missing zeros).</p></p>
+</code></pre> 
+<p>which says, "Give me 2 minutes, in milliseconds".</p> 
+<p>This allows you to have the expression of the units involved right in the code while making it trivial to change the value as needed without potential math errors (yes, I have seen missing zeros).</p></p>
 
 
             <div class="row">

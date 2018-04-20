@@ -97,14 +97,16 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 10 September 2006</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><p>I started looking into RMI again; it's been a while since I have used it directly and as often happens, I got sidetracked.<br/>I found out how easy it is very to setup an RMI registry with <a href="http://springframework.org/">Spring</a> and then access the<br/>bound objects via JNDI.</p><p>First, we need an object to bind. Let's keep it simple and just have two methods: one for getting the current date and<br/>another that will return the string that we pass into it. If you remember your RMI you know that we need an interface<br/>that extends <code>java.rmi.Remote</code> and an object that implements that interface. For the interface:</p>
-<pre><code class="java">public interface MyRemote extends Remote {
+	<p><p>I started looking into RMI again; it's been a while since I have used it directly and as often happens, I got sidetracked.<br> I found out how easy it is very to setup an RMI registry with <a href="http://springframework.org/">Spring</a> and then access the<br> bound objects via JNDI.</p> 
+<p>First, we need an object to bind. Let's keep it simple and just have two methods: one for getting the current date and<br> another that will return the string that we pass into it. If you remember your RMI you know that we need an interface<br> that extends <code>java.rmi.Remote</code> and an object that implements that interface. For the interface:</p> 
+<pre><code class="language-java">public interface MyRemote extends Remote {
     public Date getTimestamp() throws RemoteException;
 
     public String echoString(String str) throws RemoteException;
 }
-</code></pre><p>and for the implementation:</p>
-<pre><code class="java">public class MyRemoteImpl implements MyRemote {
+</code></pre> 
+<p>and for the implementation:</p> 
+<pre><code class="language-java">public class MyRemoteImpl implements MyRemote {
     private static final long serialVersionUID = 9222184580750208673L;
 
     public MyRemoteImpl() throws RemoteException {
@@ -119,36 +121,45 @@
         return(str);
     }
 }
-</code></pre><p>Next, you will need a spring context to work with. I am not going into the details of Spring configuration here,<br/>but I will show the bean definitions for the necessary beans; the object to be bound, the service exporter and the<br/>registry factory. The object to be bound is our <code>MyRemoteImpl</code> and it's just a simple bean:</p>
-<pre><code class="xml">&lt;bean id=&#39;service.MyRemote&#39; class=&#39;rmi.MyRemoteImpl&#39; /&gt;
-</code></pre><p>The RMI registry configuration is pretty simple using the <code>RmiRegistryFactoryBean</code>.</p>
-<pre><code class="xml">&lt;bean id=&#39;rmi.Registry&#39; class=&#39;org.springframework.remoting.rmi.RmiRegistryFactoryBean&#39;&gt;
-    &lt;property name=&#39;port&#39; value=&#39;1099&#39; /&gt;
+</code></pre> 
+<p>Next, you will need a spring context to work with. I am not going into the details of Spring configuration here,<br> but I will show the bean definitions for the necessary beans; the object to be bound, the service exporter and the<br> registry factory. The object to be bound is our <code>MyRemoteImpl</code> and it's just a simple bean:</p> 
+<pre><code class="language-xml">&lt;bean id='service.MyRemote' class='rmi.MyRemoteImpl' /&gt;
+</code></pre> 
+<p>The RMI registry configuration is pretty simple using the <code>RmiRegistryFactoryBean</code>.</p> 
+<pre><code class="language-xml">&lt;bean id='rmi.Registry' class='org.springframework.remoting.rmi.RmiRegistryFactoryBean'&gt;
+    &lt;property name='port' value='1099' /&gt;
 &lt;/bean&gt;
-</code></pre><p>This will retrieve or create a registry on the localhost port 1099.</p>
-<blockquote><p><em>NOTE:</em> be sure that you do not specify the host property if you want the registry to be created. The bean will only create a registry on the localhost<br/>and only if the host property is not set.</p>
-</blockquote><p>Then we need to export the service to the registry (bind the object). To do that we use the <code>RmiServiceExporter</code>.</p>
-<pre><code class="xml">&lt;bean id=&#39;rmi.service.MyRemote&#39; class=&#39;org.springframework.remoting.rmi.RmiServiceExporter&#39;&gt;
-    &lt;property name=&#39;serviceName&#39; value=&#39;myRemote&#39; /&gt;
-    &lt;property name=&#39;serviceInterface&#39; value=&#39;rmi.MyRemote&#39; /&gt;
-    &lt;property name=&#39;service&#39; ref=&#39;service.MyRemote&#39; /&gt;
-    &lt;property name=&#39;registry&#39; ref=&#39;rmi.Registry&#39; /&gt;
+</code></pre> 
+<p>This will retrieve or create a registry on the localhost port 1099.</p> 
+<blockquote> 
+ <p><em>NOTE:</em> be sure that you do not specify the host property if you want the registry to be created. The bean will only create a registry on the localhost<br> and only if the host property is not set.</p> 
+</blockquote> 
+<p>Then we need to export the service to the registry (bind the object). To do that we use the <code>RmiServiceExporter</code>.</p> 
+<pre><code class="language-xml">&lt;bean id='rmi.service.MyRemote' class='org.springframework.remoting.rmi.RmiServiceExporter'&gt;
+    &lt;property name='serviceName' value='myRemote' /&gt;
+    &lt;property name='serviceInterface' value='rmi.MyRemote' /&gt;
+    &lt;property name='service' ref='service.MyRemote' /&gt;
+    &lt;property name='registry' ref='rmi.Registry' /&gt;
 &lt;/bean&gt;
-</code></pre><p>As you can see, we specify the name that the object is bound to, the registry it is to be bound to and the interface and<br/>object being bound. Once those three beans are in place, a RMI registry will be started and have the <code>MyRemoteImpl</code> object<br/>bound to it. It's as simple as that. You can test the binding with a couple lines of code:</p>
-<pre><code class="java">Registry registry = LocateRegistry.getRegistry(1099);
-MyRemote myRemote = (MyRemote)registry.lookup(&quot;myRemote&quot;);
+</code></pre> 
+<p>As you can see, we specify the name that the object is bound to, the registry it is to be bound to and the interface and<br> object being bound. Once those three beans are in place, a RMI registry will be started and have the <code>MyRemoteImpl</code> object<br> bound to it. It's as simple as that. You can test the binding with a couple lines of code:</p> 
+<pre><code class="language-java">Registry registry = LocateRegistry.getRegistry(1099);
+MyRemote myRemote = (MyRemote)registry.lookup("myRemote");
 Date date = myRemote.getTimestamp();
-</code></pre><p>But, hey, I mentioned something about accessing the registry via JNDI. The details of the whole RMI/JNDI connection<br/>can be found in the Sun J2SE JavaDocs <a href="http://java.sun.com/j2se/1.4.2/docs/guide/jndi/jndi-rmi.html">JNDI Guide</a>, but I<br/>will show a little example code... it's pretty simple. Everything we have done so far stays the same except for the<br/>client code used to access the registry and lookup the object. Now we want to use JNDI. First we need to setup the JNDI<br/>properties either on the command line or some other means. I used the code below:</p>
-<pre><code class="java">System.setProperty( Context.INITIAL_CONTEXT_FACTORY,&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot; );
+</code></pre> 
+<p>But, hey, I mentioned something about accessing the registry via JNDI. The details of the whole RMI/JNDI connection<br> can be found in the Sun J2SE JavaDocs <a href="http://java.sun.com/j2se/1.4.2/docs/guide/jndi/jndi-rmi.html">JNDI Guide</a>, but I<br> will show a little example code... it's pretty simple. Everything we have done so far stays the same except for the<br> client code used to access the registry and lookup the object. Now we want to use JNDI. First we need to setup the JNDI<br> properties either on the command line or some other means. I used the code below:</p> 
+<pre><code class="language-java">System.setProperty( Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.rmi.registry.RegistryContextFactory" );
 
-System.setProperty(Context.PROVIDER_URL,&quot;rmi://localhost:1099&quot;);
-</code></pre><p>Then to access the bound object:</p>
-<pre><code class="java">final Context ictx = new InitialContext();
-MyRemote myRemote = (MyRemote)ictx.lookup(&quot;myRemote&quot;);
+System.setProperty(Context.PROVIDER_URL,"rmi://localhost:1099");
+</code></pre> 
+<p>Then to access the bound object:</p> 
+<pre><code class="language-java">final Context ictx = new InitialContext();
+MyRemote myRemote = (MyRemote)ictx.lookup("myRemote");
 
-System.out.println(&quot;Date: &quot; + myRemote.getTimestamp());
-System.out.println(&quot;Echo: &quot; + myRemote.echoString(&quot;Hello RMI&quot;));
-</code></pre><p>You can now access the bound objects via direct RMI or JNDI lookup and you can embed the remote references in a<br/>different spring context using the JNDI factory beans (I'll leave that for another time). You can't get much simpler<br/>than that.</p></p>
+System.out.println("Date: " + myRemote.getTimestamp());
+System.out.println("Echo: " + myRemote.echoString("Hello RMI"));
+</code></pre> 
+<p>You can now access the bound objects via direct RMI or JNDI lookup and you can embed the remote references in a<br> different spring context using the JNDI factory beans (I'll leave that for another time). You can't get much simpler<br> than that.</p></p>
 
 
             <div class="row">

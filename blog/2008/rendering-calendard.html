@@ -97,13 +97,14 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 31 May 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I am poking around with an idea I had to generate desktop background images with little calendars embedded in them and I<br/>realized that there is no really easy method of rendering your standard square text calendar display. I decided to play<br/>around with it a bit. The basic algorithm to generate the weeks and their associated days is nothing too complicated:</p>
-<ol>
-  <li>Figure out what day of the week the first day of the month falls on.</li>
-  <li>Subtract from that the value for Sunday (the start of the week), which assumes that the day of the week field values are sequential (which they are).</li>
-  <li>Iterate through the day of the month keeping track of the week breaks.</li>
-</ol><p>I created a factory class, <code>MonthFactory</code> and a couple helper model objects, <code>Month</code> and <code>Week</code> to make things a little<br/>easier. <code>Month</code> and <code>Week</code> are pretty simple data objects used to store the month and week data in a meaningful structure.</p>
-<pre><code class="java">public class Week {
+	<p><p>I am poking around with an idea I had to generate desktop background images with little calendars embedded in them and I<br> realized that there is no really easy method of rendering your standard square text calendar display. I decided to play<br> around with it a bit. The basic algorithm to generate the weeks and their associated days is nothing too complicated:</p> 
+<ol> 
+ <li>Figure out what day of the week the first day of the month falls on.</li> 
+ <li>Subtract from that the value for Sunday (the start of the week), which assumes that the day of the week field values are sequential (which they are).</li> 
+ <li>Iterate through the day of the month keeping track of the week breaks.</li> 
+</ol> 
+<p>I created a factory class, <code>MonthFactory</code> and a couple helper model objects, <code>Month</code> and <code>Week</code> to make things a little<br> easier. <code>Month</code> and <code>Week</code> are pretty simple data objects used to store the month and week data in a meaningful structure.</p> 
+<pre><code class="language-java">public class Week {
 
     private final String[] days = new String[7];
     private int index = 0;
@@ -126,8 +127,9 @@
         return Arrays.toString(days);
     }
 }
-</code></pre><p>I used strings to store the day values, you could also use ints.</p>
-<pre><code class="java">public class Month {
+</code></pre> 
+<p>I used strings to store the day values, you could also use ints.</p> 
+<pre><code class="language-java">public class Month {
 
     private final List&lt;Week&gt;; weeks = new LinkedList&lt;Week&gt;();
     private final String name;
@@ -152,11 +154,12 @@
 
     @Override
     public String toString() {
-        return &quot;{&quot; + name + &quot; &quot; + year + &quot;: weeks=&quot; + weeks.toString();
+        return "{" + name + " " + year + ": weeks=" + weeks.toString();
     }
 }
-</code></pre><p>Both of these classes have very limited public interfaces. They exist in the same package as the <code>MonthFactory</code> class which<br/>is used to build them. External client classes should really only be accessing them as read-only. The <code>MonthFactory</code> is also<br/>pretty simple, but it does contain the algorithm I mentioned earlier so it is the meat of the whole example:</p>
-<pre><code class="java">public class MonthFactory {
+</code></pre> 
+<p>Both of these classes have very limited public interfaces. They exist in the same package as the <code>MonthFactory</code> class which<br> is used to build them. External client classes should really only be accessing them as read-only. The <code>MonthFactory</code> is also<br> pretty simple, but it does contain the algorithm I mentioned earlier so it is the meat of the whole example:</p> 
+<pre><code class="language-java">public class MonthFactory {
 
     public static Month create(final int calendarMonth, final int year) throws Exception {
         validate(calendarMonth,year);
@@ -187,32 +190,33 @@
 
     private static void validate(final int calMon,final int year){
         if(calMon &lt; Calendar.JANUARY || calMon &gt; Calendar.DECEMBER){
-            throw new IllegalArgumentException(&quot;Invalid Calendar Month specified: &quot; + calMon);
+            throw new IllegalArgumentException("Invalid Calendar Month specified: " + calMon);
         }
 
         if(year &lt; 0){
-            throw new IllegalArgumentException(&quot;Year must be non-negative: &quot; + year);
+            throw new IllegalArgumentException("Year must be non-negative: " + year);
         }
     }
 }
-</code></pre><p>I even threw in some simple input validation for free. Now for a simple use of this code I created a <code>TextCalendar</code> class<br/>that simply generates a text calendar which will look right if it's rendered in a fixed-width font.</p>
-<pre><code class="java">public class TextCalendar {
+</code></pre> 
+<p>I even threw in some simple input validation for free. Now for a simple use of this code I created a <code>TextCalendar</code> class<br> that simply generates a text calendar which will look right if it's rendered in a fixed-width font.</p> 
+<pre><code class="language-java">public class TextCalendar {
     public static void main(final String[] args) throws Exception {
         final Month month = MonthFactory.create(Calendar.JULY,2008);
         final StringBuilder str = new StringBuilder();
-        final String header = month.getName() + &quot; &quot; + String.valueOf(month.getYear());
-        str.append(padding(10 - header.length()/2,&#39; &#39;)).append(header).append(&#39;\n&#39;);
+        final String header = month.getName() + " " + String.valueOf(month.getYear());
+        str.append(padding(10 - header.length()/2,' ')).append(header).append('\n');
 
         for(final Week week : month.weeks()){
             for(final String day : week.days()){
                 if(day == null){
-                    str.append(&quot;  &quot;);
+                    str.append("  ");
                 } else {
-                    str.append(day.length() == 2 ? day : &quot; &quot; + day);
+                    str.append(day.length() == 2 ? day : " " + day);
                 }
-                str.append(&quot; &quot;);
+                str.append(" ");
             }
-            str.append(&#39;\n&#39;);
+            str.append('\n');
         }
 
         System.out.println(str.toString());
@@ -224,14 +228,16 @@
         return new String(pad);
     }
 }
-</code></pre><p>This just serves to show how easy this makes calendar rendering. Upon running this little application you will get the<br/>following nicely formatted calendar (I even centered the header):</p>
+</code></pre> 
+<p>This just serves to show how easy this makes calendar rendering. Upon running this little application you will get the<br> following nicely formatted calendar (I even centered the header):</p> 
 <pre><code>     July 2008
        1  2  3  4  5
  6  7  8  9 10 11 12
 13 14 15 16 17 18 19
 20 21 22 23 24 25 26
 27 28 29 30 31
-</code></pre><p>If there are existing libraries to do this, I would love to hear about them. I could not find anything. Obviously this<br/>example corresponds to the standard US display of the Gregorian Calendar. I would think that it could be made to work<br/>for other calendars as well, but I have never actually seen any other calendars displayed... I guess I need to travel<br/>the world more. I provide these as examples only; there may be better ways to accomplish this and there are definitely<br/>code modifications and improvements that could be made. I am not currently using this code anywhere... it was just an<br/>experiment. Use at your own risk.</p></p>
+</code></pre> 
+<p>If there are existing libraries to do this, I would love to hear about them. I could not find anything. Obviously this<br> example corresponds to the standard US display of the Gregorian Calendar. I would think that it could be made to work<br> for other calendars as well, but I have never actually seen any other calendars displayed... I guess I need to travel<br> the world more. I provide these as examples only; there may be better ways to accomplish this and there are definitely<br> code modifications and improvements that could be made. I am not currently using this code anywhere... it was just an<br> experiment. Use at your own risk.</p></p>
 
 
             <div class="row">

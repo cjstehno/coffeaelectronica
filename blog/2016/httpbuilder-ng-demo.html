@@ -97,184 +97,166 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 18 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><div class="paragraph">
-<p>The <a href="https://github.com/jgritman/httpbuilder"><code>HttpBuilder</code></a> project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly
-died. A friend of mine (<a href="https://github.com/dwclark">Dave Clark</a>) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The
-<a href="https://github.com/dwclark/http-builder-ng">HTTP Builder NG</a> project is a major update and refactor of the original project. I joined on to help with development, documentation and testing. In my opinion,
-this effort has brought the library back from the dead, better than ever. In this post, I will walk through accessing a simple REST service using the <code>HttpBuilder</code> with both Groovy and Java examples -
-yes, the new version of the library supports standard Java 8 coding.</p>
-</div>
-<div class="paragraph">
-<p>First, we need a REST service to work with. I have thrown together a simple set of endpoints using the <a href="http://sparkjava.com">Spark Web Framework</a> to make a "message of the day" service. There are three
-endpoints:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>GET /message</code> - retrieves the current stored message</p>
-</li>
-<li>
-<p><code>POST /message</code> - saves the <code>text</code> field of the JSON body content as the new message</p>
-</li>
-<li>
-<p><code>DELETE /message</code> - deletes the current message</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>There is not much to it, but it should be enough to play with. You can find the code in the [repo for this post](<a href="https://github.com/cjstehno/httpb-demo" class="bare">https://github.com/cjstehno/httpb-demo</a>). Startup the server by running:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>./gradlew run</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In the root of the project. The server will be running on <a href="http://localhost:4567" class="bare">http://localhost:4567</a>.</p>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s start off by retrieving the current message from the server. We need a base configured <code>HttpBuilder</code> object to make requests from:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
+	<p><div class="paragraph"> 
+ <p>The <a href="https://github.com/jgritman/httpbuilder"><code>HttpBuilder</code></a> project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly died. A friend of mine (<a href="https://github.com/dwclark">Dave Clark</a>) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The <a href="https://github.com/dwclark/http-builder-ng">HTTP Builder NG</a> project is a major update and refactor of the original project. I joined on to help with development, documentation and testing. In my opinion, this effort has brought the library back from the dead, better than ever. In this post, I will walk through accessing a simple REST service using the <code>HttpBuilder</code> with both Groovy and Java examples - yes, the new version of the library supports standard Java 8 coding.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>First, we need a REST service to work with. I have thrown together a simple set of endpoints using the <a href="http://sparkjava.com">Spark Web Framework</a> to make a "message of the day" service. There are three endpoints:</p> 
+</div> 
+<div class="ulist"> 
+ <ul> 
+  <li> <p><code>GET /message</code> - retrieves the current stored message</p> </li> 
+  <li> <p><code>POST /message</code> - saves the <code>text</code> field of the JSON body content as the new message</p> </li> 
+  <li> <p><code>DELETE /message</code> - deletes the current message</p> </li> 
+ </ul> 
+</div> 
+<div class="paragraph"> 
+ <p>There is not much to it, but it should be enough to play with. You can find the code in the [repo for this post](<a href="https://github.com/cjstehno/httpb-demo" class="bare">https://github.com/cjstehno/httpb-demo</a>). Startup the server by running:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>./gradlew run</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In the root of the project. The server will be running on <a href="http://localhost:4567" class="bare">http://localhost:4567</a>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Let’s start off by retrieving the current message from the server. We need a base configured <code>HttpBuilder</code> object to make requests from:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
     request.uri = 'http://localhost:4567'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then, we need to make a <code>GET</code> request to the <code>/message</code> path:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def result = http.get {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Then, we need to make a <code>GET</code> request to the <code>/message</code> path:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def result = http.get {
     request.uri.path = '/message'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When you run this code, you will get the following:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[text:n/a, timestamp:2016-09-16T12:47:55+0000]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which is a <code>Map</code> of the parsed JSON data coming back from the server - the <code>HttpBuilder</code> recognizes the <code>application/json</code> response content and parses it for you. In this case
-all we really want is the text, so let&#8217;s transform the response data a bit:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String text = http.get(String){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>When you run this code, you will get the following:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>[text:n/a, timestamp:2016-09-16T12:47:55+0000]</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which is a <code>Map</code> of the parsed JSON data coming back from the server - the <code>HttpBuilder</code> recognizes the <code>application/json</code> response content and parses it for you. In this case all we really want is the text, so let’s transform the response data a bit:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String text = http.get(String){
     request.uri.path = '/message'
     response.success { FromServer from, Object body-&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We have added an expected result type of <code>String</code> and a <code>response.success()</code> handler. This handler will be called when a successful response code is received (code &lt; 400). When
-it is called it will pull the text field out of our body object, which in this case, is the already-parsed JSON data. The return value from the <code>success()</code> method is returned
-as the result - the text of the current message. When you run this version of the code you get the current message text:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is the default "empty" message content. How do we update the message to something more interesting? The service exposes <code>POST /message</code> which will take the <code>text</code> field of the request body
-content and use it as the new message. We can write a <code>POST</code> request just as easily as our <code>GET</code> request:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String updated = http.post(String) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We have added an expected result type of <code>String</code> and a <code>response.success()</code> handler. This handler will be called when a successful response code is received (code &lt; 400). When it is called it will pull the text field out of our body object, which in this case, is the already-parsed JSON data. The return value from the <code>success()</code> method is returned as the result - the text of the current message. When you run this version of the code you get the current message text:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This is the default "empty" message content. How do we update the message to something more interesting? The service exposes <code>POST /message</code> which will take the <code>text</code> field of the request body content and use it as the new message. We can write a <code>POST</code> request just as easily as our <code>GET</code> request:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String updated = http.post(String) {
     request.uri.path = '/message'
     request.contentType = 'application/json'
     request.body = { text 'HttpBuilder is alive!' }
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Again, we will expect the text of the new message back from the server, but this time we are calling the <code>post()</code> method with a JSON content type. Note that our body content is using the Groovy
-<code>JsonBuilder</code> closure format, it could have just as easily been a <code>Map</code> of the data to be encoded. Similar to the response decoding, the request body is automatically encoded based on the content
-type.</p>
-</div>
-<div class="paragraph">
-<p>If you run the code now, you will get:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>HttpBuilder is alive!</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You could also call the <code>get()</code> method again and verify that it is the current message.</p>
-</div>
-<div class="paragraph">
-<p>As a final example with our service, let&#8217;s call the <code>DELETE /message</code> endpoint to reset the message back to it&#8217;s "empty" state. A <code>DELETE</code> request is just as simple:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String deleted = http.delete(String){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Again, we will expect the text of the new message back from the server, but this time we are calling the <code>post()</code> method with a JSON content type. Note that our body content is using the Groovy <code>JsonBuilder</code> closure format, it could have just as easily been a <code>Map</code> of the data to be encoded. Similar to the response decoding, the request body is automatically encoded based on the content type.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>If you run the code now, you will get:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>HttpBuilder is alive!</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>You could also call the <code>get()</code> method again and verify that it is the current message.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>As a final example with our service, let’s call the <code>DELETE /message</code> endpoint to reset the message back to it’s "empty" state. A <code>DELETE</code> request is just as simple:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String deleted = http.delete(String){
     request.uri.path = '/message'
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The result will be the new message after deletion:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which is the "empty" state.</p>
-</div>
-<div class="paragraph">
-<p>One thing we notice now that we have written all of the verb calls is that there are a lot of similarities between them. They all call the same <code>path</code> and they all handle the successful response
-content in the same manner. I am not a fan of duplication, so we can move the common configuration up into the main <code>configure</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The result will be the new message after deletion:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which is the "empty" state.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>One thing we notice now that we have written all of the verb calls is that there are a lot of similarities between them. They all call the same <code>path</code> and they all handle the successful response content in the same manner. I am not a fan of duplication, so we can move the common configuration up into the main <code>configure</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
     request.uri = 'http://localhost:4567/message'
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and our verb methods, now contain only what they need to do their work:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String message = http.get(String) {}
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and our verb methods, now contain only what they need to do their work:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String message = http.get(String) {}
 
 String updated = http.post(String) {
     request.contentType = 'application/json'
     request.body = { text 'HttpBuilder is alive!' }
 }
 
-String deleted = http.delete(String) {}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Nice and clean. Now wait, I know, I promised something similar in plain old Java, well Java 8 anyway&#8230;&#8203; ok, you can do the same operations in Java with a fairly similar expressiveness:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpBuilder http = HttpBuilder.configure(config -&gt; {
+String deleted = http.delete(String) {}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Nice and clean. Now wait, I know, I promised something similar in plain old Java, well Java 8 anyway…​ ok, you can do the same operations in Java with a fairly similar expressiveness:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpBuilder http = HttpBuilder.configure(config -&gt; {
     config.getRequest().setUri("http://localhost:4567/message");
     config.getResponse().success(new BiFunction&lt;FromServer, Object, String&gt;() {
         @Override public String apply(FromServer fromServer, Object body) {
@@ -300,22 +282,21 @@ System.out.println("Updated content: " + updated);
 
 String deleted = http.delete(String.class, config -&gt; {});
 
-System.out.println("Post-delete content: " + deleted);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that the Java 8 lambdas make the syntax about as simple as the Groovy DSL. When you run this version of the client you get:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Starting content: n/a
+System.out.println("Post-delete content: " + deleted);</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that the Java 8 lambdas make the syntax about as simple as the Groovy DSL. When you run this version of the client you get:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>Starting content: n/a
 Updated content: HttpBuilder works from Java too!
-Post-delete content: n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In Java or Groovy, the library makes HTTP interactions much easier to work with. Check out the <a href="https://github.com/dwclark/http-builder-ng">project</a> and feel free to submit bug reports and feature
-requests, or even suggested details to be documented.</p>
+Post-delete content: n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In Java or Groovy, the library makes HTTP interactions much easier to work with. Check out the <a href="https://github.com/dwclark/http-builder-ng">project</a> and feel free to submit bug reports and feature requests, or even suggested details to be documented.</p> 
 </div></p>
 
 

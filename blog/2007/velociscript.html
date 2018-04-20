@@ -97,16 +97,16 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 06 July 2007</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>I was toying with the idea of <a href="http://velocity.apache.org/">velocity</a>-like expression evaluation and replacement on the<br/>client-side and I came up with this handy little JavaScript function:</p>
-<pre><code class="javascript">function ev(str,model){
-    var buf = &quot;&quot;;
+	<p><p>I was toying with the idea of <a href="http://velocity.apache.org/">velocity</a>-like expression evaluation and replacement on the<br> client-side and I came up with this handy little JavaScript function:</p> 
+<pre><code class="language-javascript">function ev(str,model){
+    var buf = "";
     for(var t=0; t&lt;str.length; t++){
         var tok = str.charAt(t);
-        if(tok == &quot;$&quot; &amp;&amp; str.charAt(t+1) == &quot;{&quot;){
+        if(tok == "$" &amp;&amp; str.charAt(t+1) == "{"){
             t += 2;
             tok = str.charAt(t);
-            var expr = &quot;&quot;;
-            while(tok != &quot;}&quot;){
+            var expr = "";
+            while(tok != "}"){
                 expr += tok;
                 t++;
                 tok = str.charAt(t);
@@ -118,19 +118,22 @@
     }
     return(buf);
 }
-</code></pre><p>which will evaluate the given string using the specified model object (or null). The template string may also access<br/>global JavaScript functions or any other valid JavaScript. An example of its usage is shown below. First the helper<br/>function:</p>
-<pre><code class="javascript">function onGo(){
-    var resultElt = document.getElementById(&quot;result&quot;);
+</code></pre> 
+<p>which will evaluate the given string using the specified model object (or null). The template string may also access<br> global JavaScript functions or any other valid JavaScript. An example of its usage is shown below. First the helper<br> function:</p> 
+<pre><code class="language-javascript">function onGo(){
+    var resultElt = document.getElementById("result");
     resultElt.innerHTML = ev(resultElt.innerHTML,new Date());
 }
-</code></pre><p>Then the HTML that calls the helper function:</p>
-<pre><code class="html">Name: &lt;input type=&quot;text&quot; id=&quot;name&quot; /&gt; &lt;button onclick=&quot;doGo()&quot;&gt;Go&lt;/button&gt;
+</code></pre> 
+<p>Then the HTML that calls the helper function:</p> 
+<pre><code class="language-html">Name: &lt;input type="text" id="name" /&gt; &lt;button onclick="doGo()"&gt;Go&lt;/button&gt;
 &lt;br/&gt;
-&lt;span id=&quot;result&quot;&gt;
-Your name is: ${document.getElementById(&quot;name&quot;).value} and 
+&lt;span id="result"&gt;
+Your name is: ${document.getElementById("name").value} and 
 today is: ${model.getMonth()+1}/${model.getDate()}/${model.getFullYear()}
 &lt;/span&gt;
-</code></pre><p>When you enter a name and click "Go", the template string will be replaced by the evaluated string which contains the<br/>name value from the form field and the formatted date. The model object passed in was a JavaScript <code>Date</code> object,<br/>but it could have been any object. This still needs a little work and could use some regex love from a regex guru, but<br/>it works on both IE and FireFox. It might be interesting to expand this a bit more to create a Velociscript object<br/>engine similar to Velocity itself so that templates can be managed and cached... we'll see what happens when I start<br/>using this code.</p></p>
+</code></pre> 
+<p>When you enter a name and click "Go", the template string will be replaced by the evaluated string which contains the<br> name value from the form field and the formatted date. The model object passed in was a JavaScript <code>Date</code> object,<br> but it could have been any object. This still needs a little work and could use some regex love from a regex guru, but<br> it works on both IE and FireFox. It might be interesting to expand this a bit more to create a Velociscript object<br> engine similar to Velocity itself so that templates can be managed and cached... we'll see what happens when I start<br> using this code.</p></p>
 
 
             <div class="row">

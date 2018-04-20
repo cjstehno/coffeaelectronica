@@ -97,23 +97,29 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 21 October 2008</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/ant.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ant</span></a></p>
 
-	<p><p>I have found the <a href="http://ant.apache.org/">Ant</a> <code>input</code> tag useful lately for setting up runtime parameters of an Ant build.</p><p>We have a few different server configuration settings that vary based on which server the artifact is being built for<br/>and the <code>input</code> tag makes this really easy:</p>
-<pre><code class="xml">&lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
-</code></pre><p>The downside of this is that it will prompt you to enter this every time you run the build, which can become<br/>annoying and really prohibits automated building. This is where the <tt>unless</tt> attribute of the <code>target</code> tag<br/>comes into play. First create a private target (one whose name starts with "-") that will prompt for the config name:</p>
-<pre><code class="xml">&lt;target name=&quot;-prompt-for-config&quot;&gt;
-    &lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
+	<p><p>I have found the <a href="http://ant.apache.org/">Ant</a> <code>input</code> tag useful lately for setting up runtime parameters of an Ant build.</p> 
+<p>We have a few different server configuration settings that vary based on which server the artifact is being built for<br> and the <code>input</code> tag makes this really easy:</p> 
+<pre><code class="language-xml">&lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;
+</code></pre> 
+<p>The downside of this is that it will prompt you to enter this every time you run the build, which can become<br> annoying and really prohibits automated building. This is where the <tt>unless</tt> attribute of the <code>target</code> tag<br> comes into play. First create a private target (one whose name starts with "-") that will prompt for the config name:</p> 
+<pre><code class="language-xml">&lt;target name="-prompt-for-config"&gt;
+    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;
 &lt;/target&gt;
-</code></pre><p>Then add the <code>unless</code> attribute to check for the presence of the <code>config.name</code> property:</p>
-<pre><code class="xml">&lt;target name=&quot;-prompt-for-config&quot; unless=&quot;config.name&quot;&gt;
-    &lt;input message=&quot;Enter configuration name: &quot; addproperty=&quot;config.name&quot; defaultvalue=&quot;${config.name.default}&quot; /&gt;
+</code></pre> 
+<p>Then add the <code>unless</code> attribute to check for the presence of the <code>config.name</code> property:</p> 
+<pre><code class="language-xml">&lt;target name="-prompt-for-config" unless="config.name"&gt;
+    &lt;input message="Enter configuration name: " addproperty="config.name" defaultvalue="${config.name.default}" /&gt;
 &lt;/target&gt;
-</code></pre><p>which will cause this task to be run only if the specified property is not set. The you can have other tasks depend<br/>on this private task, which will only run if you have not specified the <code>config.name</code> property on the ant command<br/>line.</p>
-<pre><code class="xml">&lt;target name=&quot;compile&quot; depends=&quot;-prompt-for-config&quot; description=&quot;Compiles the java sources.&quot;&gt;
+</code></pre> 
+<p>which will cause this task to be run only if the specified property is not set. The you can have other tasks depend<br> on this private task, which will only run if you have not specified the <code>config.name</code> property on the ant command<br> line.</p> 
+<pre><code class="language-xml">&lt;target name="compile" depends="-prompt-for-config" description="Compiles the java sources."&gt;
     &lt;!-- do stuff --&gt;
 &lt;/target&gt;
-</code></pre><p>Calling ant with the following will not prompt the user for the <code>config.name</code>:</p>
+</code></pre> 
+<p>Calling ant with the following will not prompt the user for the <code>config.name</code>:</p> 
 <pre><code>ant compile -Dconfig.name=foo
-</code></pre><p>I have used this in a few places now to make the build a bit more flexible, such as for doing server deployments,<br/>artifact installations, etc. It is a handy ant trick to keep in mind.</p></p>
+</code></pre> 
+<p>I have used this in a few places now to make the build a bit more flexible, such as for doing server deployments,<br> artifact installations, etc. It is a handy ant trick to keep in mind.</p></p>
 
 
             <div class="row">

@@ -97,9 +97,14 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 18 February 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>I have run across this issue before you need to specify a "far-off" expiration date for something using the <code>java.util.Date</code><br/>class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old<br/>deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.</p><p>First, in the case where you want to specify a static date, you could run a quick test to determine the long time value<br/>for the date you create using the deprecated constructors. You then modify your code to use the long value in the<br/>constructor, which is the only remaining non-empty constructor.</p><p>The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like<br/>issues) you can use the following:</p>
-<pre><code class="java">Date expiration = new Date(Long.MAX_VALUE);
-</code></pre><p>which will yield a date so far in the future that you would be proud to have your code exist that long and happy to fix<br/>it (at least your descendants should be happy to fix it). The date it represents is:</p><p><code>Sun Aug 17 00:12:55 MST 292278994</code></p><p>I think that should suffice.</p></p>
+	<p><p>I have run across this issue before you need to specify a "far-off" expiration date for something using the <code>java.util.Date</code><br> class. Generally I have specified something 100 years in the future like 1/1/2100 or something like that using the old<br> deprecated Date constructors... but that is not really a good practice or habit to get into. I came up with two better solutions.</p> 
+<p>First, in the case where you want to specify a static date, you could run a quick test to determine the long time value<br> for the date you create using the deprecated constructors. You then modify your code to use the long value in the<br> constructor, which is the only remaining non-empty constructor.</p> 
+<p>The second options is useful if you just want a date sometime in the unreachable future (avoiding any reasonable y2k-like<br> issues) you can use the following:</p> 
+<pre><code class="language-java">Date expiration = new Date(Long.MAX_VALUE);
+</code></pre> 
+<p>which will yield a date so far in the future that you would be proud to have your code exist that long and happy to fix<br> it (at least your descendants should be happy to fix it). The date it represents is:</p> 
+<p><code>Sun Aug 17 00:12:55 MST 292278994</code></p> 
+<p>I think that should suffice.</p></p>
 
 
             <div class="row">

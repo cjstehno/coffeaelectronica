@@ -97,17 +97,22 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 06 January 2005</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Continuing the example from my discussion of <a href="/2005/01/jakarta-commons-collections-predicates.html">Predicates</a>,<br/>I would not like to take a quick look at Transformers. According to the JavaDocs:</p>
-<blockquote><p>A Transformer defines a functor interface implemented by classes that transform one object into another.</p>
-</blockquote><p>They are very useful when you need to preform an action of some sort on every element, or a group of elements, in a<br/>collection. From the example in the previous article, we have a list of Integers, from which we needed to extract the<br/>even Integers with a value greater than 5. We developed two Predicates and used an <code>AndPredicate</code> to join them<br/>and achieve our goal. Now, I would like to take the same list, repeated below and perform some transformations on it.</p>
-<pre><code class="java">List&lt;Integer&gt; numbers = new ArrayList&lt;Integer&gt;();
+	<p><p>Continuing the example from my discussion of <a href="/2005/01/jakarta-commons-collections-predicates.html">Predicates</a>,<br> I would not like to take a quick look at Transformers. According to the JavaDocs:</p> 
+<blockquote> 
+ <p>A Transformer defines a functor interface implemented by classes that transform one object into another.</p> 
+</blockquote> 
+<p>They are very useful when you need to preform an action of some sort on every element, or a group of elements, in a<br> collection. From the example in the previous article, we have a list of Integers, from which we needed to extract the<br> even Integers with a value greater than 5. We developed two Predicates and used an <code>AndPredicate</code> to join them<br> and achieve our goal. Now, I would like to take the same list, repeated below and perform some transformations on it.</p> 
+<pre><code class="language-java">List&lt;Integer&gt; numbers = new ArrayList&lt;Integer&gt;();
 for(int i=0; i&lt;10; i++){
     numbers.add(i);
 }
-</code></pre><p>We want to take the values that are accepted by the predicates (even values greater than 5) and then multiply those<br/>by an arbitrary value, say 10. You could use an Iterator to loop through the list of filtered numbers and multiply each<br/>value by 10 or you could use a Transformer and have a reusable means of doing the same action.</p>
-<blockquote><p><em>Note:</em> For this example, I am going to use the test-driven development approach. The unit tests will use the <a href="http://junit.org/">JUnit</a> framework.</p>
-</blockquote><p>Let's write a test case for a <code>MultiplyTransformer</code> that will do this. Start with the basic test shell...</p>
-<pre><code class="java">public class MultiplyTransformerTest extends TestCase {
+</code></pre> 
+<p>We want to take the values that are accepted by the predicates (even values greater than 5) and then multiply those<br> by an arbitrary value, say 10. You could use an Iterator to loop through the list of filtered numbers and multiply each<br> value by 10 or you could use a Transformer and have a reusable means of doing the same action.</p> 
+<blockquote> 
+ <p><em>Note:</em> For this example, I am going to use the test-driven development approach. The unit tests will use the <a href="http://junit.org/">JUnit</a> framework.</p> 
+</blockquote> 
+<p>Let's write a test case for a <code>MultiplyTransformer</code> that will do this. Start with the basic test shell...</p> 
+<pre><code class="language-java">public class MultiplyTransformerTest extends TestCase {
     private MultiplyTransformer multiplyTransformer;
 
     protected void setUp(){
@@ -118,33 +123,38 @@ for(int i=0; i&lt;10; i++){
         this.multiplyTransformer = null;
     }
 }
-</code></pre><p>We will write the empty class for our Transformer as well.</p>
-<pre><code class="java">public class MultiplyTransformer implements Transformer {
+</code></pre> 
+<p>We will write the empty class for our Transformer as well.</p> 
+<pre><code class="language-java">public class MultiplyTransformer implements Transformer {
     public Object transform(Object input){}
 }
-</code></pre><p>We will want to test the <code>transform(Object)</code> method for the case when the input is null, not an Integer, and<br/>the expected value. For this we will write three test methods. First we will test the case when the input is<br/><code>null</code>. We will want to handle this gracefully and return an Integer value of zero in this case.</p>
-<pre><code class="java">public void testTransform_NullInput(){
+</code></pre> 
+<p>We will want to test the <code>transform(Object)</code> method for the case when the input is null, not an Integer, and<br> the expected value. For this we will write three test methods. First we will test the case when the input is<br> <code>null</code>. We will want to handle this gracefully and return an Integer value of zero in this case.</p> 
+<pre><code class="language-java">public void testTransform_NullInput(){
     assertEquals(new Integer(0), multiplyTransformer.transform(null));
 }
-</code></pre><p>Next we will test for the case when the input is not an Integer. This case should throw an <code>IllegalArgumentException</code><br/>as all elements should be Integers in our system.</p>
-<pre><code class="java">public void testTransform_InvalidInputClass(){
+</code></pre> 
+<p>Next we will test for the case when the input is not an Integer. This case should throw an <code>IllegalArgumentException</code><br> as all elements should be Integers in our system.</p> 
+<pre><code class="language-java">public void testTransform_InvalidInputClass(){
     try {
         multiplyTransformer.transform(new Long(120030));
-        fail(&quot;Expected Exception was not thrown!&quot;);
+        fail("Expected Exception was not thrown!");
     } catch(IllegalArgumentException iae){
         assertNotNull(iae);
     }
 }
-</code></pre><p>Then, finally we test the case when an Integer is passed as the input. This case should return an Integer that is a<br/>specified multiple of the original integer.</p>
-<pre><code class="java">public void testTransform_Integer(){
+</code></pre> 
+<p>Then, finally we test the case when an Integer is passed as the input. This case should return an Integer that is a<br> specified multiple of the original integer.</p> 
+<pre><code class="language-java">public void testTransform_Integer(){
     Integer input = new Integer(5);
     Integer result = new Integer(50);
     int mult = 10;
     multiplyTransform.setMultiplier(mult);
     assertEquals(result,multiplyTransform.transform(input));
 }
-</code></pre><p>Now all of our test cases have been written and we can start coding the transformer itself. We already have the<br/>shell and we also know from the last test that we will need a setter for the multiplier.</p>
-<pre><code class="java">public class MultiplyTransformer implements Transformer {
+</code></pre> 
+<p>Now all of our test cases have been written and we can start coding the transformer itself. We already have the<br> shell and we also know from the last test that we will need a setter for the multiplier.</p> 
+<pre><code class="language-java">public class MultiplyTransformer implements Transformer {
     private int multiplier;
 
     public MultiplyTransformer(){this.multiplier = 1;}
@@ -161,13 +171,14 @@ for(int i=0; i&lt;10; i++){
         } else if(input == null){
             result = new Integer(0);
         } else {
-            throw new IllegalArgumentException(&quot;Not an Integer!&quot;);
+            throw new IllegalArgumentException("Not an Integer!");
         }
         return(result);
     }
 }
-</code></pre><p>Not too bad and when we run our test cases, everything comes up green. We now have our transformer and its unit<br/>test. If we need to modify the transformer in any way, will want to run the tests to ensure that everything remains in<br/>working order. To use our transformer to solve our task (using the 'numbers' list) we need to run the predicates and<br/>then apply the transformer to the results.</p>
-<pre><code class="java">Predicate evenInt = new EvenIntegerPredicate();
+</code></pre> 
+<p>Not too bad and when we run our test cases, everything comes up green. We now have our transformer and its unit<br> test. If we need to modify the transformer in any way, will want to run the tests to ensure that everything remains in<br> working order. To use our transformer to solve our task (using the 'numbers' list) we need to run the predicates and<br> then apply the transformer to the results.</p> 
+<pre><code class="language-java">Predicate evenInt = new EvenIntegerPredicate();
 Predicate greater = new GreaterThanPredicate(5);
 Predicate andPred = new AndPredicate(evenInt,greater);
 
@@ -178,8 +189,9 @@ Transformer mult = new MultiplyTransformer(10);
 
 // multiply all values by 10
 CollectionUtils.transform(numbers,mult);
-</code></pre><p>And there you have it. But that is not our stopping point. We modified those values so that they could be mapped<br/>and converted to other objects. Assume that we have a Map containing objects of class <code>SomethingUseful</code> mapped to<br/>keys that correspond to our multiplied even numbers. We need to replace the even Integers in the list with their<br/>appropriate instances of <code>SomethingUseful</code>. The Collections API comes to the rescue again with the <code>MapTransformer</code>.<br/>This Transformer is created with a Map and when it is applied, the input objects are replaced by the object keyed to the<br/>input value. We can also combine the two transformers using a <code>ChainedTransformer</code>.</p>
-<pre><code class="java">Predicate evenInt = new EvenIntegerPredicate();
+</code></pre> 
+<p>And there you have it. But that is not our stopping point. We modified those values so that they could be mapped<br> and converted to other objects. Assume that we have a Map containing objects of class <code>SomethingUseful</code> mapped to<br> keys that correspond to our multiplied even numbers. We need to replace the even Integers in the list with their<br> appropriate instances of <code>SomethingUseful</code>. The Collections API comes to the rescue again with the <code>MapTransformer</code>.<br> This Transformer is created with a Map and when it is applied, the input objects are replaced by the object keyed to the<br> input value. We can also combine the two transformers using a <code>ChainedTransformer</code>.</p> 
+<pre><code class="language-java">Predicate evenInt = new EvenIntegerPredicate();
 Predicate greater = new GreaterThanPredicate(5);
 Predicate andPred = new AndPredicate(evenInt,greater);
 
@@ -198,7 +210,8 @@ Transformer chain = ChainedTransformer.getInstance(mult,map);
 
 // apply the transformers
 CollectionUtils.transform(numbers,chain);
-</code></pre><p>which gives us our complete system. Our list of Integers is filtered so that only even values greater than 5<br/>remain. Those values are then multiplied by 10 and converted to their appropriate <code>SomethingUseful</code><br/>implementations. Transformers are a powerful tool when working with collections and there are many predefined<br/>implementations available. Also, as you can see, it's pretty easy to write your own. As with Predicates, if you write<br/>them carefully, they can be reused in multiple projects, which is always a good thing.</p></p>
+</code></pre> 
+<p>which gives us our complete system. Our list of Integers is filtered so that only even values greater than 5<br> remain. Those values are then multiplied by 10 and converted to their appropriate <code>SomethingUseful</code><br> implementations. Transformers are a powerful tool when working with collections and there are many predefined<br> implementations available. Also, as you can see, it's pretty easy to write your own. As with Predicates, if you write<br> them carefully, they can be reused in multiple projects, which is always a good thing.</p></p>
 
 
             <div class="row">

@@ -97,31 +97,33 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 15 September 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>A question arose recently about how to highlight a word or words in the text of a <code>div</code> element. It turns out that it's actually pretty easy using <a href="http://prototypejs.org/">Prototype</a>.</p><p>The example below is the code needed to highlight each occurrence (up to ten of them) of the word 'pick' in the div. The operation will be performed when the content div is clicked.</p>
-<pre><code class="html">&lt;html&gt;
+	<p><p>A question arose recently about how to highlight a word or words in the text of a <code>div</code> element. It turns out that it's actually pretty easy using <a href="http://prototypejs.org/">Prototype</a>.</p> 
+<p>The example below is the code needed to highlight each occurrence (up to ten of them) of the word 'pick' in the div. The operation will be performed when the content div is clicked.</p> 
+<pre><code class="language-html">&lt;html&gt;
     &lt;head&gt;
-        &lt;style type=&quot;text/css&quot;&gt;
+        &lt;style type="text/css"&gt;
             #content span { background-color: yellow; }
         &lt;/style&gt;
-        &lt;script type=&quot;text/javascript&quot; src=&quot;http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.2/prototype.js&quot;&gt;&lt;/script&gt;
-        &lt;script type=&quot;text/javascript&quot;&gt;
-            Event.observe(window,&#39;load&#39;,function(){
-                $(&#39;content&#39;).observe(&#39;click&#39;,highlight);
+        &lt;script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.2/prototype.js"&gt;&lt;/script&gt;
+        &lt;script type="text/javascript"&gt;
+            Event.observe(window,'load',function(){
+                $('content').observe('click',highlight);
             });
 
             function highlight(){
-                $(&#39;content&#39;).innerHTML = $(&#39;content&#39;).innerHTML.sub(&#39;pick&#39;,&#39;&lt;span&gt;pick&lt;/span&gt;&#39;,10);
+                $('content').innerHTML = $('content').innerHTML.sub('pick','&lt;span&gt;pick&lt;/span&gt;',10);
             }
         &lt;/script&gt;
     &lt;/head&gt;
     &lt;body&gt;
-        &lt;div id=&quot;content&quot;&gt;
+        &lt;div id="content"&gt;
             Peter Piper picked a peck of pickeled peppers. How many peppers did Peter Piper pick?
         &lt;/div&gt;
     &lt;/body&gt;
 &lt;/html&gt;
-</code></pre>
-<blockquote><p><em>Note:</em> I used to Google-hosted version of the prototype library which is handy. This could easily be refactored to do<br/>any sort of style operation to the selected text, or replace it altogether. I will have to give this a try with JQuery as a comparison.</p>
+</code></pre> 
+<blockquote> 
+ <p><em>Note:</em> I used to Google-hosted version of the prototype library which is handy. This could easily be refactored to do<br> any sort of style operation to the selected text, or replace it altogether. I will have to give this a try with JQuery as a comparison.</p> 
 </blockquote></p>
 
 

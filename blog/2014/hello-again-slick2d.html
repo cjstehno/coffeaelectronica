@@ -97,66 +97,72 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 October 2014</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>I am finally getting back around to working on my little game programming project and I realized that somewhere along the<br/>way, my project stopped working. I am using the <a href="http://slick.ninjacave.com/">Slick2D</a> library, which seems to have little<br/>in the way of formal release or distribution so it didn't surprise me. I think I had something hacked together making it<br/>work last time. I decided to try and put some more concrete and repeatable steps around basic setup, at least for how I use it - I'm no<br/>game programmer. </p><p>I'm using Groovy as my development language and Gradle for building. In the interest of time and clarity, I am going to use a<br/>dump-and-describe approach here; there are only two files, so it should not be a big deal.</p><p>The <code>build.gradle</code> file is as follows:</p>
-<pre><code class="groovy">group = &#39;com.stehno.demo&#39;
-version = &#39;0.1&#39;
+	<p><p>I am finally getting back around to working on my little game programming project and I realized that somewhere along the<br> way, my project stopped working. I am using the <a href="http://slick.ninjacave.com/">Slick2D</a> library, which seems to have little<br> in the way of formal release or distribution so it didn't surprise me. I think I had something hacked together making it<br> work last time. I decided to try and put some more concrete and repeatable steps around basic setup, at least for how I use it - I'm no<br> game programmer.</p> 
+<p>I'm using Groovy as my development language and Gradle for building. In the interest of time and clarity, I am going to use a<br> dump-and-describe approach here; there are only two files, so it should not be a big deal.</p> 
+<p>The <code>build.gradle</code> file is as follows:</p> 
+<pre><code class="language-groovy">group = 'com.stehno.demo'
+version = '0.1'
 
 buildscript {
     repositories {
         jcenter()
 
         maven {
-            url &#39;http://dl.bintray.com/cjstehno/public/&#39;
+            url 'http://dl.bintray.com/cjstehno/public/'
         }
     }
 
     dependencies {
-        classpath &#39;com.stehno:gradle-natives:0.2&#39;
+        classpath 'com.stehno:gradle-natives:0.2'
     }
 }
 
-apply plugin:&#39;groovy&#39;
-apply plugin:&#39;application&#39;
-apply plugin:&#39;com.stehno.natives&#39;
+apply plugin:'groovy'
+apply plugin:'application'
+apply plugin:'com.stehno.natives'
 
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 }
 
-mainClassName = &#39;helloslick.HelloSlick&#39;
+mainClassName = 'helloslick.HelloSlick'
 
 repositories {
     jcenter()
 }
 
 dependencies {
-    compile &#39;org.codehaus.groovy:groovy-all:2.3.6&#39;
+    compile 'org.codehaus.groovy:groovy-all:2.3.6'
 
-    compile &#39;org.slick2d:slick2d-core:1.0.1&#39;
+    compile 'org.slick2d:slick2d-core:1.0.1'
 }
 
 test {
-    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
+    systemProperty 'java.library.path', file('build/natives/windows')
 }
 
 run {
-    systemProperty &#39;java.library.path&#39;, file(&#39;build/natives/windows&#39;)
+    systemProperty 'java.library.path', file('build/natives/windows')
 }
 
 natives {
     jars = [
-        &#39;lwjgl-platform-2.9.1-natives-windows.jar&#39;,
-        &#39;jinput-platform-2.0.5-natives-windows.jar&#39;
+        'lwjgl-platform-2.9.1-natives-windows.jar',
+        'jinput-platform-2.0.5-natives-windows.jar'
     ]
-    platforms = &#39;windows&#39;
+    platforms = 'windows'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = &#39;2.1&#39;
+    gradleVersion = '2.1'
 }
-</code></pre><p>The first point of note, is that I am using my <a href="http://cjstehno.github.io/gradle-natives/">Gradle Natives plugin</a>, not as<br/>a self-promotion, but since this is the reason I wrote it. This plugin takes care of extracting all the little native<br/>libraries and putting them in your build so that they are easily accessible by your code. The configuration is found near<br/>the bottom of the file, in the <code>natives</code> block - we want to extract the native libraries from the lwjgl and jinput libraries<br/>for this project and in my case, I only care about the Windows versions (leave off <code>platforms</code> to get all platforms).</p><p>There was one interesting development during my time away from this project, a 3rd-party jar version of Slick2D has been pushed to maven central, which makes it a lot easier - I think I had to build it myself and fiddle with pushing it to my local maven repo or something. Now it's just another remote library (hopefully it works as expected - I have not played with it yet).</p><p>The last point of interest here is the use of the <code>application</code> plugin. This plugin provides an easy way to run your game<br/>while specifying the <code>java.library.path</code> which is the painful part of running applications with native libraries. With the<br/><code>application</code> plugin and the <code>run</code> configuration in place, you can run the game from Gradle - admittedly not ideal, but this<br/>is just development; I actually have a configuration set for the IzPack installer that I will write about later.</p><p>Now, we need some code to run, and the Slick2D wiki provides a simple Hello world sample that I have tweaked a bit for my<br/>use - mostly just cosmetic changes:</p>
-<pre><code class="groovy">package helloslick
+</code></pre> 
+<p>The first point of note, is that I am using my <a href="http://cjstehno.github.io/gradle-natives/">Gradle Natives plugin</a>, not as<br> a self-promotion, but since this is the reason I wrote it. This plugin takes care of extracting all the little native<br> libraries and putting them in your build so that they are easily accessible by your code. The configuration is found near<br> the bottom of the file, in the <code>natives</code> block - we want to extract the native libraries from the lwjgl and jinput libraries<br> for this project and in my case, I only care about the Windows versions (leave off <code>platforms</code> to get all platforms).</p> 
+<p>There was one interesting development during my time away from this project, a 3rd-party jar version of Slick2D has been pushed to maven central, which makes it a lot easier - I think I had to build it myself and fiddle with pushing it to my local maven repo or something. Now it's just another remote library (hopefully it works as expected - I have not played with it yet).</p> 
+<p>The last point of interest here is the use of the <code>application</code> plugin. This plugin provides an easy way to run your game<br> while specifying the <code>java.library.path</code> which is the painful part of running applications with native libraries. With the<br> <code>application</code> plugin and the <code>run</code> configuration in place, you can run the game from Gradle - admittedly not ideal, but this<br> is just development; I actually have a configuration set for the IzPack installer that I will write about later.</p> 
+<p>Now, we need some code to run, and the Slick2D wiki provides a simple Hello world sample that I have tweaked a bit for my<br> use - mostly just cosmetic changes:</p> 
+<pre><code class="language-groovy">package helloslick
 
 import groovy.util.logging.Log
 import org.newdawn.slick.*
@@ -178,12 +184,12 @@ class HelloSlick extends BasicGame {
 
     @Override
     public void render(GameContainer gc, Graphics g) throws SlickException {
-        g.drawString &#39;Hello Slick!&#39;, 50, 50
+        g.drawString 'Hello Slick!', 50, 50
     }
 
     public static void main(String[] args){
         try {
-            AppGameContainer appgc = new AppGameContainer(new HelloSlick(&#39;Simple Slick Game&#39;))
+            AppGameContainer appgc = new AppGameContainer(new HelloSlick('Simple Slick Game'))
             appgc.setDisplayMode(640, 480, false)
             appgc.start()
 
@@ -192,8 +198,14 @@ class HelloSlick extends BasicGame {
         }
     }
 }
-</code></pre><p>This just opens a game window and writes "Hello Slick!" in it, but if you have that working, you should be ready for playtime<br/>with Slick2D.</p><p>Once you have the project setup (<code>build.gradle</code> in the root, and <code>HelloSlick.groovy</code> in <code>/src/main/groovy/helloslick</code>), you<br/>are ready to go. Run the following to run the project.</p><p><code>gradle unpackNatives run</code></p><p>And if all is well, you will see the game window and message.</p><p>Like I said, this is mostly just for getting my development environment up and running as a sanity check, but maybe it is useful to others.</p>
-<blockquote><p>Yes, the explicit <code>unpackNatives</code> calls are annoying, it's something I am working on.</p>
+</code></pre> 
+<p>This just opens a game window and writes "Hello Slick!" in it, but if you have that working, you should be ready for playtime<br> with Slick2D.</p> 
+<p>Once you have the project setup (<code>build.gradle</code> in the root, and <code>HelloSlick.groovy</code> in <code>/src/main/groovy/helloslick</code>), you<br> are ready to go. Run the following to run the project.</p> 
+<p><code>gradle unpackNatives run</code></p> 
+<p>And if all is well, you will see the game window and message.</p> 
+<p>Like I said, this is mostly just for getting my development environment up and running as a sanity check, but maybe it is useful to others.</p> 
+<blockquote> 
+ <p>Yes, the explicit <code>unpackNatives</code> calls are annoying, it's something I am working on.</p> 
 </blockquote></p>
 
 

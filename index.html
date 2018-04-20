@@ -98,28 +98,31 @@
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/gradle-http-plugin.html">Making HTTP Requests from your Build</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 15 October 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
-                <p><div class="paragraph">
-<p>I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The <a href="https://http-builder-ng.github.io/gradle-http-plugin/">HTTP Plugin</a> uses the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library&#8217;s clean DSL to configure the calls as Gradle tasks.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-This post assumes some familiarity with the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library. If you have never used the library, I recommend reading through the <a href="https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5">User Guide</a> or my blog post <a href="http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a> to give you a good overview of its functionality.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>As an example, let&#8217;s say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:</p>
-</div>
-<div class="listingblock">
-<div class="title">NotificationController.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import groovy.transform.Canonical
+                <p><div class="paragraph"> 
+ <p>I recently released a Gradle plugin to assist in making HTTP calls from your Gradle build. The <a href="https://http-builder-ng.github.io/gradle-http-plugin/">HTTP Plugin</a> uses the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library’s clean DSL to configure the calls as Gradle tasks.</p> 
+</div> 
+<div class="admonitionblock note"> 
+ <table> 
+  <tbody>
+   <tr> 
+    <td class="icon"> 
+     <div class="title">
+      Note
+     </div> </td> 
+    <td class="content"> This post assumes some familiarity with the <a href="https://http-builder-ng.github.io/http-builder-ng">HttpBuilder-NG</a> library. If you have never used the library, I recommend reading through the <a href="https://http-builder-ng.github.io/http-builder-ng/asciidoc/html5">User Guide</a> or my blog post <a href="http://localhost:44511/blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a> to give you a good overview of its functionality. </td> 
+   </tr> 
+  </tbody>
+ </table> 
+</div> 
+<div class="paragraph"> 
+ <p>As an example, let’s say we want to send release build notifications to some internal notification server. For this example I have created a simple Spring-Boot application with the following controller:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  NotificationController.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -152,30 +155,34 @@ class Notification {
     String project
     String version
     String message
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We see that the controller will accept <code>POST</code> calls to <code>/notifications</code> to submit notifications. It will also provide a list of all notifications at the <code>GET</code> <code>/notifications</code> end point. I am going to omit the Spring-Boot project itself since it&#8217;s simply the controller above in a basic generated project. Just assume that the server is running in the background (with <code>gradle bootRun</code>).</p>
-</div>
-<div class="paragraph">
-<p>To apply the HTTP Plugin we add the following to the top of the <code>build.gradle</code> file:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We see that the controller will accept <code>POST</code> calls to <code>/notifications</code> to submit notifications. It will also provide a list of all notifications at the <code>GET</code> <code>/notifications</code> end point. I am going to omit the Spring-Boot project itself since it’s simply the controller above in a basic generated project. Just assume that the server is running in the background (with <code>gradle bootRun</code>).</p> 
+</div> 
+<div class="paragraph"> 
+ <p>To apply the HTTP Plugin we add the following to the top of the <code>build.gradle</code> file:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
 	id 'io.github.http-builder-ng.http-plugin' version '0.1.0'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>And then we need to create a task which will post build release notifications to our server:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notify(type:io.github.httpbuilderng.http.HttpTask){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>And then we need to create a task which will post build release notifications to our server:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notify(type:io.github.httpbuilderng.http.HttpTask){
     config {
         request.uri = 'http://localhost:8080'
     }
@@ -194,47 +201,52 @@ class Notification {
             logger.warn "Notification failed (${fs.statusCode}: ${fs.message})"
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that the task is of type <code>io.github.httpbuilderng.http.HttpTask</code> which is provided by the plugin. The <code>config</code> block contains the client configuration (analogous to the <code>configure</code> method of the <code>HttpBuilder</code> implementation). The <code>post</code> block configures the actual request to be made. The <code>HttpTask</code> interface supports the <code>GET</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code> and <code>PATCH</code> request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a <code>POST</code> request to <code><a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a></code> with the project name, version and a simple message. If the notification is successful we will see the "Notification succeeded." message in the <code>--info</code> logging. A failure will produce a warning message with status information.</p>
-</div>
-<div class="paragraph">
-<p>Run the task with <code>gradle notify</code> with the server running. Then you can hit the <a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a> end point to see a JSON list of the submitted notifications.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
-The <code>HttpTask</code> does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG <code>Response</code> interface (as the <code>success</code> and <code>failure</code> handlers in the example).
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the <code>HttpExtension</code> provided by the plugin:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">http {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that the task is of type <code>io.github.httpbuilderng.http.HttpTask</code> which is provided by the plugin. The <code>config</code> block contains the client configuration (analogous to the <code>configure</code> method of the <code>HttpBuilder</code> implementation). The <code>post</code> block configures the actual request to be made. The <code>HttpTask</code> interface supports the <code>GET</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code> and <code>PATCH</code> request methods and allows for multiple requests to be called from a single task either synchronously or asynchronously. In our example above we are sending a <code>POST</code> request to <code><a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a></code> with the project name, version and a simple message. If the notification is successful we will see the "Notification succeeded." message in the <code>--info</code> logging. A failure will produce a warning message with status information.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Run the task with <code>gradle notify</code> with the server running. Then you can hit the <a href="http://localhost:8080/notifications" class="bare">http://localhost:8080/notifications</a> end point to see a JSON list of the submitted notifications.</p> 
+</div> 
+<div class="admonitionblock tip"> 
+ <table> 
+  <tbody>
+   <tr> 
+    <td class="icon"> 
+     <div class="title">
+      Tip
+     </div> </td> 
+    <td class="content"> The <code>HttpTask</code> does not use or collect the responses in any manner. If a response needs to be acted in it must be processed in the response handler methods provided by the HttpBuilder-NG <code>Response</code> interface (as the <code>success</code> and <code>failure</code> handlers in the example). </td> 
+   </tr> 
+  </tbody>
+ </table> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, maybe we would like to provide a means of listing the notifications from our build. Since we are adding a second task with the same client configuration, we can extract the shared configuration out using the <code>HttpExtension</code> provided by the plugin:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">http {
     config {
         request.uri = 'http://localhost:8080'
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This means we can remove the <code>config</code> block from the <code>notify</code> task. Our new task to list the notifications will look like:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notifications(type:io.github.httpbuilderng.http.HttpTask){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This means we can remove the <code>config</code> block from the <code>notify</code> task. Our new task to list the notifications will look like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task notifications(type:io.github.httpbuilderng.http.HttpTask){
     get {
         request.uri.path = '/notifications'
         response.success { fs, obj-&gt;
@@ -244,51 +256,51 @@ The <code>HttpTask</code> does not use or collect the responses in any manner. I
             }
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that we omitted the <code>config</code> block here since it we defined it in the <code>http</code> extension. This task makes a <code>GET</code> request to the <code>/notifications</code> end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with <code>gradle notifications</code> (and assuming we have run the <code>notify task</code>) you will see output similar to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>:notifications
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that we omitted the <code>config</code> block here since it we defined it in the <code>http</code> extension. This task makes a <code>GET</code> request to the <code>/notifications</code> end point and prints out the list of notifications (the JSON content is parsed by default). When this task is run with <code>gradle notifications</code> (and assuming we have run the <code>notify task</code>) you will see output similar to the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>:notifications
 Notifications List
  - demo (v0.0.1): Build
  - demo (v0.0.1): Build
 
-BUILD SUCCESSFUL</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To this point we have been using the <code>CORE</code> client library provided by HttpBuilder-NG, which is based on the <code>HttpUrlConnection</code> object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the <code>library = 'apache'</code> line to the <code>http</code> extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.</p>
-</div>
-<div class="paragraph">
-<p>As a last bit of functionality, let&#8217;s add the ability to make the notification message more interesting. We can replace the:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: 'Build'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>line in the <code>notify</code> task definition with the following line:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: project.hasProperty('notification-message') ? project.property('notification-message') : 'Build'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which allows us to send a notification with a more interesting message, for example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>gradle notify -Pnotification-message="Now with more message!"</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.</p>
+BUILD SUCCESSFUL</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>To this point we have been using the <code>CORE</code> client library provided by HttpBuilder-NG, which is based on the <code>HttpUrlConnection</code> object in the core Java library, but what if we want to use the Apache HttpComponents library as our client? HttpBuilder-NG supports this and so does the plugin. If we add the <code>library = 'apache'</code> line to the <code>http</code> extension block we will start using the Apache client for all of our requests. The OkHttp client library is also supported.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>As a last bit of functionality, let’s add the ability to make the notification message more interesting. We can replace the:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: 'Build'</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>line in the <code>notify</code> task definition with the following line:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">message: project.hasProperty('notification-message') ? project.property('notification-message') : 'Build'</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which allows us to send a notification with a more interesting message, for example:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>gradle notify -Pnotification-message="Now with more message!"</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>That is the HTTP Plugin. It is a new project and making HTTP calls from a build is probably a bit of an edge case, but when you run into it, something like this makes it a lot easier.</p> 
 </div></p>
             </div>
         </div>
@@ -297,77 +309,72 @@ BUILD SUCCESSFUL</pre>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/rest-httpbuilder-ersatz.html">Take a REST with HttpBuilder-NG and Ersatz</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 11 September 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>This is a long post and there is a lot of code to look through. If you would rather follow along using the completed code, you can find it in its GitHub project <a href="https://github.com/cjstehno/rest-dev">rest-dev</a>.</p>
-</div>
-</blockquote>
-</div>
-<div class="paragraph">
-<p>This blog post is going to be a bit more self-serving and a bit longer than my usual posts. I will be walking through the process of implementing a REST client using
-<a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> (v0.18.0) and then testing it against an <a href="http://stehno.com/ersatz">Ersatz Server</a> (v1.5.0) to
-mock out the endpoints.</p>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s say we work in a big company that is implementing a bunch of microservices. Our team is working on a service that will interface with a service being
-created by another team doing concurrent development - say they are creating an internal user management service. Our team will need to perform
-operations against their service before it actually exists. In discussions between the two teams, we have fleshed out a RESTful interface contract
-which looks something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>GET /users - list all users, responds with list of users
+                <p><div class="quoteblock"> 
+ <blockquote> 
+  <div class="paragraph"> 
+   <p>This is a long post and there is a lot of code to look through. If you would rather follow along using the completed code, you can find it in its GitHub project <a href="https://github.com/cjstehno/rest-dev">rest-dev</a>.</p> 
+  </div> 
+ </blockquote> 
+</div> 
+<div class="paragraph"> 
+ <p>This blog post is going to be a bit more self-serving and a bit longer than my usual posts. I will be walking through the process of implementing a REST client using <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> (v0.18.0) and then testing it against an <a href="http://stehno.com/ersatz">Ersatz Server</a> (v1.5.0) to mock out the endpoints.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Let’s say we work in a big company that is implementing a bunch of microservices. Our team is working on a service that will interface with a service being created by another team doing concurrent development - say they are creating an internal user management service. Our team will need to perform operations against their service before it actually exists. In discussions between the two teams, we have fleshed out a RESTful interface contract which looks something like this:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>GET /users - list all users, responds with list of users
 GET /users/{id} - get specific user, responds with single user
 POST /users &lt;user&gt; - create new user, responds with created user
 PUT /users/{id} &lt;user&gt; - update existing user, responds with updated user
-DELETE /users/{id} - delete a user, 200 means success</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Nothing shocking there, but now while they are developing the actual endpoints, you are developing a client. We need a way to simulate their user API
-in a realistic manner so we can develop with at least some level of confidence. This is one of the use cases where Ersatz Server comes in handy.</p>
-</div>
-<div class="paragraph">
-<p>We can quickly define a mock for each of the end points and then write client code against it. First, we will need a <code>User</code> object. Based on our shared
-contract, the <code>User</code> looks like the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Canonical
+DELETE /users/{id} - delete a user, 200 means success</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Nothing shocking there, but now while they are developing the actual endpoints, you are developing a client. We need a way to simulate their user API in a realistic manner so we can develop with at least some level of confidence. This is one of the use cases where Ersatz Server comes in handy.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>We can quickly define a mock for each of the end points and then write client code against it. First, we will need a <code>User</code> object. Based on our shared contract, the <code>User</code> looks like the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Canonical
 class User {
     Long id
     String username
     String email
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Next we need to setup a <a href="http://spockframework.org">Spock</a> test which will be used to simulate the API and test our client code. A basic Spock test with
-an Ersatz server is shown below (if you are not familiar with Spock, I suggest reading through the docs to get a quick feel for it before moving
-forward):</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClientSpec extends Specification {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Next we need to setup a <a href="http://spockframework.org">Spock</a> test which will be used to simulate the API and test our client code. A basic Spock test with an Ersatz server is shown below (if you are not familiar with Spock, I suggest reading through the docs to get a quick feel for it before moving forward):</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClientSpec extends Specification {
 
     @AutoCleanup('stop')
     private final ErsatzServer server = new ErsatzServer()
 
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This code creates our <code>ErsatzServer</code> instance for us and registers it to be stopped after each test method.</p>
-</div>
-<div class="paragraph">
-<p>For our REST endpoints, we will just start from the top and implement the <code>GET /users</code> endpoint first.</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieveAll'() {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This code creates our <code>ErsatzServer</code> instance for us and registers it to be stopped after each test method.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>For our REST endpoints, we will just start from the top and implement the <code>GET /users</code> endpoint first.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieveAll'() {
     setup:
     List&lt;User&gt; users = [
         new User(100, 'abe', 'abe@example.com'),
@@ -395,26 +402,24 @@ forward):</p>
 
     and:
     server.verify()
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The client method for this endpoint will be named <code>retrieveAll()</code> so, we will use that as the test name. We setup a few users that will be returned
-by the call and then configure the Ersatz expectations. The expectations are defined using a DSL to describe each expected request and then to define
-the response that request will return. In this case we are expecting a <code>GET</code> request with the path <code>/users</code> only once, which will return a status code
-of <code>200</code> and the configured list of users as a string of JSON. We then use the client object (not defined yet) to make the server call and then verify
-that we got our list of users back and that the server expectation was actually called.</p>
-</div>
-<div class="paragraph">
-<p>It seems like a significant chunk of code to drop all at once, but if you read though it, it&#8217;s actually pretty straightforward.</p>
-</div>
-<div class="paragraph">
-<p>The first problem we run into when trying to run this code is that the <code>UserClient</code> class does not exist yet, so let&#8217;s create that next.</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClient {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The client method for this endpoint will be named <code>retrieveAll()</code> so, we will use that as the test name. We setup a few users that will be returned by the call and then configure the Ersatz expectations. The expectations are defined using a DSL to describe each expected request and then to define the response that request will return. In this case we are expecting a <code>GET</code> request with the path <code>/users</code> only once, which will return a status code of <code>200</code> and the configured list of users as a string of JSON. We then use the client object (not defined yet) to make the server call and then verify that we got our list of users back and that the server expectation was actually called.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>It seems like a significant chunk of code to drop all at once, but if you read though it, it’s actually pretty straightforward.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The first problem we run into when trying to run this code is that the <code>UserClient</code> class does not exist yet, so let’s create that next.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">class UserClient {
 
     private final HttpBuilder http
 
@@ -423,75 +428,72 @@ that we got our list of users back and that the server expectation was actually 
             request.uri = host
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We are using HttpBuilder-NG (the core client in this case) to make the HTTP calls. It also uses a DSL for configuration. In this case we define the
-base URI to be a host that we pass in - if you look back at the test we see that it&#8217;s the ErsatzServer host in that case. This will be the root of
-all requests. Now, to make our test happier, we need to implement the <code>retrieveAll()</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">List&lt;User&gt; retrieveAll() {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We are using HttpBuilder-NG (the core client in this case) to make the HTTP calls. It also uses a DSL for configuration. In this case we define the base URI to be a host that we pass in - if you look back at the test we see that it’s the ErsatzServer host in that case. This will be the root of all requests. Now, to make our test happier, we need to implement the <code>retrieveAll()</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">List&lt;User&gt; retrieveAll() {
     http.get(List) {
         request.uri.path = '/users'
         response.parser(JSON) { ChainedHttpConfig config, FromServer fs -&gt;
             json(config, fs).collect { x -&gt; x as User }
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This method will make a <code>GET</code> request to the <code>/users</code> path on the configured host. Note that we also need to configure a parser to handle the incoming
-response data, which is a list of <code>User</code> objects serialized as JSON.</p>
-</div>
-<div class="paragraph">
-<p>Now, if we go back and run our test, we get a nasty error about parsing JSON content on the Ersatz Server side:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>groovy.json.JsonException: Unable to determine the current character, it is not a string, number, array, or object
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This method will make a <code>GET</code> request to the <code>/users</code> path on the configured host. Note that we also need to configure a parser to handle the incoming response data, which is a list of <code>User</code> objects serialized as JSON.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, if we go back and run our test, we get a nasty error about parsing JSON content on the Ersatz Server side:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>groovy.json.JsonException: Unable to determine the current character, it is not a string, number, array, or object
 
 The current character read is 'r' with an int value of 114
 Unable to determine the current character, it is not a string, number, array, or object
 line number 1
 index number 1
-[restdev.User(100, abe, abe@example.com), restdev.User(200, bob, bob@example.com), restdev.User(300, chuck, chuck@example.com)]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This means we need to add an <code>encoder</code> to the Ersatz Server configuration so that it knows how to encode the response it is sending back - in this case
-it will serialize a list of <code>User</code> objects as JSON to be sent as the response. We can configure this on the <code>ErsatzServer</code> constructor as:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+[restdev.User(100, abe, abe@example.com), restdev.User(200, bob, bob@example.com), restdev.User(300, chuck, chuck@example.com)]</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This means we need to add an <code>encoder</code> to the Ersatz Server configuration so that it knows how to encode the response it is sending back - in this case it will serialize a list of <code>User</code> objects as JSON to be sent as the response. We can configure this on the <code>ErsatzServer</code> constructor as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
 private final ErsatzServer server = new ErsatzServer({
     encoder(APPLICATION_JSON, List) { input -&gt;
         "[${input.collect { i -&gt; toJson(i) }.join(', ')}]"
     }
-})</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>I just used the <code>groovy.json.JsonOutput.toJson(Object)</code> method for simplicity. Now, when we run the test it succeeds. At this point we have implemented
-and tested our client against a real endpoint. I say real because Ersatz creates an instance of an embedded <a href="http://undertow.io">Undertow</a> server and
-configures the expected endpoints on it. The client code is hitting a real and standard web server with all of the expected server behavior. What
-you do have to be careful of with this kind of testing is that the contract with the other team does not change. This mocked testing is only as good
-as the configured expectations and if left unmaintained could drift far from the reality of the production endpoints - something to be aware of.</p>
-</div>
-<div class="paragraph">
-<p>But we have other endpoints to define and clients to implement. Next, we will handle the single user retrieval case, the <code>retrieve(long)</code> method
-(<code>GET /users/{id}</code>). Our test for this method looks very similar to the first test:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieve'() {
+})</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>I just used the <code>groovy.json.JsonOutput.toJson(Object)</code> method for simplicity. Now, when we run the test it succeeds. At this point we have implemented and tested our client against a real endpoint. I say real because Ersatz creates an instance of an embedded <a href="http://undertow.io">Undertow</a> server and configures the expected endpoints on it. The client code is hitting a real and standard web server with all of the expected server behavior. What you do have to be careful of with this kind of testing is that the contract with the other team does not change. This mocked testing is only as good as the configured expectations and if left unmaintained could drift far from the reality of the production endpoints - something to be aware of.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>But we have other endpoints to define and clients to implement. Next, we will handle the single user retrieval case, the <code>retrieve(long)</code> method (<code>GET /users/{id}</code>). Our test for this method looks very similar to the first test:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'retrieve'() {
     setup:
     User user = new User(42, 'somebody', 'somebody@example.com')
 
@@ -512,71 +514,74 @@ as the configured expectations and if left unmaintained could drift far from the
 
     and:
     server.verify()
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that in this case, we are configuring only a single user in the response. Learning from our last test, we know that we will also need to
-configure an encoder to handle single <code>User</code> objects. This one is even simpler and makes our constructor look like:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that in this case, we are configuring only a single user in the response. Learning from our last test, we know that we will also need to configure an encoder to handle single <code>User</code> objects. This one is even simpler and makes our constructor look like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
 private final ErsatzServer server = new ErsatzServer({
     encoder APPLICATION_JSON, User, Encoders.json
     encoder(APPLICATION_JSON, List) { input -&gt;
         "[${input.collect { i -&gt; toJson(i) }.join(', ')}]"
     }
-})</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For the single object case we just define the default JSON encoder. Ersatz takes the stance that if you need/want encoders and decoders you need to
-configure them rather than having them provided out of the box. It keeps the configuration less surprising and more explicit.</p>
-</div>
-<div class="paragraph">
-<p>The client code for the <code>GET /users/{id}</code> endpoint is as follows:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User retrieve(final long userId) {
+})</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>For the single object case we just define the default JSON encoder. Ersatz takes the stance that if you need/want encoders and decoders you need to configure them rather than having them provided out of the box. It keeps the configuration less surprising and more explicit.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The client code for the <code>GET /users/{id}</code> endpoint is as follows:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User retrieve(final long userId) {
     http.get(User) {
         request.uri.path = "/users/${userId}"
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which along the same lines as our first client method, we will need to add a response parser for deserializing the incoming JSON response. We can
-configure shared response parsers in the main <code>HttpBuilder.configure()</code> method that we have in our constructor, so that they will be available to all
-HTTP method calls. The client constructor now looks like:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which along the same lines as our first client method, we will need to add a response parser for deserializing the incoming JSON response. We can configure shared response parsers in the main <code>HttpBuilder.configure()</code> method that we have in our constructor, so that they will be available to all HTTP method calls. The client constructor now looks like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
     http = HttpBuilder.configure {
         request.uri = host
         response.parser JSON, { ChainedHttpConfig config, FromServer fs -&gt;
             json(config, fs) as User
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This uses the <code>NativeHandlers.Parsers.json</code> method and casts it as a <code>User</code> object to satisfy our object typing.</p>
-</div>
-<div class="paragraph">
-<p>When we run our tests again, we see that they are both successful. That&#8217;s enough for the <code>GET</code> requests, let&#8217;s move on to something different. The
-<code>POST /users &lt;user&gt;</code> endpoint is tests as the others are:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'create'() {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This uses the <code>NativeHandlers.Parsers.json</code> method and casts it as a <code>User</code> object to satisfy our object typing.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>When we run our tests again, we see that they are both successful. That’s enough for the <code>GET</code> requests, let’s move on to something different. The <code>POST /users &lt;user&gt;</code> endpoint is tests as the others are:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'create'() {
     setup:
     User inputUser = new User(null, 'somebody', 'somebody@example.com')
     User createdUser = new User(42, inputUser.username, inputUser.email)
@@ -602,17 +607,18 @@ HTTP method calls. The client constructor now looks like:</p>
 
     and:
     server.verify()
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this case we are expecting a <code>POST</code> method with a <code>User</code> as the body content, serialized as JSON. When the request is successful we respond with
-the user data which also includes the id. To decode the incoming request content we need to add a <code>decoder</code> to the <code>ErsatzServer</code> constructor:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In this case we are expecting a <code>POST</code> method with a <code>User</code> as the body content, serialized as JSON. When the request is successful we respond with the user data which also includes the id. To decode the incoming request content we need to add a <code>decoder</code> to the <code>ErsatzServer</code> constructor:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@AutoCleanup('stop')
 private final ErsatzServer server = new ErsatzServer({
     encoder APPLICATION_JSON, User, Encoders.json
     encoder(APPLICATION_JSON, List) { input -&gt;
@@ -622,32 +628,35 @@ private final ErsatzServer server = new ErsatzServer({
     decoder(APPLICATION_JSON) { byte[] bytes, DecodingContext dc -&gt;
         Decoders.parseJson.apply(bytes, dc) as User
     }
-})</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For the most part it is just the provided JSON decoder with the result cast as a <code>User</code> object. Now, for our client implementation</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User create(final User user) {
+})</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>For the most part it is just the provided JSON decoder with the result cast as a <code>User</code> object. Now, for our client implementation</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">User create(final User user) {
     http.post(User) {
         request.uri.path = '/users'
         request.body = user
         request.contentType = JSON[0]
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We just use the <code>post()</code> method and configure the request body content, which we will need a means of encoding into the outbound JSON format. Our client
-constructor now becomes:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We just use the <code>post()</code> method and configure the request body content, which we will need a means of encoding into the outbound JSON format. Our client constructor now becomes:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">UserClient(final String host) {
     http = HttpBuilder.configure {
         request.uri = host
         request.encoder JSON, NativeHandlers.Encoders.&amp;json
@@ -655,21 +664,21 @@ constructor now becomes:</p>
             json(config, fs) as User
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For the encoder, we can use the one provided with the library. Run the tests again and we see that everything is green.</p>
-</div>
-<div class="paragraph">
-<p>I am going to skip the description of the user update method and its test. They are basically the same as those for the create functionality. The
-<code>DELETE /users/{id}</code> endpoint provides a few different concepts, at least on the client side. We will flip the order with this one and show the
-client implementation first:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClient.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">boolean delete(final long userId) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>For the encoder, we can use the one provided with the library. Run the tests again and we see that everything is green.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>I am going to skip the description of the user update method and its test. They are basically the same as those for the create functionality. The <code>DELETE /users/{id}</code> endpoint provides a few different concepts, at least on the client side. We will flip the order with this one and show the client implementation first:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClient.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">boolean delete(final long userId) {
     http.delete {
         request.uri.path = "/users/$userId"
         response.success {
@@ -679,21 +688,21 @@ client implementation first:</p>
             throw new IllegalArgumentException()
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice the <code>success</code> and <code>failure</code> handlers used here. If you get a successful response (e.g. 200), the <code>success</code> handler is called, otherwise the
-<code>failure</code> handler is called. For our implementation, we want to return <code>true</code> if the delete is successful` and throw an <code>IllegalArgumentException</code>
-if the user was not deleted - yes, it&#8217;s a bit odd, but it shows a bit more functionality.</p>
-</div>
-<div class="paragraph">
-<p>In order to test this method, we need to test cases:</p>
-</div>
-<div class="listingblock">
-<div class="title">UserClientSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'delete: successful'() {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice the <code>success</code> and <code>failure</code> handlers used here. If you get a successful response (e.g. 200), the <code>success</code> handler is called, otherwise the <code>failure</code> handler is called. For our implementation, we want to return <code>true</code> if the delete is successful` and throw an <code>IllegalArgumentException</code> if the user was not deleted - yes, it’s a bit odd, but it shows a bit more functionality.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>In order to test this method, we need to test cases:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  UserClientSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'delete: successful'() {
     setup:
     server.expectations {
         delete('/users/42').called(1).responds().code(200)
@@ -728,32 +737,27 @@ def 'delete: failed'() {
 
     and:
     server.verify()
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>One test case tests the successful path and the other the failure case. While there is still a lot of functionality left to
-implement and test (e.g. more failure cases, bad input data, etc), we&#8217;ve got a good starting point and a framework for future
-testing.</p>
-</div>
-<div class="paragraph">
-<p>Yes, this is a very code-rich discussion, but hopefully it was all pretty transparent about what was going on. You can find the code for both the client
-and the test in the <a href="https://github.com/cjstehno/rest-dev">rest-dev project</a> on GitHub.</p>
-</div>
-<div class="paragraph">
-<p>HttpBuilder-NG and Erstaz make a great team, and that&#8217;s actually somewhat by design. Ersatz is what HttpBuilder-NG uses to test its own functionality.
-Also, while the examples here are written in Groovy, both libraries work just as well with standard Java 8.</p>
-</div>
-<div class="paragraph">
-<p>This post has only scratched the surface of the functionality provided by both libraries. Poke around their documentation and see what else you can
-do, and feature requests are always welcome.</p>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>Update: I have added a pure <a href="https://github.com/cjstehno/rest-dev/tree/master/java-version">Java 8 implementation</a> of the code for this post (source and tests). Yes, both libraries really do work well with Java too!</p>
-</div>
-</blockquote>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>One test case tests the successful path and the other the failure case. While there is still a lot of functionality left to implement and test (e.g. more failure cases, bad input data, etc), we’ve got a good starting point and a framework for future testing.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Yes, this is a very code-rich discussion, but hopefully it was all pretty transparent about what was going on. You can find the code for both the client and the test in the <a href="https://github.com/cjstehno/rest-dev">rest-dev project</a> on GitHub.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>HttpBuilder-NG and Erstaz make a great team, and that’s actually somewhat by design. Ersatz is what HttpBuilder-NG uses to test its own functionality. Also, while the examples here are written in Groovy, both libraries work just as well with standard Java 8.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This post has only scratched the surface of the functionality provided by both libraries. Poke around their documentation and see what else you can do, and feature requests are always welcome.</p> 
+</div> 
+<div class="quoteblock"> 
+ <blockquote> 
+  <div class="paragraph"> 
+   <p>Update: I have added a pure <a href="https://github.com/cjstehno/rest-dev/tree/master/java-version">Java 8 implementation</a> of the code for this post (source and tests). Yes, both libraries really do work well with Java too!</p> 
+  </div> 
+ </blockquote> 
 </div></p>
             </div>
         </div>
@@ -762,25 +766,25 @@ do, and feature requests are always welcome.</p>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/fixed-minute-timers.html">Fixed Minute Timers</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 03 March 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="paragraph">
-<p>A co-worker of mine recently complained about how our metrics reporting component wasn&#8217;t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>10:47:34
+                <p><div class="paragraph"> 
+ <p>A co-worker of mine recently complained about how our metrics reporting component wasn’t smart enough to start the reporting timer on discrete minutes, but rather it just starts reporting at the start time, for example if you start the application at 10:42:34 and report every five minutes, you will get events recorded at the following times:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>10:47:34
 10:52:34
-10:57:34</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which can be annoying for a user when you want to determine metric changes over time, especially when using a dashboard tool. While this is a critical defect, it can be a data quality annoyance and it turns out, its not all that hard to fix.</p>
-</div>
-<div class="paragraph">
-<p>What you want to do is determine the delay between now and the next desired minute-mark, the five-minute mark in our case, and you can do this with a little math:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def delay(final int mark, final LocalTime now = LocalTime.now()){
+10:57:34</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which can be annoying for a user when you want to determine metric changes over time, especially when using a dashboard tool. While this is a critical defect, it can be a data quality annoyance and it turns out, its not all that hard to fix.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>What you want to do is determine the delay between now and the next desired minute-mark, the five-minute mark in our case, and you can do this with a little math:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def delay(final int mark, final LocalTime now = LocalTime.now()){
     int minute = now.minute + 1
 
     int minuteMark = minute % mark
@@ -793,21 +797,21 @@ do, and feature requests are always welcome.</p>
     }
 
     now.until(LocalTime.of(hour, minuteMark, 0, 0), ChronoUnit.MILLIS)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>where <code>mark</code> is your minute-mark (<code>5</code>), and <code>now</code> is either a time you pass in (mostly for testing) or the current time by default. We need to roll the minute hand forward one to account for how far we are already into that minute and then we figure out what the next minute-mark is (accounting for hour-boundary rollover). Then you determine the difference between that next interval time and the current time, returning that value.</p>
-</div>
-<div class="paragraph">
-<p>This does not account for the time spent in the method itself, but we are working on the scale of minutes and seconds here so our calculation time should not matter.</p>
-</div>
-<div class="paragraph">
-<p>A full example of using this to schedule a timer on the five-minute marks follows:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import java.time.*
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>where <code>mark</code> is your minute-mark (<code>5</code>), and <code>now</code> is either a time you pass in (mostly for testing) or the current time by default. We need to roll the minute hand forward one to account for how far we are already into that minute and then we figure out what the next minute-mark is (accounting for hour-boundary rollover). Then you determine the difference between that next interval time and the current time, returning that value.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This does not account for the time spent in the method itself, but we are working on the scale of minutes and seconds here so our calculation time should not matter.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>A full example of using this to schedule a timer on the five-minute marks follows:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">import java.time.*
 import java.time.temporal.*
 import java.util.concurrent.*
 
@@ -837,24 +841,24 @@ println "Start: ${now.plus(delay, ChronoUnit.MILLIS)}"
 ScheduledExecutorService ses = Executors.newScheduledThreadPool(1)
 ses.scheduleAtFixedRate({
     println LocalTime.now()
-}, delay, mark*60000, TimeUnit.MILLISECONDS)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which will print out something like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Now: 08:33:22.611
+}, delay, mark*60000, TimeUnit.MILLISECONDS)</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which will print out something like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>Now: 08:33:22.611
 Delay: 97389 ms
 Start: 08:35
 08:35:00.088
 08:40:00.088
-08:45:00.088</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>These nice clean time bounaries lead to cleaner reporting visualizations. You can use any minute as the mark points, but generally you would use: 1, 5, 10, 15, 20, 30, or 60.</p>
+08:45:00.088</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>These nice clean time bounaries lead to cleaner reporting visualizations. You can use any minute as the mark points, but generally you would use: 1, 5, 10, 15, 20, 30, or 60.</p> 
 </div></p>
             </div>
         </div>
@@ -863,15 +867,15 @@ Start: 08:35
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/ssl-issues.html">Ignoring SSL Issues</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 15 January 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a>
-                <p><div class="paragraph">
-<p>SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.</p>
-</div>
-<div class="paragraph">
-<p>All you need are a couple custom components, which are thankfully shared across the client implementations I will discuss. You need an all-trusting <code>javax.net.ssl.TrustManager</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">X509TrustManager allTrusting = new X509TrustManager() {
+                <p><div class="paragraph"> 
+ <p>SSL is great, but it can be a real pain to deal with in testing or when you use self-signed certificates; browsers, generally handle it gracefully after manually accepting the certificate, but APIs can be tricky. In working on <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> to add the “ignore SSL issues” feature back in from the original version, I got the grand tour of how to ignore certificate issues in some modern HTTP clients.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>All you need are a couple custom components, which are thankfully shared across the client implementations I will discuss. You need an all-trusting <code>javax.net.ssl.TrustManager</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">X509TrustManager allTrusting = new X509TrustManager() {
     public X509Certificate[] getAcceptedIssuers() {
         return new X509Certificate[]{};
     }
@@ -881,72 +885,72 @@ Start: 08:35
 
     public void checkServerTrusted(X509Certificate[] certs, String authType) {
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and an all-accepting <code>javax.net.ssl.HostnameVerifier</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">HostnameVerifier ANY_HOSTNAME = (s, sslSession) -&gt; true;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>With these, we can create an <code>javax.net.ssl.SSLContext</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">SSLContext sslContext = SSLContext.getInstance("SSL");
-sslContext.init(null, new TrustManager[]{allTrusting}, new SecureRandom());</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now you are ready to configure your clients. For the Java core <code>HttpsURLConnection</code> you can inject these using:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpsURLConnection https = // created elsewhere
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and an all-accepting <code>javax.net.ssl.HostnameVerifier</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">HostnameVerifier ANY_HOSTNAME = (s, sslSession) -&gt; true;</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>With these, we can create an <code>javax.net.ssl.SSLContext</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">SSLContext sslContext = SSLContext.getInstance("SSL");
+sslContext.init(null, new TrustManager[]{allTrusting}, new SecureRandom());</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now you are ready to configure your clients. For the Java core <code>HttpsURLConnection</code> you can inject these using:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpsURLConnection https = // created elsewhere
 https.setHostnameVerifier(ANY_HOSTNAME);
-https.setSSLSocketFactory(sslContext.getSocketFactory());</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you are using the Apache HttpComponents library, it is also quite simple when using the <code>HttpClientBuilder</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpClientBuilder builder = // created elsewhere
+https.setSSLSocketFactory(sslContext.getSocketFactory());</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>If you are using the Apache HttpComponents library, it is also quite simple when using the <code>HttpClientBuilder</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpClientBuilder builder = // created elsewhere
 builder.setSSLContext(sslContext);
-builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, ANY_HOSTNAME));</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Lastly, if you are using the OkHttp client, you can:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">OkHttpClient.Builder builder = // created elsewhere
+builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, ANY_HOSTNAME));</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Lastly, if you are using the OkHttp client, you can:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">OkHttpClient.Builder builder = // created elsewhere
 builder.sslSocketFactory(sslContext.getSocketFactory(), allTrusting);
-builder.hostnameVerifier(ANY_HOSTNAME);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Ok, now that the gritty details have been discussed, what about a simpler approach - how can this be done in <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a>? All you need to do is apply the <code>ignoreSslIssues()</code> helper method to your configuration as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def http = JavaHttpBuilder.configure {
+builder.hostnameVerifier(ANY_HOSTNAME);</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Ok, now that the gritty details have been discussed, what about a simpler approach - how can this be done in <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a>? All you need to do is apply the <code>ignoreSslIssues()</code> helper method to your configuration as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def http = JavaHttpBuilder.configure {
     ignoreSslIssues execution
     // other config...
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which will apply the configurations discussed above and you are ready to go. A means of doing this via system property is also provided (see the <a href="https://http-builder-ng.github.io/http-builder-ng/guide/html5/">User Guide</a> for more details).</p>
-</div>
-<div class="paragraph">
-<p>Now you are off and running to ignore SSL certificate issues. As a quick disclaimer and reminder, SSL is an important security measure for web connections and should not be disabled/ignored ligthly and never in an internet-facing production environment - these procedures for ignoring errors are really meant for testing purposes.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Which will apply the configurations discussed above and you are ready to go. A means of doing this via system property is also provided (see the <a href="https://http-builder-ng.github.io/http-builder-ng/guide/html5/">User Guide</a> for more details).</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Now you are off and running to ignore SSL certificate issues. As a quick disclaimer and reminder, SSL is an important security measure for web connections and should not be disabled/ignored ligthly and never in an internet-facing production environment - these procedures for ignoring errors are really meant for testing purposes.</p> 
 </div></p>
             </div>
         </div>
@@ -955,16 +959,18 @@ builder.hostnameVerifier(ANY_HOSTNAME);</code></pre>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2017/fuzzy-matching.html">Fuzzy Text Matching</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 12 January 2017</em> ~ <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="paragraph">
-<p>From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people&#8217;s first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it&#8217;s better to have a simple solution that works well-enough without adding bulk to your application.</p>
-</div>
-<div class="paragraph">
-<p>As I mentioned above, let&#8217;s say we have a list of first names - I collected 100 from a <a href="http://listofrandomnames.com/index.cfm?textarea">random name generator site</a> and put them in a text file (a sample is shown below):</p>
-</div>
-<div class="listingblock">
-<div class="title">names.txt</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-text" data-lang="text">Sona
+                <p><div class="paragraph"> 
+ <p>From time to time I have needed to find matching text data based on some user input data, for example given a list of known company names, return a list of potential matches to a company name entered by the user - or for our example here: given a list of people’s first names, find the best matches to the user-provided name. Yes, there are tools, libraries and frameworks to do this in really efficient ways and in large volume, but if you are not already using them and if this is the only such problem you have to solve, it’s better to have a simple solution that works well-enough without adding bulk to your application.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>As I mentioned above, let’s say we have a list of first names - I collected 100 from a <a href="http://listofrandomnames.com/index.cfm?textarea">random name generator site</a> and put them in a text file (a sample is shown below):</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  names.txt
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-text" data-lang="text">Sona
 Terisa
 Shasta
 Jerold
@@ -978,19 +984,21 @@ Lynell
 Mignon
 Sharla
 Kiesha
-Art</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When given a name, such as "Harry", how can we filter the list of names to provide the best matches? I have found the <a href="http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/StringUtils.html#getJaroWinklerDistance-java.lang.CharSequence-java.lang.CharSequence-">getJaroWinklerDistance</a> in the <a href="http://commons.apache.org/proper/commons-lang">Apache Commons Lang</a> <code>StringUtils</code> class to be quite useful. It&#8217;s a string similarity algorithm that returns a <code>double</code> similarity result given two strings - the larger the number, the better the match.</p>
-</div>
-<div class="paragraph">
-<p>With that you can load the names into a collection and process each of them against your given name to find the best <code>N</code> results (let&#8217;s say 10). The script is as follows:</p>
-</div>
-<div class="listingblock">
-<div class="title">find_name.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Grapes(
+Art</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>When given a name, such as "Harry", how can we filter the list of names to provide the best matches? I have found the <a href="http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/StringUtils.html#getJaroWinklerDistance-java.lang.CharSequence-java.lang.CharSequence-">getJaroWinklerDistance</a> in the <a href="http://commons.apache.org/proper/commons-lang">Apache Commons Lang</a> <code>StringUtils</code> class to be quite useful. It’s a string similarity algorithm that returns a <code>double</code> similarity result given two strings - the larger the number, the better the match.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With that you can load the names into a collection and process each of them against your given name to find the best <code>N</code> results (let’s say 10). The script is as follows:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  find_name.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Grapes(
     @Grab('org.apache.commons:commons-lang3:3.5')
 )
 
@@ -1008,15 +1016,15 @@ names.collect { n-&gt;
 }.sort { -it.get(1) }[0..10].each { r-&gt;
     println "${r.get(0).padRight(15)}${r.get(1)}"
 }
-println ''</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If I run this against the set of 100 names I used, I get the following result:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; groovy find_name.groovy Harry
+println ''</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>If I run this against the set of 100 names I used, I get the following result:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; groovy find_name.groovy Harry
 Searching for: harry
 
 Name           Score
@@ -1031,14 +1039,14 @@ maryellen      0.64
 sari           0.63
 hana           0.63
 earle          0.6
-shana          0.6</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We see that there is actually a pretty good match, "Harrison", and even "Gary" for that matter. I have used this method to provide a list of suggestions back to the user so that they can make the final selection from them (being the list of items actually available in your system).</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s an interesting technique and I am sure that there are better ways - feel free to suggest them.</p>
+shana          0.6</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We see that there is actually a pretty good match, "Harrison", and even "Gary" for that matter. I have used this method to provide a list of suggestions back to the user so that they can make the final selection from them (being the list of items actually available in your system).</p> 
+</div> 
+<div class="paragraph"> 
+ <p>It’s an interesting technique and I am sure that there are better ways - feel free to suggest them.</p> 
 </div></p>
             </div>
         </div>
@@ -1047,24 +1055,18 @@ shana          0.6</pre>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/introducing-ersatz.html">Introducing Ersatz</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 10 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a>
-                <p><div class="paragraph">
-<p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server
-libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the
-<a href="https://github.com/square/okhttp/tree/master/mockwebserver">OkHttp Mock Server</a>, but both had their own issues and just didn&#8217;t really fit the bill for
-what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the
-<a href="http://stehno.com/ersatz/">Ersatz Server</a>.</p>
-</div>
-<div class="paragraph">
-<p>My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of
-any other mocking library. I used the <a href="http://undertow.io">Undertow</a> web server with both a Java 8 chained builder and a Groovy DSL approach to
-configuration to allow very simple and expressive expectation configuration.</p>
-</div>
-<div class="paragraph">
-<p>With the Groovy DSL you can define expectations such as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">ErsatzServer ersatz = new ErsatzServer()
+                <p><div class="paragraph"> 
+ <p>While working on tests for the <a href="https://http-builder-ng.github.io/http-builder-ng/">HttpBuilder-NG</a> project, I tried out a couple different mock server libraries, my old go-to <a href="http://www.mock-server.com/">Mock Server</a> and then the <a href="https://github.com/square/okhttp/tree/master/mockwebserver">OkHttp Mock Server</a>, but both had their own issues and just didn’t really fit the bill for what I wanted to be able to do with mock server testing. So, I decided to do some prototyping over a long weekend and I was able to come up with the <a href="http://stehno.com/ersatz/">Ersatz Server</a>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>My goal was to use an standardized embedded HTTP server and then provide a rich DSL to configure expectations on it with all the bells and whistles of any other mocking library. I used the <a href="http://undertow.io">Undertow</a> web server with both a Java 8 chained builder and a Groovy DSL approach to configuration to allow very simple and expressive expectation configuration.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With the Groovy DSL you can define expectations such as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">ErsatzServer ersatz = new ErsatzServer()
 
 server.expectations {
     get('/say/hello'){
@@ -1083,31 +1085,28 @@ assert url.text == 'Hello Ersatz'
 
 assert ersatz.verify()
 
-ersatz.stop()</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which will respond to a <code>GET</code> request to <code>/say/hello?name=Ersatz</code> with the text content <code>Hello Ersatz</code> and it will be expected that this request is
-called exactly once, or the <code>verify()</code> call will fail. This could also be written in standard Java:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">server.expectations( expect -&gt; {
+ersatz.stop()</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which will respond to a <code>GET</code> request to <code>/say/hello?name=Ersatz</code> with the text content <code>Hello Ersatz</code> and it will be expected that this request is called exactly once, or the <code>verify()</code> call will fail. This could also be written in standard Java:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">server.expectations( expect -&gt; {
     expect.get("/say/hello").verifier(once()).query("name","Ersatz").responds().content("Hello Ersatz","text/plain");
-});</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The builder form and the DSL form are equivalent and may be used together when developing in Groovy.</p>
-</div>
-<div class="paragraph">
-<p>Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other
-custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent
-calls would respond with a 500 error status, such as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">server.expectations {
+});</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The builder form and the DSL form are equivalent and may be used together when developing in Groovy.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Expectations can be configured across the major HTTP request methods and can be matched by path as well as headers, cookies, body contents and other custom conditions. Multiple responses may be configured on a request so, for example, the first call would respond with some value, but all subsequent calls would respond with a 500 error status, such as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">server.expectations {
     post('/save'){
         body data, 'application/json'
         responder {
@@ -1117,15 +1116,14 @@ calls would respond with a 500 error status, such as:</p>
             code 500
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This allows for some interesting and flexible configuration options.</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features
-that we can utilize going forward that were not present in the other mock server libraries. Give it a try.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This allows for some interesting and flexible configuration options.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>It’s a new library but I have replaced the mock server code in HttpBuilder-NG with it and it makes the tests a bit cleaner and adds some nice features that we can utilize going forward that were not present in the other mock server libraries. Give it a try.</p> 
 </div></p>
             </div>
         </div>
@@ -1134,42 +1132,44 @@ that we can utilize going forward that were not present in the other mock server
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-plugins-intro.html">Writing Gradle Plugins</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 07 December 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
-                <p><div class="paragraph">
-<p>In my last post, <a href="http://coffeaelectronica.com/blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a>, I discussed the basics of Gradle and how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.</p>
-</div>
-<div class="paragraph">
-<p>First, we need a project to work with. Let&#8217;s say that we want to add a custom banner to our build output - who doesn&#8217;t love banners? Something like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>  _______ _            ____        _ _     _
+                <p><div class="paragraph"> 
+ <p>In my last post, <a href="http://coffeaelectronica.com/blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a>, I discussed the basics of Gradle and how to get up and running quickly. Now, I am going to dive into the deeper part of the pool and talk about how to write your own Gradle plugins.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>First, we need a project to work with. Let’s say that we want to add a custom banner to our build output - who doesn’t love banners? Something like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>  _______ _            ____        _ _     _
  |__   __| |          |  _ \      (_) |   | |
     | |  | |__   ___  | |_) |_   _ _| | __| |
     | |  | '_ \ / _ \ |  _ &lt;| | | | | |/ _` |
     | |  | | | |  __/ | |_) | |_| | | | (_| |_ _ _
-    |_|  |_| |_|\___| |____/ \__,_|_|_|\__,_(_|_|_)</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We need to create a directory named <code>banner-build</code> and then create a <code>build.gradle</code> file in it with the following starting content:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+    |_|  |_| |_|\___| |____/ \__,_|_|_|\__,_(_|_|_)</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We need to create a directory named <code>banner-build</code> and then create a <code>build.gradle</code> file in it with the following starting content:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
     id 'groovy'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We just need a basic starting point. Run <code>./gradle wrapper --gradle-version=3.2</code> to generate the wrapper and we are ready to start (we can run <code>/gradlew</code> from here on out).</p>
-</div>
-<div class="paragraph">
-<p>Now, in order to write out a banner we need to create a custom task that will render it for us:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task banner {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We just need a basic starting point. Run <code>./gradle wrapper --gradle-version=3.2</code> to generate the wrapper and we are ready to start (we can run <code>/gradlew</code> from here on out).</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, in order to write out a banner we need to create a custom task that will render it for us:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task banner {
     doFirst {
         if( !project.hasProperty('noBanner') ){
             file('banner.txt').eachLine { line-&gt;
@@ -1179,18 +1179,18 @@ that we can utilize going forward that were not present in the other mock server
     }
 }
 
-gradle.startParameter.taskNames = [':banner'] + gradle.startParameter.taskNames</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This task will add our action to the top of the execution list (the <code>startPrameter</code> modification makes it always run) so that if the <code>noBanner</code> property is not specified, our banner will be loaded from the specified file and displayed to the output log.</p>
-</div>
-<div class="paragraph">
-<p>We will read our banner from a file, <code>banner.txt</code> in the root of the project - so we will need to create that with the banner content from above. Then, when you run <code>./gradlew build</code> you will see something like the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; ./gradlew build
+gradle.startParameter.taskNames = [':banner'] + gradle.startParameter.taskNames</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This task will add our action to the top of the execution list (the <code>startPrameter</code> modification makes it always run) so that if the <code>noBanner</code> property is not specified, our banner will be loaded from the specified file and displayed to the output log.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>We will read our banner from a file, <code>banner.txt</code> in the root of the project - so we will need to create that with the banner content from above. Then, when you run <code>./gradlew build</code> you will see something like the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; ./gradlew build
 :banner
   _______ _            ____        _ _     _
  |__   __| |          |  _ \      (_) |   | |
@@ -1214,22 +1214,24 @@ gradle.startParameter.taskNames = [':banner'] + gradle.startParameter.taskNames<
 
 BUILD SUCCESSFUL
 
-Total time: 0.559 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice also, that we can turn off the banner, passing the <code>-PnoBanner</code> option on the command line or as a property in your <code>gradle.properties</code> file, if you have one - if you run under one of those conditions, the banner will not be printed.</p>
-</div>
-<div class="paragraph">
-<p>At this point, we have accomplished our original goal and we can go on with our lives&#8230;&#8203; until the next project comes along and you need the same sort of functionality. You could just copy and paste this code into your project, but you don&#8217;t do that&#8230;&#8203; right? That&#8217;s where plugins come into play; they allow us to share functionality across different project builds.</p>
-</div>
-<div class="paragraph">
-<p>To create the plugin, first we need a separate Gradle project for it; create a directory (outside of the one for our demo project), called <code>banner-plugin</code> and add a <code>build.gradle</code> file to it with:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+Total time: 0.559 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice also, that we can turn off the banner, passing the <code>-PnoBanner</code> option on the command line or as a property in your <code>gradle.properties</code> file, if you have one - if you run under one of those conditions, the banner will not be printed.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>At this point, we have accomplished our original goal and we can go on with our lives…​ until the next project comes along and you need the same sort of functionality. You could just copy and paste this code into your project, but you don’t do that…​ right? That’s where plugins come into play; they allow us to share functionality across different project builds.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>To create the plugin, first we need a separate Gradle project for it; create a directory (outside of the one for our demo project), called <code>banner-plugin</code> and add a <code>build.gradle</code> file to it with:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
     id 'groovy'
     id 'java-gradle-plugin'
 }
@@ -1251,34 +1253,40 @@ dependencies {
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
         exclude module: 'groovy-all'
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and run <code>gradle wrapper --gradle-version=3.2</code> in it to generate our wrapper. The build file for a plugin project is a standard Gradle build file, but with the <code>java-gradle-plugin</code> plugin to provide extra tools needed for plugins, as well as dependencies for the Gradle API and it&#8217;s associated Groovy distribution. With plugins, the project name is used as part of the unique plugin ID, so it&#8217;s generally a good practice to be explicit about the project name using a <code>settings.gradle</code> file:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/settings.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">rootProject.name = 'banner-plugin'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The last piece of plugin-specific configuration is the plugin properties file, which is a file in the <code>resources/META-INF/gradle-plugins</code> directory named <code>&lt;group&gt;.&lt;name&gt;.properties</code>, for this example:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/main/resources/META-INF/gradle-plugins/com.stehno.gradle.banner-plugin.properties</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-properties" data-lang="properties">implementation-class=com.stehno.gradle.banner.BannerPlugin</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now we can create the basic skeleton for our plugin, which is an implementation of the Gradle <code>Plugin&lt;Project&gt;</code> interface:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerPlugin.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and run <code>gradle wrapper --gradle-version=3.2</code> in it to generate our wrapper. The build file for a plugin project is a standard Gradle build file, but with the <code>java-gradle-plugin</code> plugin to provide extra tools needed for plugins, as well as dependencies for the Gradle API and it’s associated Groovy distribution. With plugins, the project name is used as part of the unique plugin ID, so it’s generally a good practice to be explicit about the project name using a <code>settings.gradle</code> file:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/settings.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">rootProject.name = 'banner-plugin'</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The last piece of plugin-specific configuration is the plugin properties file, which is a file in the <code>resources/META-INF/gradle-plugins</code> directory named <code>&lt;group&gt;.&lt;name&gt;.properties</code>, for this example:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/main/resources/META-INF/gradle-plugins/com.stehno.gradle.banner-plugin.properties
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-properties" data-lang="properties">implementation-class=com.stehno.gradle.banner.BannerPlugin</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now we can create the basic skeleton for our plugin, which is an implementation of the Gradle <code>Plugin&lt;Project&gt;</code> interface:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerPlugin.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -1288,56 +1296,59 @@ class BannerPlugin implements Plugin&lt;Project&gt; {
     @Override void apply(final Project project) {
         // your config here...
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is the main entry point for our plugin. When it is "applied" to the project, the <code>apply(Project)</code> method will be called. If we do a <code>clean build</code> of the project at this point, it will pass, but it does nothing. We need to transfer our functionality (the <code>banner</code> task) from our original <code>build.gradle</code>
-file to the plugin. Let&#8217;s create the plugin task skeleton:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerTask.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This is the main entry point for our plugin. When it is "applied" to the project, the <code>apply(Project)</code> method will be called. If we do a <code>clean build</code> of the project at this point, it will pass, but it does nothing. We need to transfer our functionality (the <code>banner</code> task) from our original <code>build.gradle</code> file to the plugin. Let’s create the plugin task skeleton:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerTask.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 class BannerTask extends DefaultTask {
 
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and give it something to do:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and give it something to do:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
 void displayBanner(){
     logger.lifecycle 'Doing something!'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Once we have a task, we need to wire it into the plugin so that it is applied to the project. Change the <code>apply(Project)</code> method of our <code>BannerPlugin</code> class to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Override void apply(final Project project) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Once we have a task, we need to wire it into the plugin so that it is applied to the project. Change the <code>apply(Project)</code> method of our <code>BannerPlugin</code> class to the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Override void apply(final Project project) {
     project.task 'banner', type:BannerTask
 
     project.gradle.startParameter.taskNames = [':banner'] + project.gradle.startParameter.taskNames
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This will apply our new task and then cause it to be called whenever the build is run. Now, how do we check our progress? We could build the plugin and deploy it to our original project but that would be quite a lot of round-trip time every time we wanted to test a change, but there is no need for that, Gradle provides a rich test framework which works well with Spock. Let&#8217;s create a Spock test for our task:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This will apply our new task and then cause it to be called whenever the build is run. Now, how do we check our progress? We could build the plugin and deploy it to our original project but that would be quite a lot of round-trip time every time we wanted to test a change, but there is no need for that, Gradle provides a rich test framework which works well with Spock. Let’s create a Spock test for our task:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
 
 import spock.lang.Specification
 import org.junit.Rule
@@ -1373,16 +1384,15 @@ class BannerTaskSpec extends Specification {
         then:
         println result.output
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It&#8217;s a bit of code, but it&#8217;s not too bad once you dig in. We have a standard Spock test, with a <code>TemporaryFolder</code> rule - this will be our test project directory. Then, we create a <code>build.gradle</code> file for our test with our plugin and the <code>groovy</code> plugin, similar to what our original Gradle file looked like. Next, we use the <code>GradleRunner</code> to create and configure a Gradle environment using our file, which is then executed as a build. The results are then printed out to the command line. If you run <code>./gradlew test</code> on the project now and view the test output (in the report standard out), you
- will see:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>:banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>It’s a bit of code, but it’s not too bad once you dig in. We have a standard Spock test, with a <code>TemporaryFolder</code> rule - this will be our test project directory. Then, we create a <code>build.gradle</code> file for our test with our plugin and the <code>groovy</code> plugin, similar to what our original Gradle file looked like. Next, we use the <code>GradleRunner</code> to create and configure a Gradle environment using our file, which is then executed as a build. The results are then printed out to the command line. If you run <code>./gradlew test</code> on the project now and view the test output (in the report standard out), you will see:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>:banner
 Doing something!
 :clean UP-TO-DATE
 :compileJava UP-TO-DATE
@@ -1401,30 +1411,30 @@ Doing something!
 
 BUILD SUCCESSFUL
 
-Total time: 2.019 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>where we can see our output and we have a way to quickly test our new task. So, moving onward, we need to add the real functionality to our task. Update the <code>displayBanner()</code> method to:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+Total time: 2.019 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>where we can see our output and we have a way to quickly test our new task. So, moving onward, we need to add the real functionality to our task. Update the <code>displayBanner()</code> method to:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
 void displayBanner(){
     if( !project.hasProperty('noBanner') ){
         project.file('banner.txt').eachLine { line-&gt;
             logger.lifecycle line
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that we prefixed <code>project.</code> before the <code>file()</code> call since we are no longer directly in the "project" scope, but other than that this code was copied right from our original build file. If you run the test, you see our message in the test output:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>:banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that we prefixed <code>project.</code> before the <code>file()</code> call since we are no longer directly in the "project" scope, but other than that this code was copied right from our original build file. If you run the test, you see our message in the test output:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>:banner
 Awesome banner!
 :clean UP-TO-DATE
 :compileJava UP-TO-DATE
@@ -1443,32 +1453,34 @@ Awesome banner!
 
 BUILD SUCCESSFUL
 
-Total time: 2.019 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Our test is good, but it doesn&#8217;t really verify anything, it just prints out the build output. Let&#8217;s make it verify that the build passed and that our expected message is in the output - the <code>then:</code> block becomes:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">then:
+Total time: 2.019 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Our test is good, but it doesn’t really verify anything, it just prints out the build output. Let’s make it verify that the build passed and that our expected message is in the output - the <code>then:</code> block becomes:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">then:
 result.tasks.every { BuildTask task -&gt;
     task.outcome == TaskOutcome.SUCCESS || task.outcome == TaskOutcome.UP_TO_DATE
 }
 
-result.output.contains('Awesome Banner!')</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The test will no longer generate the build output to the command line, but we are actually verifying the expected behavior.</p>
-</div>
-<div class="paragraph">
-<p>We can test the <code>noBanner</code> property support as well, but we should also refactor the test a bit so that shared code is reused - now our test looks like:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+result.output.contains('Awesome Banner!')</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The test will no longer generate the build output to the command line, but we are actually verifying the expected behavior.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>We can test the <code>noBanner</code> property support as well, but we should also refactor the test a bit so that shared code is reused - now our test looks like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/test/groovy/com/stehno/gradle/banner/BannerTaskSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
 
 import spock.lang.Specification
 import org.junit.Rule
@@ -1530,53 +1542,54 @@ class BannerTaskSpec extends Specification {
             task.outcome == TaskOutcome.SUCCESS || task.outcome == TaskOutcome.UP_TO_DATE
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mostly I just extracted the <code>setup</code> code and the <code>buildPassed</code> check, then added a test for the <code>noBanner</code> property support.</p>
-</div>
-<div class="paragraph">
-<p>Wouldn&#8217;t it be nice to make the banner file location configurable? Gradle plugins have a "extension" construct that allows for rich configuration of plugins by adding functionality to the Gradle DSL. For our plugin, we would like to support something like the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Mostly I just extracted the <code>setup</code> code and the <code>buildPassed</code> check, then added a test for the <code>noBanner</code> property support.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Wouldn’t it be nice to make the banner file location configurable? Gradle plugins have a "extension" construct that allows for rich configuration of plugins by adding functionality to the Gradle DSL. For our plugin, we would like to support something like the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
     enabled = true
     location = file('banner.txt')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which would be used to toggle the banner display on and off and also provide a means of configuring the banner file location. This structure and both of its properties are optional, but allow additional configuration. Adding them to the plugin is fairly simple. The extension itself is just a POGO class, which for our case would be:</p>
-</div>
-<div class="listingblock">
-<div class="title">banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerExtension.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which would be used to toggle the banner display on and off and also provide a means of configuring the banner file location. This structure and both of its properties are optional, but allow additional configuration. Adding them to the plugin is fairly simple. The extension itself is just a POGO class, which for our case would be:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  banner-plugin/src/main/groovy/com/stehno/gradle/banner/BannerExtension.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.gradle.banner
 
 class BannerExtension {
 
     boolean enabled = true
     File location
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To register the extension with the plugin, you add the following to the first line of the <code>BannerPlugin</code> <code>apply(Project)</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">project.extensions.create('banner', BannerExtension)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The last part of adding the extension support is to have the task actually make use of it. The <code>displayBanner</code> method of the task will look like the
-following when we are done:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>To register the extension with the plugin, you add the following to the first line of the <code>BannerPlugin</code> <code>apply(Project)</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">project.extensions.create('banner', BannerExtension)</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The last part of adding the extension support is to have the task actually make use of it. The <code>displayBanner</code> method of the task will look like the following when we are done:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@TaskAction
 void displayBanner(){
     BannerExtension extension = project.extensions.getByType(BannerExtension)
 
@@ -1590,17 +1603,15 @@ void displayBanner(){
             logger.lifecycle line
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>I modified the <code>noBanner</code> property and converted it to a flag so that now you would pass in <code>-PbannerEnabled=false</code> to disable it. I also added a means
-of configuring the banner file from the command line or via the extension, with the default still being <code>banner.txt</code>. The CLI and settings properties
-will override the extension values if they are present. We need to modify the <code>'simple run with status hidden'</code> test to handle the new parameter:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'simple run with status hidden'(){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>I modified the <code>noBanner</code> property and converted it to a flag so that now you would pass in <code>-PbannerEnabled=false</code> to disable it. I also added a means of configuring the banner file from the command line or via the extension, with the default still being <code>banner.txt</code>. The CLI and settings properties will override the extension values if they are present. We need to modify the <code>'simple run with status hidden'</code> test to handle the new parameter:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'simple run with status hidden'(){
     when:
     BuildResult result = GradleRunner.create()
         .withPluginClasspath()
@@ -1612,16 +1623,15 @@ will override the extension values if they are present. We need to modify the <c
     buildPassed result
 
     !result.output.contains('Awesome Banner!')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, if you run the tests, everything still passes - so the defaults work as expected. Let&#8217;s add some tests using the extension to override the file
-location.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'extension run'(){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, if you run the tests, everything still passes - so the defaults work as expected. Let’s add some tests using the extension to override the file location.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def 'extension run'(){
     setup:
     buildFile.text = '''
         plugins {
@@ -1645,31 +1655,32 @@ location.</p>
     buildPassed result
 
     result.output.contains('Awesome-er Banner!')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this test we have to override the default build file we created in <code>setup</code>. I also added the creation of the other banner file in the <code>setup</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">projectRoot.newFile('other-banner.txt').text = 'Awesome-er Banner!'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, run the tests again and see that our extension works as expected.</p>
-</div>
-<div class="paragraph">
-<p>With our newly minted Gradle plugin we should be able to use it in our original project as a local test before deployment. An easy way to do this is to publish it to your local maven repository and then configure the other project to use it. In the plugin project, add <code>id 'maven-publish'</code> to the <code>plugins</code> block, which will allow us to publish to the local maven repo. Then run <code>./gradlew publishToMavenLocal</code>, which does what it says.</p>
-</div>
-<div class="paragraph">
-<p>In the original external <code>build.gradle</code> file we need to add bootstrapping code to bring in the local plugin and also remove the old <code>banner</code> task. The
-updated <code>build.gradle</code> file will look like this:</p>
-</div>
-<div class="listingblock">
-<div class="title">build-banner/build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">buildscript {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In this test we have to override the default build file we created in <code>setup</code>. I also added the creation of the other banner file in the <code>setup</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">projectRoot.newFile('other-banner.txt').text = 'Awesome-er Banner!'</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now, run the tests again and see that our extension works as expected.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With our newly minted Gradle plugin we should be able to use it in our original project as a local test before deployment. An easy way to do this is to publish it to your local maven repository and then configure the other project to use it. In the plugin project, add <code>id 'maven-publish'</code> to the <code>plugins</code> block, which will allow us to publish to the local maven repo. Then run <code>./gradlew publishToMavenLocal</code>, which does what it says.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>In the original external <code>build.gradle</code> file we need to add bootstrapping code to bring in the local plugin and also remove the old <code>banner</code> task. The updated <code>build.gradle</code> file will look like this:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build-banner/build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">buildscript {
     repositories {
         mavenLocal()
     }
@@ -1682,15 +1693,15 @@ plugins {
     id 'groovy'
 }
 
-apply plugin: "com.stehno.gradle.banner-plugin"</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that we are pulling the plugin from the local maven repository. If you run the build now, you get your expected banner:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; ./gradlew build
+apply plugin: "com.stehno.gradle.banner-plugin"</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that we are pulling the plugin from the local maven repository. If you run the build now, you get your expected banner:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; ./gradlew build
 :banner
   _______ _            ____        _ _     _
  |__   __| |          |  _ \      (_) |   | |
@@ -1702,49 +1713,43 @@ apply plugin: "com.stehno.gradle.banner-plugin"</code></pre>
 
 BUILD SUCCESSFUL
 
-Total time: 0.543 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>However, we should be able to use a different banner file. Create another banner file as <code>flag.txt</code> (with whatever you want in it) and configure the
-build to use it by adding:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
+Total time: 0.543 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>However, we should be able to use a different banner file. Create another banner file as <code>flag.txt</code> (with whatever you want in it) and configure the build to use it by adding:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">banner {
     location = file('flag.txt')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>to the bottom of the build file. Now, with my new version, I get:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; ./gradlew build
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>to the bottom of the build file. Now, with my new version, I get:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; ./gradlew build
 :banner
 This is GRADLE!!!
 :build
 
 BUILD SUCCESSFUL
 
-Total time: 0.474 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We can also disable the banner via config, set <code>enabled = false</code> in the extension code, and it will not appear. But, you can force it on the command
-line by adding <code>-PbannerEnabled=true</code>.</p>
-</div>
-<div class="paragraph">
-<p>From here, you can distribute your plugin to friends and coworkers as long as you have some shared repository that you can point them to, but what if
-you came up with something cool enough to share to a larger audience? For that you want to publish to the <a href="http://plugins.gradle.com" class="bare">http://plugins.gradle.com</a> repo, which is
-what is used by the <code>plugins</code> block of the <code>build.gradle</code> file. I won&#8217;t go too far down that path in this post, but basically you will need to add the
-<code>id 'com.gradle.plugin-publish' version '0.9.4'</code> plugin to the plugin project, which will handle the actual publishing for you once you configure it
-for your project. In our case this would be something like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">pluginBundle {
+Total time: 0.474 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We can also disable the banner via config, set <code>enabled = false</code> in the extension code, and it will not appear. But, you can force it on the command line by adding <code>-PbannerEnabled=true</code>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>From here, you can distribute your plugin to friends and coworkers as long as you have some shared repository that you can point them to, but what if you came up with something cool enough to share to a larger audience? For that you want to publish to the <a href="http://plugins.gradle.com" class="bare">http://plugins.gradle.com</a> repo, which is what is used by the <code>plugins</code> block of the <code>build.gradle</code> file. I won’t go too far down that path in this post, but basically you will need to add the <code>id 'com.gradle.plugin-publish' version '0.9.4'</code> plugin to the plugin project, which will handle the actual publishing for you once you configure it for your project. In our case this would be something like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">pluginBundle {
     website = 'http://yourdomain.com/banner-plugin'
     vcsUrl = 'https://github.com/cjstehno/banner-plugin'
     description = 'Gradle plugin to add a fancy banner to your build log.'
@@ -1756,16 +1761,14 @@ for your project. In our case this would be something like:</p>
             displayName = 'Gradle Build Banner Plugin'
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Once you have that in place and have signed up with the plugins portal (free) you run <code>./gradlew publishPlugins</code> and if all goes well, you have a
-publicly available plugin.</p>
-</div>
-<div class="paragraph">
-<p>This tutorial has really only scratched the surface of plugin development, there is a lot more there to work with and most of it is well documented in
-the Gradle User Guide or through some Google searches. It&#8217;s a powerful framework and well worth spending the time to learn if you are working in Gradle.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Once you have that in place and have signed up with the plugins portal (free) you run <code>./gradlew publishPlugins</code> and if all goes well, you have a publicly available plugin.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This tutorial has really only scratched the surface of plugin development, there is a lot more there to work with and most of it is well documented in the Gradle User Guide or through some Google searches. It’s a powerful framework and well worth spending the time to learn if you are working in Gradle.</p> 
 </div></p>
             </div>
         </div>
@@ -1774,18 +1777,15 @@ the Gradle User Guide or through some Google searches. It&#8217;s a powerful fra
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-introduction.html">Gradle: A Gentle Introduction</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 02 November 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
-                <p><div class="paragraph">
-<p>The <a href="http://gradle.org">Gradle</a> build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with
-it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start
-into doing some actual work with Gradle. With that being said, let&#8217;s dig in!</p>
-</div>
-<div class="paragraph">
-<p>I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let&#8217;s assume you have Gradle installed,
-preferably a current version. If you run <code>gradle --version</code> you should see something like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>------------------------------------------------------------
+                <p><div class="paragraph"> 
+ <p>The <a href="http://gradle.org">Gradle</a> build tool has become widely-used over the past few years, but there are still a lot of developers who are unfamiliar with it, and like any new framework or technology it is easier to get started with some guidance. Hopefully this will provide a nice jump start into doing some actual work with Gradle. With that being said, let’s dig in!</p> 
+</div> 
+<div class="paragraph"> 
+ <p>I will forgo installing Gradle - you can read about how to do that for your platform in the Gradle documentation. Let’s assume you have Gradle installed, preferably a current version. If you run <code>gradle --version</code> you should see something like:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>------------------------------------------------------------
 Gradle 3.1
 ------------------------------------------------------------
 
@@ -1795,26 +1795,27 @@ Revision:     13f38ba699afd86d7cdc4ed8fd7dd3960c0b1f97
 Groovy:       2.4.7
 Ant:          Apache Ant(TM) version 1.9.6 compiled on June 29 2015
 JVM:          1.8.0_102 (Oracle Corporation 25.102-b14)
-OS:           Linux 4.8.0-26-generic amd64</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>First, create a directory for your project and <code>cd</code> into it:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>mkdir hellogradle
-cd hellogradle</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Every Gradle project needs at least a <code>build.gradle</code> file so we will start with the minimal requirement. Create the following file in your project
-directory:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.gradle</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+OS:           Linux 4.8.0-26-generic amd64</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>First, create a directory for your project and <code>cd</code> into it:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>mkdir hellogradle
+cd hellogradle</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Every Gradle project needs at least a <code>build.gradle</code> file so we will start with the minimal requirement. Create the following file in your project directory:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  build.gradle
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
     id 'groovy'
 }
 
@@ -1824,34 +1825,32 @@ repositories {
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.6'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>plugins</code> block is used to specify the Gradle plugins used in the build; in this case we just need <code>groovy</code> since we are making a Groovy project.
-The <code>groovy</code> plugin extends the <code>java</code> plugin so we get its functionality as well.</p>
-</div>
-<div class="paragraph">
-<p>The <code>repositories</code> block specifies which repositories are available for resolving dependency artifacts - in most cases <code>jcenter()</code> (the Bintray
-repository) is enough to start with.</p>
-</div>
-<div class="paragraph">
-<p>Lastly, the <code>dependencies</code> block is where the project dependencies are defined as <code>&lt;configuration&gt; '&lt;group&gt;:&lt;artifact&gt;:&lt;version&gt;'</code>.</p>
-</div>
-<div class="paragraph">
-<p>At this point you have a working Gradle project. You can build it:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>gradle clean build</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You should see something like the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; hellogradle gradle clean build
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The <code>plugins</code> block is used to specify the Gradle plugins used in the build; in this case we just need <code>groovy</code> since we are making a Groovy project. The <code>groovy</code> plugin extends the <code>java</code> plugin so we get its functionality as well.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The <code>repositories</code> block specifies which repositories are available for resolving dependency artifacts - in most cases <code>jcenter()</code> (the Bintray repository) is enough to start with.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Lastly, the <code>dependencies</code> block is where the project dependencies are defined as <code>&lt;configuration&gt; '&lt;group&gt;:&lt;artifact&gt;:&lt;version&gt;'</code>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>At this point you have a working Gradle project. You can build it:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>gradle clean build</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>You should see something like the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; hellogradle gradle clean build
 :clean
 :compileJava UP-TO-DATE
 :compileGroovy UP-TO-DATE
@@ -1869,36 +1868,31 @@ repository) is enough to start with.</p>
 
 BUILD SUCCESSFUL
 
-Total time: 0.492 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can see that it is already doing quite a bit for so few lines of build code. You can run <code>gradle tasks</code> to see a list of the tasks available to your
-project.</p>
-</div>
-<div class="paragraph">
-<p>So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows
-the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new
-developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.</p>
-</div>
-<div class="paragraph">
-<p>Add the following to the bottom of the <code>build.gradle</code> file:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task wrapper(type: Wrapper) {
+Total time: 0.492 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>You can see that it is already doing quite a bit for so few lines of build code. You can run <code>gradle tasks</code> to see a list of the tasks available to your project.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>So far, we have been running against my local version of Gradle. One of the nice features of Gradle is the wrapper functionality. The wrapper allows the project to specify the version of Gradle it should be built under; this code is then checked into your source control system so that a new developer can checkout the project and build it with the correct version of Gradle without it being installed on their system.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Add the following to the bottom of the <code>build.gradle</code> file:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then, whenever you add the wrapper or change the supported version, you need to execute the <code>gradle wrapper</code> task to regenerate the configuration. Once
-the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the <code>gradlew</code>
-or <code>gradlew.bat</code> scripts provided in the root of your project. Now let&#8217;s do a clean build again with the wrapper:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; hellogradle ./gradlew clean build
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Then, whenever you add the wrapper or change the supported version, you need to execute the <code>gradle wrapper</code> task to regenerate the configuration. Once the wrapper is in place, you will want to execute all your Gradle tasks using it rather than your local installation. You do this using the <code>gradlew</code> or <code>gradlew.bat</code> scripts provided in the root of your project. Now let’s do a clean build again with the wrapper:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; hellogradle ./gradlew clean build
 :clean
 :compileJava UP-TO-DATE
 :compileGroovy UP-TO-DATE
@@ -1916,45 +1910,47 @@ or <code>gradlew.bat</code> scripts provided in the root of your project. Now le
 
 BUILD SUCCESSFUL
 
-Total time: 0.678 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We end up with the same result as before.</p>
-</div>
-<div class="paragraph">
-<p>This project doesn&#8217;t do anything at this point - there is no code. Let&#8217;s add some Groovy code; create the directories for <code>src/main/groovy/demo</code> and
-then add the file:</p>
-</div>
-<div class="listingblock">
-<div class="title">HelloGradle.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+Total time: 0.678 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We end up with the same result as before.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This project doesn’t do anything at this point - there is no code. Let’s add some Groovy code; create the directories for <code>src/main/groovy/demo</code> and then add the file:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  HelloGradle.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
 
 class HelloGradle {
 
     String greet(final String name){
         "Hello, ${name ?: 'Gradle'}!"
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let&#8217;s add support
-for the <a href="http://spockframework.org/spock/docs/1.1-rc-2/index.html">Spock testing framework</a>. Add the following to your <code>dependencies</code> closure:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We now have Spock available, so let&#8217;s write a unit test for our code. Create the test directories: <code>src/test/groovy/demo</code> and then create the file:</p>
-</div>
-<div class="listingblock">
-<div class="title">HelloGradleSpec.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This code simply says hello to the name passed in as an argument, or Gradle by default. Now we will need to unit test our work, so let’s add support for the <a href="http://spockframework.org/spock/docs/1.1-rc-2/index.html">Spock testing framework</a>. Add the following to your <code>dependencies</code> closure:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We now have Spock available, so let’s write a unit test for our code. Create the test directories: <code>src/test/groovy/demo</code> and then create the file:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="title">
+  HelloGradleSpec.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package demo
 
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -1973,16 +1969,15 @@ class HelloGradleSpec extends Specification {
         ''      | 'Hello, Gradle!'
         'Chris' | 'Hello, Chris!'
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This test will verify that our greeter returns the expected values for <code>null</code>-ish inputs as well as when a name is provided. I won&#8217;t go into the details
-of the Spock test at this point. Now, when you build the project, you will also run the tests by default:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; hellogradle ./gradlew clean build
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This test will verify that our greeter returns the expected values for <code>null</code>-ish inputs as well as when a name is provided. I won’t go into the details of the Spock test at this point. Now, when you build the project, you will also run the tests by default:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; hellogradle ./gradlew clean build
 :clean
 :compileJava UP-TO-DATE
 :compileGroovy
@@ -2000,75 +1995,63 @@ of the Spock test at this point. Now, when you build the project, you will also 
 
 BUILD SUCCESSFUL
 
-Total time: 1.789 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice <code>:test</code> near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the <code>build/reports</code> directory
-and will look something like the following image:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="/images/gradle-test-report.png" alt="gradle test report">
-</div>
-</div>
-<div class="paragraph">
-<p>Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the <a href="http://www.eclemma.org/jacoco/">jacoco</a>
-code coverage library. You can add the plugin by adding <code>id 'jacoco'</code> to the <code>plugins</code> block of your <code>build.gradle</code> file, which allows you to run:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>./gradlew clean build jacocoTestReport</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>to build the project with tests and a generated test coverage report. Again, the report is generated in the <code>build/reports</code> directory - it will look
-something like:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="/images/gradle-coverage-report.png" alt="gradle coverage report">
-</div>
-</div>
-<div class="paragraph">
-<p>The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.</p>
-</div>
-<div class="paragraph">
-<p>Testing your code is nice, but you need a way to run your application outside of testing. Let&#8217;s first add a <code>main</code> method to our Groovy code:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">static void main(args){
+Total time: 1.789 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice <code>:test</code> near the bottom. Gradle also provides an HTML report of your test results. The report will be generated in the <code>build/reports</code> directory and will look something like the following image:</p> 
+</div> 
+<div class="imageblock"> 
+ <div class="content"> 
+  <img src="http://coffeaelectronica.com/images/gradle-test-report.png" alt="gradle test report"> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Now that we have a test, it might be nice to have some idea of our test coverage. Gradle provides a plugin for the <a href="http://www.eclemma.org/jacoco/">jacoco</a> code coverage library. You can add the plugin by adding <code>id 'jacoco'</code> to the <code>plugins</code> block of your <code>build.gradle</code> file, which allows you to run:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>./gradlew clean build jacocoTestReport</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>to build the project with tests and a generated test coverage report. Again, the report is generated in the <code>build/reports</code> directory - it will look something like:</p> 
+</div> 
+<div class="imageblock"> 
+ <div class="content"> 
+  <img src="http://coffeaelectronica.com/images/gradle-coverage-report.png" alt="gradle coverage report"> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The coverage report allows you to drill down into the source code and see what is and is not covered by your tests.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Testing your code is nice, but you need a way to run your application outside of testing. Let’s first add a <code>main</code> method to our Groovy code:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">static void main(args){
     println new HelloGradle().greet(args ? args[0] : null)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Nothing fancy, just instantiate the <code>HelloGradle</code> class and call the <code>greet(String)</code> method with the first argument, if there is one. To make the project
-runnable, we need to add the <code>application</code> plugin and specify a "main class". To do this:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Add <code>id 'application'</code> to the <code>plugins</code> block</p>
-</li>
-<li>
-<p>Add <code>group = 'demo'</code> to give the project an artifact group</p>
-</li>
-<li>
-<p>Add <code>version = '0.0.1'</code> to give your project a version</p>
-</li>
-<li>
-<p>Add <code>mainClassName = 'demo.HelloGradle'</code> to the <code>build.gradle</code> file outside of other configuration blocks.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>With that, you now have a new task <code>run</code> which will run the application for you:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; hellogradle ./gradlew run
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Nothing fancy, just instantiate the <code>HelloGradle</code> class and call the <code>greet(String)</code> method with the first argument, if there is one. To make the project runnable, we need to add the <code>application</code> plugin and specify a "main class". To do this:</p> 
+</div> 
+<div class="ulist"> 
+ <ul> 
+  <li> <p>Add <code>id 'application'</code> to the <code>plugins</code> block</p> </li> 
+  <li> <p>Add <code>group = 'demo'</code> to give the project an artifact group</p> </li> 
+  <li> <p>Add <code>version = '0.0.1'</code> to give your project a version</p> </li> 
+  <li> <p>Add <code>mainClassName = 'demo.HelloGradle'</code> to the <code>build.gradle</code> file outside of other configuration blocks.</p> </li> 
+ </ul> 
+</div> 
+<div class="paragraph"> 
+ <p>With that, you now have a new task <code>run</code> which will run the application for you:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>&gt; hellogradle ./gradlew run
 :compileJava UP-TO-DATE
 :compileGroovy
 :processResources UP-TO-DATE
@@ -2078,21 +2061,18 @@ Hello, Gradle!
 
 BUILD SUCCESSFUL
 
-Total time: 1.526 secs</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It also generates <code>.tar</code> and <code>.zip</code> distributions of the project which contain starter scripts and all required dependencies to deploy and run your
-application outside of the project itself.</p>
-</div>
-<div class="paragraph">
-<p>Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is <a href="http://codenarc.sourceforge.net/">CodeNarc</a>
-which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding <code>id 'codenarc'</code> to the
-<code>plugins</code> block and adding some additional config to <code>build.gradle</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">codenarcMain {
+Total time: 1.526 secs</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>It also generates <code>.tar</code> and <code>.zip</code> distributions of the project which contain starter scripts and all required dependencies to deploy and run your application outside of the project itself.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Code quality analysis tools are also available as Gradle plugins. A common one for Groovy development is <a href="http://codenarc.sourceforge.net/">CodeNarc</a> which runs quality rules against your code to generate a report of possible issues. We can add this to the project by adding <code>id 'codenarc'</code> to the <code>plugins</code> block and adding some additional config to <code>build.gradle</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">codenarcMain {
     ignoreFailures false
     configFile file('config/codenarc-main.rules')
 
@@ -2104,34 +2084,25 @@ which runs quality rules against your code to generate a report of possible issu
 codenarcTest {
     ignoreFailures true
     configFile file('config/codenarc-test.rules')
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested
-configurations, personal preference and experience - I generally use the files from my Vanilla project
-(<a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules">main</a>, <a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules">test</a>)
-for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the
-violations for test classes. The build will now run the codenarc checks when a build is executed.</p>
-</div>
-<div class="paragraph">
-<p>The build will let you know if violations were found, and in any case will generate a report in the <code>build/reports/codenarc</code> directory. The report will
-look something like the following:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="/images/gradle-codenarc-report.png" alt="gradle codenarc report">
-</div>
-</div>
-<div class="paragraph">
-<p>At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all
- with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you
- should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best
- reference for finding how-tos or 3rd-party plugins; however, there is an official <a href="https://plugins.gradle.org/">plugin repository</a> that is starting to catch on.</p>
-</div>
-<div class="paragraph">
-<p>Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like
-Maven and Ant.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Which configures a different rules and criteria for main source code vs test source code. The main and test rule sets are based on their suggested configurations, personal preference and experience - I generally use the files from my Vanilla project (<a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-main.rules">main</a>, <a href="https://github.com/cjstehno/vanilla/blob/master/config/codenarc-test.rules">test</a>) for simplicity. This configuration will fail the build when the violation thresholds are exceeded for the main classes, but will simply report on the violations for test classes. The build will now run the codenarc checks when a build is executed.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The build will let you know if violations were found, and in any case will generate a report in the <code>build/reports/codenarc</code> directory. The report will look something like the following:</p> 
+</div> 
+<div class="imageblock"> 
+ <div class="content"> 
+  <img src="http://coffeaelectronica.com/images/gradle-codenarc-report.png" alt="gradle codenarc report"> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>At this point, we have a Gradle-based Groovy project with portable support for building, testing, coverage, code quality and application run/deployment, all with a few dozen lines of understandable code. While there is a lot more you can and should do with Gradle, this is a good starting point. From here, you should read through their documentation in general or touch on topics as you need them to figure out how to do something. Also Google is your best reference for finding how-tos or 3rd-party plugins; however, there is an official <a href="https://plugins.gradle.org/">plugin repository</a> that is starting to catch on.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Once you get the hang of it Gradle is hard to let go of due to its compact code, expressiveness and flexibility without the pains and rigor of older tools, like Maven and Ant.</p> 
 </div></p>
             </div>
         </div>
@@ -2140,16 +2111,15 @@ Maven and Ant.</p>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/gradle-natives-update.html">Gradle Natives Plugin Update</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 19 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/gradle.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> gradle</span></a>
-                <p><div class="paragraph">
-<p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p>
-</div>
-<div class="paragraph">
-<p>With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the
-LWJGL <a href="https://www.lwjgl.org/guide">Getting Started Guide</a> we have:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">import org.lwjgl.*;
+                <p><div class="paragraph"> 
+ <p>A few years ago I wrote a post about my <a href="https://github.com/cjstehno/gradle-natives">Gradle-Natives plugin</a>, called <a href="http://coffeaelectronica.com/blog/2014/going-native-with-gradle.html">"Going Native with Gradle"</a>. The plugin was the result of some failed attempts at game programming and it pretty much stopped there; however, it seems there are some users who found it useful. In the years since it was written, it sat and got buggy and then recently just became useless due to external library changes and the rigidity of the plugin functionality. Tryign to be a good open source citizen, I figured it would be a good time to do some updates that will hopefully keep the plugin viable for a while.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With the new release, I figured it would be good to go back to the original post and attempt a similar example. Using the example code from the LWJGL <a href="https://www.lwjgl.org/guide">Getting Started Guide</a> we have:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 
@@ -2254,15 +2224,15 @@ public class HelloWorld {
 		new HelloWorld().run();
 	}
 
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If we put this in a simple Gradle project with <code>build.gradle</code> as:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>If we put this in a simple Gradle project with <code>build.gradle</code> as:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">plugins {
     id 'com.stehno.natives' version '0.2.4'
     id 'java'
     id 'application'
@@ -2288,15 +2258,15 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     gradleVersion = "2.14"
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We can view the native libraries for all platforms using <code>./gradlew listNatives</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>:listNatives
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We can view the native libraries for all platforms using <code>./gradlew listNatives</code>:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>:listNatives
 Native libraries found for configurations (compile, runtime)...
  - lwjgl-platform-3.0.0-natives-linux.jar:
         [LINUX] libjemalloc.so
@@ -2316,21 +2286,20 @@ Native libraries found for configurations (compile, runtime)...
         [WINDOWS] glfw.dll
         [WINDOWS] glfw32.dll
         [WINDOWS] jemalloc32.dll
-        [WINDOWS] OpenAL32.dll</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and we can build and run the <code>HelloWorld</code> application with <code>./gradlew clean build run</code>, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.</p>
-</div>
-<div class="paragraph">
-<p>You can inlude the native libraries in the build using <code>./gradlew clean build includeNatives</code> which will unpack the native libraries into the project
-<code>build</code> directory.</p>
-</div>
-<div class="paragraph">
-<p>There are still a number of configuration options available through the <code>natives</code> DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the <code>compile</code> and <code>runtime</code> configurations for all platforms unpacked into the <code>build/natives</code> directory.</p>
-</div>
-<div class="paragraph">
-<p>This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.</p>
+        [WINDOWS] OpenAL32.dll</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and we can build and run the <code>HelloWorld</code> application with <code>./gradlew clean build run</code>, which begs the question of whether or not this plugin is needed, since at this point the application works and we have not used the plugin at all. I will leave that to developers who actually work with this stuff and may use the plugin - I am just updating the existing functionality.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>You can inlude the native libraries in the build using <code>./gradlew clean build includeNatives</code> which will unpack the native libraries into the project <code>build</code> directory.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>There are still a number of configuration options available through the <code>natives</code> DSL extension, such as including and excluding libraries, as well as limiting the scan to certain configurations and platforms, but I will leave those for the official documentation. Without any additional configuration you get all of the native libraries from the <code>compile</code> and <code>runtime</code> configurations for all platforms unpacked into the <code>build/natives</code> directory.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This plugin is still pretty raw, but hopefully it is useful enough to make some developers lives easier.</p> 
 </div></p>
             </div>
         </div>
@@ -2339,184 +2308,166 @@ Native libraries found for configurations (compile, runtime)...
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/httpbuilder-ng-demo.html">HTTP Builder NG for Groovy and Java</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 18 September 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="paragraph">
-<p>The <a href="https://github.com/jgritman/httpbuilder"><code>HttpBuilder</code></a> project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly
-died. A friend of mine (<a href="https://github.com/dwclark">Dave Clark</a>) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The
-<a href="https://github.com/dwclark/http-builder-ng">HTTP Builder NG</a> project is a major update and refactor of the original project. I joined on to help with development, documentation and testing. In my opinion,
-this effort has brought the library back from the dead, better than ever. In this post, I will walk through accessing a simple REST service using the <code>HttpBuilder</code> with both Groovy and Java examples -
-yes, the new version of the library supports standard Java 8 coding.</p>
-</div>
-<div class="paragraph">
-<p>First, we need a REST service to work with. I have thrown together a simple set of endpoints using the <a href="http://sparkjava.com">Spark Web Framework</a> to make a "message of the day" service. There are three
-endpoints:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>GET /message</code> - retrieves the current stored message</p>
-</li>
-<li>
-<p><code>POST /message</code> - saves the <code>text</code> field of the JSON body content as the new message</p>
-</li>
-<li>
-<p><code>DELETE /message</code> - deletes the current message</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>There is not much to it, but it should be enough to play with. You can find the code in the [repo for this post](<a href="https://github.com/cjstehno/httpb-demo" class="bare">https://github.com/cjstehno/httpb-demo</a>). Startup the server by running:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>./gradlew run</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In the root of the project. The server will be running on <a href="http://localhost:4567" class="bare">http://localhost:4567</a>.</p>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s start off by retrieving the current message from the server. We need a base configured <code>HttpBuilder</code> object to make requests from:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
+                <p><div class="paragraph"> 
+ <p>The <a href="https://github.com/jgritman/httpbuilder"><code>HttpBuilder</code></a> project has been a go-to library for the simplification of HTTP requests for years; however, development on the project has stalled and seemingly died. A friend of mine (<a href="https://github.com/dwclark">Dave Clark</a>) decided to pick up where the project left off and to bring it up-to-date with modern Groovy and Java 8 support. The <a href="https://github.com/dwclark/http-builder-ng">HTTP Builder NG</a> project is a major update and refactor of the original project. I joined on to help with development, documentation and testing. In my opinion, this effort has brought the library back from the dead, better than ever. In this post, I will walk through accessing a simple REST service using the <code>HttpBuilder</code> with both Groovy and Java examples - yes, the new version of the library supports standard Java 8 coding.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>First, we need a REST service to work with. I have thrown together a simple set of endpoints using the <a href="http://sparkjava.com">Spark Web Framework</a> to make a "message of the day" service. There are three endpoints:</p> 
+</div> 
+<div class="ulist"> 
+ <ul> 
+  <li> <p><code>GET /message</code> - retrieves the current stored message</p> </li> 
+  <li> <p><code>POST /message</code> - saves the <code>text</code> field of the JSON body content as the new message</p> </li> 
+  <li> <p><code>DELETE /message</code> - deletes the current message</p> </li> 
+ </ul> 
+</div> 
+<div class="paragraph"> 
+ <p>There is not much to it, but it should be enough to play with. You can find the code in the [repo for this post](<a href="https://github.com/cjstehno/httpb-demo" class="bare">https://github.com/cjstehno/httpb-demo</a>). Startup the server by running:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>./gradlew run</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In the root of the project. The server will be running on <a href="http://localhost:4567" class="bare">http://localhost:4567</a>.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Let’s start off by retrieving the current message from the server. We need a base configured <code>HttpBuilder</code> object to make requests from:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
     request.uri = 'http://localhost:4567'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then, we need to make a <code>GET</code> request to the <code>/message</code> path:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def result = http.get {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Then, we need to make a <code>GET</code> request to the <code>/message</code> path:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def result = http.get {
     request.uri.path = '/message'
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When you run this code, you will get the following:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[text:n/a, timestamp:2016-09-16T12:47:55+0000]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which is a <code>Map</code> of the parsed JSON data coming back from the server - the <code>HttpBuilder</code> recognizes the <code>application/json</code> response content and parses it for you. In this case
-all we really want is the text, so let&#8217;s transform the response data a bit:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String text = http.get(String){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>When you run this code, you will get the following:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>[text:n/a, timestamp:2016-09-16T12:47:55+0000]</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which is a <code>Map</code> of the parsed JSON data coming back from the server - the <code>HttpBuilder</code> recognizes the <code>application/json</code> response content and parses it for you. In this case all we really want is the text, so let’s transform the response data a bit:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String text = http.get(String){
     request.uri.path = '/message'
     response.success { FromServer from, Object body-&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We have added an expected result type of <code>String</code> and a <code>response.success()</code> handler. This handler will be called when a successful response code is received (code &lt; 400). When
-it is called it will pull the text field out of our body object, which in this case, is the already-parsed JSON data. The return value from the <code>success()</code> method is returned
-as the result - the text of the current message. When you run this version of the code you get the current message text:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is the default "empty" message content. How do we update the message to something more interesting? The service exposes <code>POST /message</code> which will take the <code>text</code> field of the request body
-content and use it as the new message. We can write a <code>POST</code> request just as easily as our <code>GET</code> request:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String updated = http.post(String) {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>We have added an expected result type of <code>String</code> and a <code>response.success()</code> handler. This handler will be called when a successful response code is received (code &lt; 400). When it is called it will pull the text field out of our body object, which in this case, is the already-parsed JSON data. The return value from the <code>success()</code> method is returned as the result - the text of the current message. When you run this version of the code you get the current message text:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>This is the default "empty" message content. How do we update the message to something more interesting? The service exposes <code>POST /message</code> which will take the <code>text</code> field of the request body content and use it as the new message. We can write a <code>POST</code> request just as easily as our <code>GET</code> request:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String updated = http.post(String) {
     request.uri.path = '/message'
     request.contentType = 'application/json'
     request.body = { text 'HttpBuilder is alive!' }
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Again, we will expect the text of the new message back from the server, but this time we are calling the <code>post()</code> method with a JSON content type. Note that our body content is using the Groovy
-<code>JsonBuilder</code> closure format, it could have just as easily been a <code>Map</code> of the data to be encoded. Similar to the response decoding, the request body is automatically encoded based on the content
-type.</p>
-</div>
-<div class="paragraph">
-<p>If you run the code now, you will get:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>HttpBuilder is alive!</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You could also call the <code>get()</code> method again and verify that it is the current message.</p>
-</div>
-<div class="paragraph">
-<p>As a final example with our service, let&#8217;s call the <code>DELETE /message</code> endpoint to reset the message back to it&#8217;s "empty" state. A <code>DELETE</code> request is just as simple:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String deleted = http.delete(String){
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Again, we will expect the text of the new message back from the server, but this time we are calling the <code>post()</code> method with a JSON content type. Note that our body content is using the Groovy <code>JsonBuilder</code> closure format, it could have just as easily been a <code>Map</code> of the data to be encoded. Similar to the response decoding, the request body is automatically encoded based on the content type.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>If you run the code now, you will get:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>HttpBuilder is alive!</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>You could also call the <code>get()</code> method again and verify that it is the current message.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>As a final example with our service, let’s call the <code>DELETE /message</code> endpoint to reset the message back to it’s "empty" state. A <code>DELETE</code> request is just as simple:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String deleted = http.delete(String){
     request.uri.path = '/message'
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The result will be the new message after deletion:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which is the "empty" state.</p>
-</div>
-<div class="paragraph">
-<p>One thing we notice now that we have written all of the verb calls is that there are a lot of similarities between them. They all call the same <code>path</code> and they all handle the successful response
-content in the same manner. I am not a fan of duplication, so we can move the common configuration up into the main <code>configure</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The result will be the new message after deletion:</p> 
+</div> 
+<div class="literalblock"> 
+ <div class="content"> 
+  <pre>n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which is the "empty" state.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>One thing we notice now that we have written all of the verb calls is that there are a lot of similarities between them. They all call the same <code>path</code> and they all handle the successful response content in the same manner. I am not a fan of duplication, so we can move the common configuration up into the main <code>configure</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">HttpBuilder http = HttpBuilder.configure {
     request.uri = 'http://localhost:4567/message'
     response.success { FromServer from, Object body -&gt;
         body.text
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and our verb methods, now contain only what they need to do their work:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String message = http.get(String) {}
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>and our verb methods, now contain only what they need to do their work:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">String message = http.get(String) {}
 
 String updated = http.post(String) {
     request.contentType = 'application/json'
     request.body = { text 'HttpBuilder is alive!' }
 }
 
-String deleted = http.delete(String) {}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Nice and clean. Now wait, I know, I promised something similar in plain old Java, well Java 8 anyway&#8230;&#8203; ok, you can do the same operations in Java with a fairly similar expressiveness:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpBuilder http = HttpBuilder.configure(config -&gt; {
+String deleted = http.delete(String) {}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Nice and clean. Now wait, I know, I promised something similar in plain old Java, well Java 8 anyway…​ ok, you can do the same operations in Java with a fairly similar expressiveness:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">HttpBuilder http = HttpBuilder.configure(config -&gt; {
     config.getRequest().setUri("http://localhost:4567/message");
     config.getResponse().success(new BiFunction&lt;FromServer, Object, String&gt;() {
         @Override public String apply(FromServer fromServer, Object body) {
@@ -2542,22 +2493,21 @@ System.out.println("Updated content: " + updated);
 
 String deleted = http.delete(String.class, config -&gt; {});
 
-System.out.println("Post-delete content: " + deleted);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that the Java 8 lambdas make the syntax about as simple as the Groovy DSL. When you run this version of the client you get:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Starting content: n/a
+System.out.println("Post-delete content: " + deleted);</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Notice that the Java 8 lambdas make the syntax about as simple as the Groovy DSL. When you run this version of the client you get:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>Starting content: n/a
 Updated content: HttpBuilder works from Java too!
-Post-delete content: n/a</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In Java or Groovy, the library makes HTTP interactions much easier to work with. Check out the <a href="https://github.com/dwclark/http-builder-ng">project</a> and feel free to submit bug reports and feature
-requests, or even suggested details to be documented.</p>
+Post-delete content: n/a</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>In Java or Groovy, the library makes HTTP interactions much easier to work with. Check out the <a href="https://github.com/dwclark/http-builder-ng">project</a> and feel free to submit bug reports and feature requests, or even suggested details to be documented.</p> 
 </div></p>
             </div>
         </div>
@@ -2566,54 +2516,54 @@ requests, or even suggested details to be documented.</p>
             <div class="col-lg-12 col-md-12 col-sm-12">
                 <h1><a href="blog/2016/nd4j-math.html">ND4J Matrix Math</a></h1>
                 <p><em><span class="glyphicon glyphicon-calendar"></span> 12 August 2016</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a>
-                <p><div class="paragraph">
-<p>In my last post (<a href="http://coffeaelectronica.com/blog/2016/commons-math-matrix.html">Commons Math - RealMatrix</a>), I discussed the matrix operations support provided by the Apache Commons Math API. In doing my research I also stumbled on a library that is much closer in functionality to the Python NumPy library (commonly used in Machine Learning examples). The <a href="http://nd4j.org/">ND4J</a> library is a scientific computing library for the JVM, meant to be used in production environments, which means routines are designed to run fast with minimum RAM requirements.</p>
-</div>
-<div class="paragraph">
-<p>The main draw I had at this point was that their support for array-style element-by-element operations was much deeper than the matrix operations provided by the Apache Commons Math API and much closer to what I was seeing in the Python code I was working with, which makes conversion simpler.</p>
-</div>
-<div class="paragraph">
-<p>With NumPy in Python you can multiply two arrays such that the result is the multiplication of each value of the array by the corresponding value in the second array. This is not so simple with matrices (as shown in my last post). With ND4J, it becomes much simpler:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def arrA = Nd4j.create([1.0, 2.0, 3.0] as double[])
+                <p><div class="paragraph"> 
+ <p>In my last post (<a href="http://coffeaelectronica.com/blog/2016/commons-math-matrix.html">Commons Math - RealMatrix</a>), I discussed the matrix operations support provided by the Apache Commons Math API. In doing my research I also stumbled on a library that is much closer in functionality to the Python NumPy library (commonly used in Machine Learning examples). The <a href="http://nd4j.org/">ND4J</a> library is a scientific computing library for the JVM, meant to be used in production environments, which means routines are designed to run fast with minimum RAM requirements.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The main draw I had at this point was that their support for array-style element-by-element operations was much deeper than the matrix operations provided by the Apache Commons Math API and much closer to what I was seeing in the Python code I was working with, which makes conversion simpler.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>With NumPy in Python you can multiply two arrays such that the result is the multiplication of each value of the array by the corresponding value in the second array. This is not so simple with matrices (as shown in my last post). With ND4J, it becomes much simpler:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def arrA = Nd4j.create([1.0, 2.0, 3.0] as double[])
 def arrB = Nd4j.create([2.0, 4.0, 6.0] as double[])
 def arrC = arrA.mul(arrB)
-println "$arrA + $arrB = $arrC"</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>will result in:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[1.00, 2.00, 3.00] * [2.00, 4.00, 6.00] = [ 2.00,  8.00, 18.00]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which is as we would expect from the Python case. ND4J also has the ability to do two-dimensional (matrix-style) arrays:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def matA = Nd4j.create([
+println "$arrA + $arrB = $arrC"</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>will result in:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>[1.00, 2.00, 3.00] * [2.00, 4.00, 6.00] = [ 2.00,  8.00, 18.00]</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which is as we would expect from the Python case. ND4J also has the ability to do two-dimensional (matrix-style) arrays:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">def matA = Nd4j.create([
     [1.0, 2.0, 3.0] as double[],
     [4.0, 5.0, 6.0] as double[]
 ] as double[][])
-println "Matrix: $matA\n"</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>which will produce:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Matrix: [[1.00, 2.00, 3.00],
- [4.00, 5.00, 6.00]]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>All of the other mathematical operations I mentioned in the previous post are available and with data structures that feel a lot more rich and refined for general use. This is barely scratching the surface of the available functionality. Also, the underlying code is native-based and has support for running on CUDA cores for higher performance. This library is definitely one to keep in mind for cases when you have a lot of array and matrix-based operations.</p>
+println "Matrix: $matA\n"</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>which will produce:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre>Matrix: [[1.00, 2.00, 3.00],
+ [4.00, 5.00, 6.00]]</pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>All of the other mathematical operations I mentioned in the previous post are available and with data structures that feel a lot more rich and refined for general use. This is barely scratching the surface of the available functionality. Also, the underlying code is native-based and has support for running on CUDA cores for higher performance. This library is definitely one to keep in mind for cases when you have a lot of array and matrix-based operations.</p> 
 </div></p>
             </div>
         </div>

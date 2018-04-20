@@ -97,8 +97,9 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 November 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><p>Another pair of those seemingly forgotten classes in the core Java API are the <code>java.beans.XMLEncoder</code> and <code>java.beans.XMLDecoder</code>. Added in 1.4, they don't really seem to be used all that much, that I have come across anyway. It seems that whenever someone needs to convert objects into xml, they instantly reach for 3rd-party libraries rather than looking in the core API. Not to downplay other APIs, but I do think XMLEncoder and XMLDecoder deserve consideration, especially when you simply need to export data objects in a simple and repeatable manner.</p><p>First off, we need something to work with, how about a nice Person class:</p>
-<pre><code class="java">public class Person {
+	<p><p>Another pair of those seemingly forgotten classes in the core Java API are the <code>java.beans.XMLEncoder</code> and <code>java.beans.XMLDecoder</code>. Added in 1.4, they don't really seem to be used all that much, that I have come across anyway. It seems that whenever someone needs to convert objects into xml, they instantly reach for 3rd-party libraries rather than looking in the core API. Not to downplay other APIs, but I do think XMLEncoder and XMLDecoder deserve consideration, especially when you simply need to export data objects in a simple and repeatable manner.</p> 
+<p>First off, we need something to work with, how about a nice Person class:</p> 
+<pre><code class="language-java">public class Person {
     private String firstName, lastName;
     private short age;
 
@@ -123,50 +124,55 @@
     public void setAge(final short age) { this.age = age; }
 
     @Override
-    public String toString() { return firstName+&quot; &quot;+lastName+&quot; (&quot;+age+&quot;)&quot;; }
+    public String toString() { return firstName+" "+lastName+" ("+age+")"; }
 }
-</code></pre><p>It's nothing special, just first name, last name and age with getters and setters. I also overrode the <code>toString()</code> method so we can get something useful from it. Now say you are in a situation where you need to quickly convert objects of the Person class to a format usable by another client (maybe another programming language); as much trouble as XML can be a times, it is still a good interoperability choice. Converting a collection of Person objects to XML is trivial:</p>
-<pre><code class="java">final Collection&lt;Person&gt; people = new LinkedList&lt;Person&gt;();
-people.add( new Person(&quot;Joe&quot;,&quot;Smith&quot;,(short) 32) );
-people.add( new Person(&quot;Abe&quot;,&quot;Ableman&quot;,(short) 54) );
-people.add( new Person(&quot;Cindy&quot;,&quot;Lindy&quot;,(short) 42) );
+</code></pre> 
+<p>It's nothing special, just first name, last name and age with getters and setters. I also overrode the <code>toString()</code> method so we can get something useful from it. Now say you are in a situation where you need to quickly convert objects of the Person class to a format usable by another client (maybe another programming language); as much trouble as XML can be a times, it is still a good interoperability choice. Converting a collection of Person objects to XML is trivial:</p> 
+<pre><code class="language-java">final Collection&lt;Person&gt; people = new LinkedList&lt;Person&gt;();
+people.add( new Person("Joe","Smith",(short) 32) );
+people.add( new Person("Abe","Ableman",(short) 54) );
+people.add( new Person("Cindy","Lindy",(short) 42) );
 
 final XMLEncoder encoder = new XMLEncoder( outputStream );
 encoder.writeObject(people);
 encoder.close();
-</code></pre><p>Which will generate the following XML in the given output stream:</p>
-<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;java version=&quot;1.6.0_13&quot; class=&quot;java.beans.XMLDecoder&quot;&gt;
-    &lt;object class=&quot;java.util.LinkedList&quot;&gt;
-        &lt;void method=&quot;add&quot;&gt;
-            &lt;object class=&quot;foo.Person&quot;&gt;&lt;void property=&quot;age&quot;&gt;&lt;short&gt;32&lt;/short&gt;&lt;/void&gt;
-                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Joe&lt;/string&gt;&lt;/void&gt;
-                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Smith&lt;/string&gt;&lt;/void&gt;
+</code></pre> 
+<p>Which will generate the following XML in the given output stream:</p> 
+<pre><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;java version="1.6.0_13" class="java.beans.XMLDecoder"&gt;
+    &lt;object class="java.util.LinkedList"&gt;
+        &lt;void method="add"&gt;
+            &lt;object class="foo.Person"&gt;&lt;void property="age"&gt;&lt;short&gt;32&lt;/short&gt;&lt;/void&gt;
+                &lt;void property="firstName"&gt;&lt;string&gt;Joe&lt;/string&gt;&lt;/void&gt;
+                &lt;void property="lastName"&gt;&lt;string&gt;Smith&lt;/string&gt;&lt;/void&gt;
             &lt;/object&gt;
         &lt;/void&gt;
-        &lt;void method=&quot;add&quot;&gt;
-            &lt;object class=&quot;foo.Person&quot;&gt;
-                &lt;void property=&quot;age&quot;&gt;&lt;short&gt;54&lt;/short&gt;&lt;/void&gt;
-                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Abe&lt;/string&gt;&lt;/void&gt;
-                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Ableman&lt;/string&gt;&lt;/void&gt;
+        &lt;void method="add"&gt;
+            &lt;object class="foo.Person"&gt;
+                &lt;void property="age"&gt;&lt;short&gt;54&lt;/short&gt;&lt;/void&gt;
+                &lt;void property="firstName"&gt;&lt;string&gt;Abe&lt;/string&gt;&lt;/void&gt;
+                &lt;void property="lastName"&gt;&lt;string&gt;Ableman&lt;/string&gt;&lt;/void&gt;
             &lt;/object&gt;
         &lt;/void&gt;
-        &lt;void method=&quot;add&quot;&gt;
-            &lt;object class=&quot;foo.Person&quot;&gt;
-                &lt;void property=&quot;age&quot;&gt;&lt;short&gt;42&lt;/short&gt;&lt;/void&gt;
-                &lt;void property=&quot;firstName&quot;&gt;&lt;string&gt;Cindy&lt;/string&gt;&lt;/void&gt;
-                &lt;void property=&quot;lastName&quot;&gt;&lt;string&gt;Lindy&lt;/string&gt;&lt;/void&gt;
+        &lt;void method="add"&gt;
+            &lt;object class="foo.Person"&gt;
+                &lt;void property="age"&gt;&lt;short&gt;42&lt;/short&gt;&lt;/void&gt;
+                &lt;void property="firstName"&gt;&lt;string&gt;Cindy&lt;/string&gt;&lt;/void&gt;
+                &lt;void property="lastName"&gt;&lt;string&gt;Lindy&lt;/string&gt;&lt;/void&gt;
             &lt;/object&gt;
         &lt;/void&gt;
     &lt;/object&gt;
 &lt;/java&gt;
-</code></pre><p>Yeah, it's not pretty and it's a bit on the verbose side, but it was easy to produce and easy to read. Now, if you want to read that back into Java objects, it it equally as simple:</p>
-<pre><code class="java">final XMLDecoder decoder = new XMLDecoder( inputStream );
+</code></pre> 
+<p>Yeah, it's not pretty and it's a bit on the verbose side, but it was easy to produce and easy to read. Now, if you want to read that back into Java objects, it it equally as simple:</p> 
+<pre><code class="language-java">final XMLDecoder decoder = new XMLDecoder( inputStream );
 final Collection&lt;Person&gt; persons = (Collection&lt;Person&gt;)decoder.readObject();
 decoder.close();
-</code></pre><p>which will give you back copies of your original objects. If you were to call <code>toString()</code> on the resulting<br/>collection you would get:</p>
+</code></pre> 
+<p>which will give you back copies of your original objects. If you were to call <code>toString()</code> on the resulting<br> collection you would get:</p> 
 <pre><code>[Joe Smith (32), Abe Ableman (54), Cindy Lindy (42)]
-</code></pre><p>Exactly what you put in. Obviously, this is not the best approach for serializing and deserializing data, but it's another tool in the tool box and I am always surprised by how few developers actually know that they are available.</p></p>
+</code></pre> 
+<p>Exactly what you put in. Obviously, this is not the best approach for serializing and deserializing data, but it's another tool in the tool box and I am always surprised by how few developers actually know that they are available.</p></p>
 
 
             <div class="row">

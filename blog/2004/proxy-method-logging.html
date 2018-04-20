@@ -97,30 +97,28 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 11 February 2004</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a></p>
 
-	<p><div class="paragraph">
-<p>Here&#8217;s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you
-want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a <code>java.lang.reflect.Proxy</code> to do
-your method call logging. Basically, you build a wrapper around your module that does the logging for any module.</p>
-</div>
-<div class="paragraph">
-<p>First off, you need an interface to do this, any interface that your modules implement will work.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public interface SomeInterface {
+	<p><div class="paragraph"> 
+ <p>Here’s an interesting spin on logging. Say you have a service of some kind that loads in other classes dynamically such as modules or plug-ins and you want to provide a seamless debugging mode no matter what kind of logging the module developer has done. You can use a <code>java.lang.reflect.Proxy</code> to do your method call logging. Basically, you build a wrapper around your module that does the logging for any module.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>First off, you need an interface to do this, any interface that your modules implement will work.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">public interface SomeInterface {
 
     public void doSomethingA(String p1, int p2);
 
     public String[] doSomethingB(Map map);
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Second, you will need an implementation of that interface, your module or plug-in class. This is the actual object doing the work whose method calls will be logged.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class SomeImplnterfaceImpl implements SomeInterface {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Second, you will need an implementation of that interface, your module or plug-in class. This is the actual object doing the work whose method calls will be logged.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class SomeImplnterfaceImpl implements SomeInterface {
 
     public SomeImplnterfaceImpl(){}
 
@@ -132,20 +130,15 @@ your method call logging. Basically, you build a wrapper around your module that
         System.out.println("doSomethingB with a Map: " + map);
         return( (String[])map.values().toArray(new String[0]) );
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Both of the above items you should already have in your system. If not, in most cases, they can be easily added. Now we get into the good stuff. The
-Proxy class is an interesting little creature. It allows you to give it an array of interfaces that it is to "implement" by passing method calls to an
-instance of the <code>InvocationHandler</code> interface, which determines how the method calls are to be processed. Our proxy will simply log the method call
-and pass it along to the real implementation. We&#8217;ll make a factory class to create our logging proxy. It will have one method with two arguments. The
-first is the interface that is to be logged, <code>SomeInterface</code> in our example, and the second is the implementation of that interface,
-<code>SomeInterfaceImpl</code> for our example.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public final class LoggingProxyFactory {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Both of the above items you should already have in your system. If not, in most cases, they can be easily added. Now we get into the good stuff. The Proxy class is an interesting little creature. It allows you to give it an array of interfaces that it is to "implement" by passing method calls to an instance of the <code>InvocationHandler</code> interface, which determines how the method calls are to be processed. Our proxy will simply log the method call and pass it along to the real implementation. We’ll make a factory class to create our logging proxy. It will have one method with two arguments. The first is the interface that is to be logged, <code>SomeInterface</code> in our example, and the second is the implementation of that interface, <code>SomeInterfaceImpl</code> for our example.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">public final class LoggingProxyFactory {
 
     private LoggingProxyFactory(){}
 
@@ -159,18 +152,15 @@ first is the interface that is to be logged, <code>SomeInterface</code> in our e
             )
         );
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You see that creating a proxy is pretty simple. You create a proxy instance using your interfaces, your class loader and your invocation handler. The
-invocation handler is where the action happens. Our <code>InvocationHandler</code> implementation is going to be a static inner class of the
-<code>LoggingProxyFactory</code> class. What it needs to do is logs the method calls as they come in and then pass along the call to the real implementation.
-Here is the code for the inner class.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">private static final class LoggingHandler implements InvocationHandler {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>You see that creating a proxy is pretty simple. You create a proxy instance using your interfaces, your class loader and your invocation handler. The invocation handler is where the action happens. Our <code>InvocationHandler</code> implementation is going to be a static inner class of the <code>LoggingProxyFactory</code> class. What it needs to do is logs the method calls as they come in and then pass along the call to the real implementation. Here is the code for the inner class.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">private static final class LoggingHandler implements InvocationHandler {
 
     private Log log;
     private Object impl;
@@ -205,25 +195,23 @@ Here is the code for the inner class.</p>
 
         return(ret);
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>I am using the <a href="http://commons.apache.org/logging">Jakarta Logging API</a> for the logging in this case; however, you could use any logging API or simple
-standard out statements as you see fit. The main thing to notice in the code above is the invocation of the method on the implementation object.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">ret = method.invoke(impl, params);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It is this line that passes on the method call to the real implementation. The rest of the method is logging of the entering and leaving, parameters
-and return value. Exceptions are also logged. To test out the proxy and see it in action, you can run the following tester app:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class Tester {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>I am using the <a href="http://commons.apache.org/logging">Jakarta Logging API</a> for the logging in this case; however, you could use any logging API or simple standard out statements as you see fit. The main thing to notice in the code above is the invocation of the method on the implementation object.</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">ret = method.invoke(impl, params);</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>It is this line that passes on the method call to the real implementation. The rest of the method is logging of the entering and leaving, parameters and return value. Exceptions are also logged. To test out the proxy and see it in action, you can run the following tester app:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-java" data-lang="java">public class Tester {
     public static void main(String[] args){
         try {
             Object obj = LoggingProxyFactory.create(
@@ -243,12 +231,11 @@ and return value. Exceptions are also logged. To test out the proxy and see it i
             ex.printStackTrace();
         }
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which yields the method call results and their logging information. This was an interesting idea I have tossed around for a while now. It does work,
-though it has not been rigorously tested. If nothing else, it is a description of how to use the proxy class.</p>
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>Which yields the method call results and their logging information. This was an interesting idea I have tossed around for a while now. It does work, though it has not been rigorously tested. If nothing else, it is a description of how to use the proxy class.</p> 
 </div></p>
 
 

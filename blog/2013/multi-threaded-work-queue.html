@@ -97,24 +97,28 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 27 January 2013</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a></p>
 
-	<p><p>I finally had some time to play with the DataFlow functionality in GPars, and as you would expect, it's both simple and<br/>powerful. I needed a simple means of processing data from a queue in a multi-threaded manner. I considered something like<br/>JMS, but for what I am working on that was too complex and too heavy. I really just needed to toss a message on a queue<br/>and let it get processed at some future time, hopefully by a couple threads. The DataFlowQueue came through perfectly.</p><p>Below is a simple demo:</p>
-<pre><code class="groovy">def pool = new DefaultPool(false, 3)
+	<p><p>I finally had some time to play with the DataFlow functionality in GPars, and as you would expect, it's both simple and<br> powerful. I needed a simple means of processing data from a queue in a multi-threaded manner. I considered something like<br> JMS, but for what I am working on that was too complex and too heavy. I really just needed to toss a message on a queue<br> and let it get processed at some future time, hopefully by a couple threads. The DataFlowQueue came through perfectly.</p> 
+<p>Below is a simple demo:</p> 
+<pre><code class="language-groovy">def pool = new DefaultPool(false, 3)
 def queue = new DataflowQueue&lt;String&gt;()
 
 def latch = new CountDownLatch(100)
 
 queue.wheneverBound(new DataCallbackWithPool(pool,{msg-&gt;
-    println &quot;[${Thread.currentThread().name}] ${System.currentTimeMillis()} $msg&quot;
+    println "[${Thread.currentThread().name}] ${System.currentTimeMillis()} $msg"
     latch.countDown()
 }))
 
 100.times { n-&gt;
-    queue.bind(&quot;Message-$n&quot;)
+    queue.bind("Message-$n")
 }
 
 latch.await()
-</code></pre><p>The <code>DataFlowQueue</code> accepts messages that it will hand off to bound handlers. The <code>wheneverBound()</code> method will bind the<br/>handler permanently (rather than for just a single message) so that you can use the <code>DataCallbackWithPool</code> message stream<br/>as a handler. Configure the <code>DataCallbackWithPool</code> object with a pool and your actual message handler then you are done.</p><p>When you run the demo code you will see that the bind call returns immediately and that each message is handled on one<br/>of the three threads configured.</p><p>Nothing Earth-shattering, but it will come in handy. Also, since the above example was written in Groovy, you could also<br/>do this with GPars in Java, with just a few changes:</p>
-<pre><code class="java">Pool pool = new DefaultPool( false, 3 );
+</code></pre> 
+<p>The <code>DataFlowQueue</code> accepts messages that it will hand off to bound handlers. The <code>wheneverBound()</code> method will bind the<br> handler permanently (rather than for just a single message) so that you can use the <code>DataCallbackWithPool</code> message stream<br> as a handler. Configure the <code>DataCallbackWithPool</code> object with a pool and your actual message handler then you are done.</p> 
+<p>When you run the demo code you will see that the bind call returns immediately and that each message is handled on one<br> of the three threads configured.</p> 
+<p>Nothing Earth-shattering, but it will come in handy. Also, since the above example was written in Groovy, you could also<br> do this with GPars in Java, with just a few changes:</p> 
+<pre><code class="language-java">Pool pool = new DefaultPool( false, 3 );
 DataflowQueue&lt;String&gt; queue = new DataflowQueue&lt;&gt;();
 
 final CountDownLatch latch = new CountDownLatch( 100 );
@@ -122,17 +126,18 @@ final CountDownLatch latch = new CountDownLatch( 100 );
 queue.wheneverBound( new DataCallbackWithPool( pool, new MessagingRunnable&lt;String&gt;(){
     @Override
     protected void doRun( final String msg ){
-        System.out.printf( &quot;[%s] %d%n&quot;, Thread.currentThread().getName(), System.currentTimeMillis() );
+        System.out.printf( "[%s] %d%n", Thread.currentThread().getName(), System.currentTimeMillis() );
         latch.countDown();
     }
 }));
 
 for( int i=0; i&lt;100; i++){
-    queue.bind( &quot;Message-&quot; + i );
+    queue.bind( "Message-" + i );
 }
 
 latch.await();
-</code></pre><p>The main difference being the introduction of the MessageRunnable, since Java does not have closures yet.</p></p>
+</code></pre> 
+<p>The main difference being the introduction of the MessageRunnable, since Java does not have closures yet.</p></p>
 
 
             <div class="row">

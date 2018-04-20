@@ -97,32 +97,53 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 28 January 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/ant.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> ant</span></a></p>
 
-	<p><p>I have found it very useful to create a reusable boiler plate <a href="http://ant.apache.org/">Ant</a> <code>build.xml</code> file that I use<br/>as a starting point for all my projects. With a little bit of configuration property tweaking and perhaps a task<br/>modification here or there you have a standardized build environment which can be used by your IDE or on the command line.</p><p>I have provided a copy of my boilerplate build file at the bottom of this posting. It is provided for use under a<br/>creative commons license (<a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>),<br/>so please maintain the copyright header if you use or extend it.</p><p>If you look at the file you will see that the first section has all the properties you need. I used in-file properties rather<br/>than a separate properties file because I don't really change them often for any given project and it keeps everything<br/>all in one neat little file. Technically you could get more re-usability by using properties files, but that assumes<br/>that you wont be modifying the build file itself for your project, which is something I do from time to time if<br/>something is not quite right for the project.</p><p>The first thing you will want to do is update the project name attribute to reflect the name of your project. Then you<br/>will want to update the configuration properties so that everything is correct for your build environment. I tried to<br/>keep everything pretty standard so that they don't need to change much between projects.</p><p>The first property is the <code>war.name</code> which is the name you want the generated war file to have. I usually leave it set to<br/>the default, which is the project name.</p>
-<pre><code class="xml">&lt;property name=&quot;war.name&quot; value=&quot;${ant.project.name}&quot; /&gt;
-</code></pre><p>The next set of properties are the locations of your source directories, which default to the same values that I have set in my IDE</p>
-<pre><code class="xml">&lt;property name=&quot;src.dir&quot; value=&quot;src&quot; /&gt;
-&lt;property name=&quot;test.src.dir&quot; value=&quot;test&quot; /&gt;
-&lt;property name=&quot;web.src.dir&quot; value=&quot;web&quot; /&gt;
-</code></pre><p>and then your external library directory.</p>
-<pre><code class="xml">&lt;property name=&quot;lib.dir&quot; value=&quot;lib&quot; /&gt;
-</code></pre><p>There has been some confusion around the external library directory property when I have shown this to others. This<br/>is not where all your libraries go, but where you put the libraries you <em>don't</em> want in the war file. Things like<br/>JUnit and JMock jars go in there so that they are usable for testing and compiling but you don't really want them to go<br/>into your deployed artifact. I the jars in this directory mapped on my classpath in my IDE too while those in the<br/>WEB-INF/lib are picked up by default.</p><p>The next group of properties define the artifact build locations:</p>
-<pre><code class="xml">&lt;property name=&quot;build.dir&quot; value=&quot;build&quot; /&gt;
-&lt;property name=&quot;src.build.dir&quot; value=&quot;${build.dir}/classes&quot; /&gt;
-&lt;property name=&quot;test.build.dir&quot; value=&quot;${build.dir}/test-classes&quot; /&gt;
-&lt;property name=&quot;test.report.dir&quot; value=&quot;${build.dir}/test-reports&quot; /&gt;
-&lt;property name=&quot;webapp.build.dir&quot; value=&quot;${build.dir}/webapp&quot; /&gt;
-</code></pre><p>As you can see, even if your <code>build</code> directory is called something else, like <code>bin</code> you can change everything else by updating<br/>that one property, <code>build.dir</code>.</p><p>The next property is the location of your local web server, where the war file would be deployed locally. The default is<br/>my symlink to the <code>webapps</code> directory for my local <a href="http://tomcat.apache.org/">Tomcat</a> server installation.</p>
-<pre><code class="xml">&lt;property name=&quot;deploy.local.dir&quot; value=&quot;/usr/local/tomcat/webapps&quot; /&gt;
-</code></pre><p>The final two properties are more environmental. You want to specifiy the JVM version you are targetting and whether or<br/>not you want debugging information to be compiled with your classes.</p>
-<pre><code class="xml">&lt;property name=&quot;jvm.version&quot; value=&quot;1.6&quot; /&gt;
-&lt;property name=&quot;debug.enabled&quot; value=&quot;true&quot; /&gt;
-</code></pre><p>You probably wont change these all that often, though it might be a good idea to disable debugging on production<br/>builds; I will have to look into supporting that. The <code>jvm.version</code> setting is nice because I think Ant still<br/>defaults to 1.3 or something like that.</p><p>The next section of the file contains all the task definitions. You<br/>will want to tweak these every now and then if you have special needs. You can run the Ant project help command (<code>ant -p</code>)<br/>to see the descriptions for all the tasks. Yes, I actually added descriptions for all of them.</p><p>Some common tasks I use a lot are:</p>
+	<p><p>I have found it very useful to create a reusable boiler plate <a href="http://ant.apache.org/">Ant</a> <code>build.xml</code> file that I use<br> as a starting point for all my projects. With a little bit of configuration property tweaking and perhaps a task<br> modification here or there you have a standardized build environment which can be used by your IDE or on the command line.</p> 
+<p>I have provided a copy of my boilerplate build file at the bottom of this posting. It is provided for use under a<br> creative commons license (<a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>),<br> so please maintain the copyright header if you use or extend it.</p> 
+<p>If you look at the file you will see that the first section has all the properties you need. I used in-file properties rather<br> than a separate properties file because I don't really change them often for any given project and it keeps everything<br> all in one neat little file. Technically you could get more re-usability by using properties files, but that assumes<br> that you wont be modifying the build file itself for your project, which is something I do from time to time if<br> something is not quite right for the project.</p> 
+<p>The first thing you will want to do is update the project name attribute to reflect the name of your project. Then you<br> will want to update the configuration properties so that everything is correct for your build environment. I tried to<br> keep everything pretty standard so that they don't need to change much between projects.</p> 
+<p>The first property is the <code>war.name</code> which is the name you want the generated war file to have. I usually leave it set to<br> the default, which is the project name.</p> 
+<pre><code class="language-xml">&lt;property name="war.name" value="${ant.project.name}" /&gt;
+</code></pre> 
+<p>The next set of properties are the locations of your source directories, which default to the same values that I have set in my IDE</p> 
+<pre><code class="language-xml">&lt;property name="src.dir" value="src" /&gt;
+&lt;property name="test.src.dir" value="test" /&gt;
+&lt;property name="web.src.dir" value="web" /&gt;
+</code></pre> 
+<p>and then your external library directory.</p> 
+<pre><code class="language-xml">&lt;property name="lib.dir" value="lib" /&gt;
+</code></pre> 
+<p>There has been some confusion around the external library directory property when I have shown this to others. This<br> is not where all your libraries go, but where you put the libraries you <em>don't</em> want in the war file. Things like<br> JUnit and JMock jars go in there so that they are usable for testing and compiling but you don't really want them to go<br> into your deployed artifact. I the jars in this directory mapped on my classpath in my IDE too while those in the<br> WEB-INF/lib are picked up by default.</p> 
+<p>The next group of properties define the artifact build locations:</p> 
+<pre><code class="language-xml">&lt;property name="build.dir" value="build" /&gt;
+&lt;property name="src.build.dir" value="${build.dir}/classes" /&gt;
+&lt;property name="test.build.dir" value="${build.dir}/test-classes" /&gt;
+&lt;property name="test.report.dir" value="${build.dir}/test-reports" /&gt;
+&lt;property name="webapp.build.dir" value="${build.dir}/webapp" /&gt;
+</code></pre> 
+<p>As you can see, even if your <code>build</code> directory is called something else, like <code>bin</code> you can change everything else by updating<br> that one property, <code>build.dir</code>.</p> 
+<p>The next property is the location of your local web server, where the war file would be deployed locally. The default is<br> my symlink to the <code>webapps</code> directory for my local <a href="http://tomcat.apache.org/">Tomcat</a> server installation.</p> 
+<pre><code class="language-xml">&lt;property name="deploy.local.dir" value="/usr/local/tomcat/webapps" /&gt;
+</code></pre> 
+<p>The final two properties are more environmental. You want to specifiy the JVM version you are targetting and whether or<br> not you want debugging information to be compiled with your classes.</p> 
+<pre><code class="language-xml">&lt;property name="jvm.version" value="1.6" /&gt;
+&lt;property name="debug.enabled" value="true" /&gt;
+</code></pre> 
+<p>You probably wont change these all that often, though it might be a good idea to disable debugging on production<br> builds; I will have to look into supporting that. The <code>jvm.version</code> setting is nice because I think Ant still<br> defaults to 1.3 or something like that.</p> 
+<p>The next section of the file contains all the task definitions. You<br> will want to tweak these every now and then if you have special needs. You can run the Ant project help command (<code>ant -p</code>)<br> to see the descriptions for all the tasks. Yes, I actually added descriptions for all of them.</p> 
+<p>Some common tasks I use a lot are:</p> 
 <pre><code>ant clean-all test
-</code></pre><p>Run all the tests on a clean build.</p>
+</code></pre> 
+<p>Run all the tests on a clean build.</p> 
 <pre><code>ant clean-all redeploy-local
-</code></pre><p>Clean the build content and do a full local server redeployment.</p>
+</code></pre> 
+<p>Clean the build content and do a full local server redeployment.</p> 
 <pre><code>ant clean-all test war
-</code></pre><p>Run all the tests on a clean build and produce the war file.</p><p>I have used this in about five different projects now and it comes in really handy to have a standardized base point, especially<br/>when you are in a hurry and trying to do a quick command line build of the project; your commands are the same across your projects.</p><p>The follow-up article to this one will delve more into using the Ant build as a tool set and about adding scripting layers<br/>on top of the build to make repeated tasks bulletproof and quick.</p><p>Let me know if you have any suggestions for modifications or additions to this basic build script. It is a work in progress as<br/>I try to bring more simplicity into my development processes.</p><p>You can find an updated version of this build script in my <a href="http://github.com/cjstehno/AntBoilerplate">AntBoilerplate</a> project.</p></p>
+</code></pre> 
+<p>Run all the tests on a clean build and produce the war file.</p> 
+<p>I have used this in about five different projects now and it comes in really handy to have a standardized base point, especially<br> when you are in a hurry and trying to do a quick command line build of the project; your commands are the same across your projects.</p> 
+<p>The follow-up article to this one will delve more into using the Ant build as a tool set and about adding scripting layers<br> on top of the build to make repeated tasks bulletproof and quick.</p> 
+<p>Let me know if you have any suggestions for modifications or additions to this basic build script. It is a work in progress as<br> I try to bring more simplicity into my development processes.</p> 
+<p>You can find an updated version of this build script in my <a href="http://github.com/cjstehno/AntBoilerplate">AntBoilerplate</a> project.</p></p>
 
 
             <div class="row">

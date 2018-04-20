@@ -97,16 +97,18 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 22 July 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/java.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> java</span></a> <a href='/tags/testing.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> testing</span></a></p>
 
-	<p><p><a href="http://mockito.org/">Mockito</a> is a fairly new player in the mocking arena, but one that I have found particularly interesting. It's as expressive and flexible as <a href="http://jmock.org/">JMock</a> (from what I have seen so far) but it's a bit more compact and concise, which is something I really like.</p><p>It's also got some nice annotation support that really helps cleans up the code. If you look at the<br/><code>EmailListServlet_MockitoTest</code> class you will see that again (as with JMock) the <code>@RunWith</code> annotation is used to provide<br/>a special test runner for Mockito. In this case it is used to evaluate the Mockito annotations. Another thing that you<br/>will notice is that instance variable mocks can be done with annotations in Mockito, using the <code>@Mock</code> annotation, very<br/>useful.</p>
-<pre><code class="java">@RunWith(MockitoJUnit44Runner.class)
+	<p><p><a href="http://mockito.org/">Mockito</a> is a fairly new player in the mocking arena, but one that I have found particularly interesting. It's as expressive and flexible as <a href="http://jmock.org/">JMock</a> (from what I have seen so far) but it's a bit more compact and concise, which is something I really like.</p> 
+<p>It's also got some nice annotation support that really helps cleans up the code. If you look at the<br> <code>EmailListServlet_MockitoTest</code> class you will see that again (as with JMock) the <code>@RunWith</code> annotation is used to provide<br> a special test runner for Mockito. In this case it is used to evaluate the Mockito annotations. Another thing that you<br> will notice is that instance variable mocks can be done with annotations in Mockito, using the <code>@Mock</code> annotation, very<br> useful.</p> 
+<pre><code class="language-java">@RunWith(MockitoJUnit44Runner.class)
 public class EmailListServlet_MockitoTest {
     private EmailListServlet servlet;
 
     @Mock
     private HttpServletRequest request;
 }
-</code></pre><p>The <code>@Before</code> method is somewhere between the Spring-mock and JMock complexity level:</p>
-<pre><code class="java">@Before
+</code></pre> 
+<p>The <code>@Before</code> method is somewhere between the Spring-mock and JMock complexity level:</p> 
+<pre><code class="language-java">@Before
 public void before() throws ServletException {
     final ServletConfig servletConfig = mock(ServletConfig.class);
     final ServletContext servletContext = mock(ServletContext.class);
@@ -117,33 +119,36 @@ public void before() throws ServletException {
     this.servlet = new EmailListServlet();
     servlet.init(servletConfig);
 }
-</code></pre><p>Its as expressive as JMock but with less of the distracting overhead (no instance initialization block expectations) so<br/>it's a bit easier to read, and to maintain. The "without list name" test is almost as simple as it was in the spring-mock<br/>version:</p>
-<pre><code class="java">@Test(expected=IOException.class)
+</code></pre> 
+<p>Its as expressive as JMock but with less of the distracting overhead (no instance initialization block expectations) so<br> it's a bit easier to read, and to maintain. The "without list name" test is almost as simple as it was in the spring-mock<br> version:</p> 
+<pre><code class="language-java">@Test(expected=IOException.class)
 public void doGet_without_list() throws Exception {
-    when(request.getParameter(&quot;listName&quot;)).thenReturn(null);
+    when(request.getParameter("listName")).thenReturn(null);
     when(emailListService.getListByName(null)).thenThrow(new IOException());
     servlet.doGet(request, response);
 }
-</code></pre><p>Notice, too, that it reads fairly clear as to what is going on. "When you get this method call, return this". Again<br/>with the "with list name" test we see that Mockito also has good sequential call support:</p>
-<pre><code class="java">@Test
+</code></pre> 
+<p>Notice, too, that it reads fairly clear as to what is going on. "When you get this method call, return this". Again<br> with the "with list name" test we see that Mockito also has good sequential call support:</p> 
+<pre><code class="language-java">@Test
 public void doGet_with_list() throws Exception {
     final PrintWriter writer = mock(PrintWriter.class);
-    when(request.getParameter(&quot;listName&quot;)).thenReturn(&quot;foolist&quot;);
+    when(request.getParameter("listName")).thenReturn("foolist");
 
-    final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
-    when(emailListService.getListByName(&quot;foolist&quot;)).thenReturn(list);
+    final List&lt;String&gt; list = Arrays.asList("larry@stooge.com","moe@stooge.com","curley@stooge.com");
+    when(emailListService.getListByName("foolist")).thenReturn(list);
     when(response.getWriter()).thenReturn(writer);
 
     servlet.doGet(request, response);
 
     final InOrder order = inOrder(writer);
-    order.verify(writer).println(&quot;larry@stooge.com&quot;);
-    order.verify(writer).println(&quot;moe@stooge.com&quot;);
-    order.verify(writer).println(&quot;curley@stooge.com&quot;);
+    order.verify(writer).println("larry@stooge.com");
+    order.verify(writer).println("moe@stooge.com");
+    order.verify(writer).println("curley@stooge.com");
     order.verify(writer).close();
 }
-</code></pre><p>Another thing to point out here is that with Mockito, there is nothing special you need to to in order to mock out<br/>concrete classes, it just works. The whole test case using Mockito is shown below:</p>
-<pre><code class="java">@RunWith(MockitoJUnit44Runner.class)
+</code></pre> 
+<p>Another thing to point out here is that with Mockito, there is nothing special you need to to in order to mock out<br> concrete classes, it just works. The whole test case using Mockito is shown below:</p> 
+<pre><code class="language-java">@RunWith(MockitoJUnit44Runner.class)
 public class EmailListServlet_MockitoTest {
     private EmailListServlet servlet;
 
@@ -165,7 +170,7 @@ public class EmailListServlet_MockitoTest {
 
     @Test(expected=IOException.class)
     public void doGet_without_list() throws Exception {
-        when(request.getParameter(&quot;listName&quot;)).thenReturn(null);
+        when(request.getParameter("listName")).thenReturn(null);
         when(emailListService.getListByName(null)).thenThrow(new IOException());
 
         servlet.doGet(request, response);
@@ -174,23 +179,25 @@ public class EmailListServlet_MockitoTest {
     @Test
     public void doGet_with_list() throws Exception {
         final PrintWriter writer = mock(PrintWriter.class);
-        when(request.getParameter(&quot;listName&quot;)).thenReturn(&quot;foolist&quot;);
+        when(request.getParameter("listName")).thenReturn("foolist");
 
-        final List&lt;String&gt; list = Arrays.asList(&quot;larry@stooge.com&quot;,&quot;moe@stooge.com&quot;,&quot;curley@stooge.com&quot;);
-        when(emailListService.getListByName(&quot;foolist&quot;)).thenReturn(list);
+        final List&lt;String&gt; list = Arrays.asList("larry@stooge.com","moe@stooge.com","curley@stooge.com");
+        when(emailListService.getListByName("foolist")).thenReturn(list);
         when(response.getWriter()).thenReturn(writer);
 
         servlet.doGet(request, response);
 
         final InOrder order = inOrder(writer);
-        order.verify(writer).println(&quot;larry@stooge.com&quot;);
-        order.verify(writer).println(&quot;moe@stooge.com&quot;);
-        order.verify(writer).println(&quot;curley@stooge.com&quot;);
+        order.verify(writer).println("larry@stooge.com");
+        order.verify(writer).println("moe@stooge.com");
+        order.verify(writer).println("curley@stooge.com");
         order.verify(writer).close();
     }
 }
-</code></pre><p>I plan on spending some more time with Mockito as I could see it becoming my favourite mocking API.</p>
-<blockquote><p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p>
+</code></pre> 
+<p>I plan on spending some more time with Mockito as I could see it becoming my favourite mocking API.</p> 
+<blockquote> 
+ <p>You can find the source code used in this posting in my <a href="http://github.com/cjstehno/coffeaelectronica/tree/master/tourdemock">TourDeMock</a> project.</p> 
 </blockquote></p>
 
 

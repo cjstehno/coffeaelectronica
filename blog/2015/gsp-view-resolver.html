@@ -97,20 +97,18 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 26 October 2015</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/groovy.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> groovy</span></a> <a href='/tags/vanilla.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> vanilla</span></a> <a href='/tags/spring.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> spring</span></a></p>
 
-	<p><div class="paragraph">
-<p>Recently, while working on a <a href="http://springframework.org">Spring MVC</a> application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy <a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html">GStringTemplateEngine</a>. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a
-nightmare to maintain, and your designers would kill you if they ever had to work with them.</p>
-</div>
-<div class="paragraph">
-<p>This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try&#8230;&#8203; and I was right, it was not hard at all.</p>
-</div>
-<div class="paragraph">
-<p>The <code>ViewResolver</code> implementation I came up with is an extension of the <code>AbstractTemplateViewResolver</code> with one main method of interest, the <code>buildView(String)</code> method
-which contains the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
+	<p><div class="paragraph"> 
+ <p>Recently, while working on a <a href="http://springframework.org">Spring MVC</a> application, I was considering which template framework to use for my views and I was surprised to realize that there was no implementation using the Groovy <a href="http://docs.groovy-lang.org/latest/html/gapi/groovy/text/GStringTemplateEngine.html">GStringTemplateEngine</a>. There is one for the Groovy Markup Templates; however, in my opinion, that format seems pretty terrible - they are interesting in themselves, but they seem like they would be a nightmare to maintain, and your designers would kill you if they ever had to work with them.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>This obvious gap in functionality surprised me and even a quick Google search did not turn up any implementations, though there was some documentation around using the Grails GSP framework in a standard Spring Boot application, but this seemed like overkill for how simple the templates can be. Generally, implementing extensions to the Spring Framework is pretty simple so I decided to give it a quick try…​ and I was right, it was not hard at all.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The <code>ViewResolver</code> implementation I came up with is an extension of the <code>AbstractTemplateViewResolver</code> with one main method of interest, the <code>buildView(String)</code> method which contains the following:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected AbstractUrlBasedView buildView(final String viewName) throws Exception {
     GroovyTemplateView view = super.buildView(viewName) as GroovyTemplateView <b class="conum">(1)</b>
 
     URL templateUrl = applicationContext.getResource(view.url).getURL() <b class="conum">(2)</b>
@@ -122,33 +120,25 @@ which contains the following:</p>
     view.encoding = defaultEncoding
 
     return view
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Call the super class to create a configured instance of the <code>View</code></p>
-</li>
-<li>
-<p>Load the template from the <code>ApplicationContext</code> using the <code>url</code> property of the <code>View</code></p>
-</li>
-<li>
-<p>Create the <code>Template</code> from the contents of the URL</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>This method basically just uses the view resolver framework to find the template file
-and load it with the <code>GSTringTemplateEngine</code> - the framework takes care of the
-caching and model attribute management.</p>
-</div>
-<div class="paragraph">
-<p>The <code>View</code> implementation is also quite simple; it is an extension of the <code>AbstractTemplateview</code>, with the only implmented method being the <code>renderMergedTemplateModel()</code> method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected void renderMergedTemplateModel(
+}</code></pre> 
+ </div> 
+</div> 
+<div class="colist arabic"> 
+ <ol> 
+  <li> <p>Call the super class to create a configured instance of the <code>View</code></p> </li> 
+  <li> <p>Load the template from the <code>ApplicationContext</code> using the <code>url</code> property of the <code>View</code></p> </li> 
+  <li> <p>Create the <code>Template</code> from the contents of the URL</p> </li> 
+ </ol> 
+</div> 
+<div class="paragraph"> 
+ <p>This method basically just uses the view resolver framework to find the template file and load it with the <code>GSTringTemplateEngine</code> - the framework takes care of the caching and model attribute management.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>The <code>View</code> implementation is also quite simple; it is an extension of the <code>AbstractTemplateview</code>, with the only implmented method being the <code>renderMergedTemplateModel()</code> method:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">protected void renderMergedTemplateModel(
     Map&lt;String, Object&gt; model, HttpServletRequest req, HttpServletResponse res
 ) throws Exception {
     res.contentType = contentType
@@ -157,37 +147,39 @@ caching and model attribute management.</p>
     res.writer.withPrintWriter { PrintWriter out -&gt;
         out.write(template.make(model) as String)
     }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>Template</code> content is rendered using the configured model data and then written to the <code>PrintWriter</code> from the <code>HttpServletResponse</code>, which sends it to the client.</p>
-</div>
-<div class="paragraph">
-<p>Lastly, you need to configure the resolver in your application:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Bean ViewResolver viewResolver() {
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>The <code>Template</code> content is rendered using the configured model data and then written to the <code>PrintWriter</code> from the <code>HttpServletResponse</code>, which sends it to the client.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Lastly, you need to configure the resolver in your application:</p> 
+</div> 
+<div class="listingblock"> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">@Bean ViewResolver viewResolver() {
     new GroovyTemplateViewResolver(
         contentType: 'text/html',
         cache: true,
         prefix: '/WEB-INF/gsp/',
         suffix: '.gsp'
     )
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>One thing to notice here is all the functionality you get by default from the Spring <code>ViewResolver</code> framework for very little added code on your part.</p>
-</div>
-<div class="paragraph">
-<p>Another thing to note is that "GSP" file in this case is not really a true GSP; however, you have all the functionality provided by the <code>GStringTemplateEngine</code>, which is quite similar. An example template could be something like:</p>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">hello.gsp</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-gsp" data-lang="gsp">&lt;html&gt;
+}</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>One thing to notice here is all the functionality you get by default from the Spring <code>ViewResolver</code> framework for very little added code on your part.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>Another thing to note is that "GSP" file in this case is not really a true GSP; however, you have all the functionality provided by the <code>GStringTemplateEngine</code>, which is quite similar. An example template could be something like:</p> 
+</div> 
+<div id="app-listing" class="listingblock"> 
+ <div class="title">
+  hello.gsp
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-gsp" data-lang="gsp">&lt;html&gt;
     &lt;head&gt;&lt;title&gt;Hello&lt;/title&gt;&lt;/head&gt;
     &lt;body&gt;
         [${new Date()}] Hello, ${name ?: 'stranger'}
@@ -196,21 +188,21 @@ caching and model attribute management.</p>
             You have been here ${personService.visits(name)} times.
         &lt;% } %&gt;
     &lt;/body&gt;
-&lt;/html&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It&#8217;s definitely a nice clean template language if you are already coding everything else in Groovy anyway.</p>
-</div>
-<div class="paragraph">
-<p>I will be adding a spring helper library to my vanilla project; the "vanilla-spring"
-project will have the final version of this code, though it should be similar to
-what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.</p>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">GroovyTemplateViewResolver.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
+&lt;/html&gt;</code></pre> 
+ </div> 
+</div> 
+<div class="paragraph"> 
+ <p>It’s definitely a nice clean template language if you are already coding everything else in Groovy anyway.</p> 
+</div> 
+<div class="paragraph"> 
+ <p>I will be adding a spring helper library to my vanilla project; the "vanilla-spring" project will have the final version of this code, though it should be similar to what is dicussed here. The full source for the code discussed above is provided below for reference until the actual code is released.</p> 
+</div> 
+<div id="app-listing" class="listingblock"> 
+ <div class="title">
+  GroovyTemplateViewResolver.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
 
 // imports removed...
 
@@ -244,13 +236,15 @@ class GroovyTemplateViewResolver extends AbstractTemplateViewResolver {
         view.encoding = defaultEncoding
         return view
     }
-}</code></pre>
-</div>
-</div>
-<div id="app-listing" class="listingblock">
-<div class="title">GroovyTemplateView.groovy</div>
-<div class="content">
-<pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
+}</code></pre> 
+ </div> 
+</div> 
+<div id="app-listing" class="listingblock"> 
+ <div class="title">
+  GroovyTemplateView.groovy
+ </div> 
+ <div class="content"> 
+  <pre class="prettyprint highlight"><code class="language-groovy" data-lang="groovy">package com.stehno.vanilla.spring.view
 
 // imports removed...
 
@@ -271,8 +265,8 @@ class GroovyTemplateView extends AbstractTemplateView {
             out.write(template.make(model) as String)
         }
     }
-}</code></pre>
-</div>
+}</code></pre> 
+ </div> 
 </div></p>
 
 

@@ -97,26 +97,29 @@
 
 	<p><em><span class="glyphicon glyphicon-calendar"></span> 23 December 2009</em> ~ <a href='/tags/blog.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> blog</span></a> <a href='/tags/javascript.html'><span class='label label-success'><span class='glyphicon glyphicon-tag'></span> javascript</span></a></p>
 
-	<p><p>I coded up a nice little collapsible-group side bar thingy using <a href="http://jquery.com/">JQuery</a> and it was surprisingly<br/>easy. Say you have a sidebar with collapsible group content such as:</p>
-<pre><code class="html">&lt;div class=&quot;container&quot;&gt;
-    &lt;div class=&quot;group&quot;&gt;
-        &lt;div class=&quot;group-title&quot;&gt;Group A&lt;/div&gt;
-        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group A.&lt;/div&gt;
+	<p><p>I coded up a nice little collapsible-group side bar thingy using <a href="http://jquery.com/">JQuery</a> and it was surprisingly<br> easy. Say you have a sidebar with collapsible group content such as:</p> 
+<pre><code class="language-html">&lt;div class="container"&gt;
+    &lt;div class="group"&gt;
+        &lt;div class="group-title"&gt;Group A&lt;/div&gt;
+        &lt;div class="group-content"&gt;This is where you would put the content for Group A.&lt;/div&gt;
     &lt;/div&gt;
-    &lt;div class=&quot;group&quot;&gt;
-        &lt;div class=&quot;group-title&quot;&gt;Group B&lt;/div&gt;
-        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group B.&lt;/div&gt;
+    &lt;div class="group"&gt;
+        &lt;div class="group-title"&gt;Group B&lt;/div&gt;
+        &lt;div class="group-content"&gt;This is where you would put the content for Group B.&lt;/div&gt;
     &lt;/div&gt;
-    &lt;div class=&quot;group&quot;&gt;
-        &lt;div class=&quot;group-title&quot;&gt;Group C&lt;/div&gt;
-        &lt;div class=&quot;group-content&quot;&gt;This is where you would put the content for Group C.&lt;/div&gt;
+    &lt;div class="group"&gt;
+        &lt;div class="group-title"&gt;Group C&lt;/div&gt;
+        &lt;div class="group-content"&gt;This is where you would put the content for Group C.&lt;/div&gt;
     &lt;/div&gt;
 &lt;/div&gt;
-</code></pre><p>where you have group block titles and group content that you want to be able to toggle the visibility of. With a<br/>couple lines of JavaScript and JQuery it's a sinch:</p>
-<pre><code class="javascript">$(&#39;div.group-title&#39;).bind(&#39;click&#39;,function(evt){
-    $(evt.target).parent().find(&#39;.group-content&#39;).slideToggle(500);
+</code></pre> 
+<p>where you have group block titles and group content that you want to be able to toggle the visibility of. With a<br> couple lines of JavaScript and JQuery it's a sinch:</p> 
+<pre><code class="language-javascript">$('div.group-title').bind('click',function(evt){
+    $(evt.target).parent().find('.group-content').slideToggle(500);
 });
-</code></pre><p>which will be put inside an onload handler (also using JQuery). When the group title is clicked, the group-content<br/>block will toggle by sliding up or down in about half a second. With this model you can also place any number of these<br/>"components" on a page without the concern about event collision since the event handling is based on the click<br/>location. Add in a little CSS and you end up with:</p><p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/collapsable-div.png" alt="Screen shot of div.""/></p></p>
+</code></pre> 
+<p>which will be put inside an onload handler (also using JQuery). When the group title is clicked, the group-content<br> block will toggle by sliding up or down in about half a second. With this model you can also place any number of these<br> "components" on a page without the concern about event collision since the event handling is based on the click<br> location. Add in a little CSS and you end up with:</p> 
+<p><img src="https://raw.github.com/cjstehno/coffeaelectronica/master/content/files/collapsable-div.png" alt="Screen shot of div."></p></p>
 
 
             <div class="row">
