@@ -1,32 +1,24 @@
-buildscript {
-    repositories {
-        jcenter()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-
-    dependencies {
-        classpath 'me.champeau.gradle:jbake-gradle-plugin:0.2'
-        classpath 'org.jbake:jbake-core:2.3.2'
-        classpath 'org.pegdown:pegdown:1.4.2'
-        classpath 'org.asciidoctor:asciidoctorj:1.5.2'
-        classpath "gradle.plugin.com.stehno.gradle:webpreview:0.3.0"
-    }
+plugins {
+    id 'org.jbake.site' version '1.2.0'
+    id "com.stehno.gradle.webpreview" version "0.3.0"
 }
-
-apply plugin: 'me.champeau.jbake'
-apply plugin: "com.stehno.gradle.webpreview"
 
 task publish(type: GradleBuild) {
     buildFile = 'publish.gradle'
-    tasks = ['publishGhPages']
+    tasks = ['gitPublishPush']
+}
+
+jbake {
+    pegdownVersion = '1.6.0'
+    flexmarkVersion = '0.32.20'
+    freemarkerVersion = '2.3.28'
+    groovyTemplatesVersion = '2.4.15'
+    jade4jVersion = '1.2.7'
+    thymeleafVersion = '3.0.2.RELEASE'
+    asciidoctorJavaIntegrationVersion = '0.1.4'
+    asciidoctorjVersion = '1.5.5'
 }
 
 webPreview {
     resourceDir = file('build/jbake')
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
 }

@@ -1,20 +1,15 @@
-buildscript {
-  repositories {
-      jcenter()
-  }
 
-  dependencies {
-    classpath 'org.ajoberstar:gradle-git:1.0.0'
-  }
+plugins {
+    id 'org.ajoberstar.git-publish' version '0.3.0'
 }
 
-apply plugin: 'org.ajoberstar.github-pages'                      
+gitPublish {
+    repoUri = 'git@github.com:cjstehno/coffeaelectronica.git'
+    branch = 'gh-pages'
 
-githubPages {
-  repoUri = 'git@github.com:cjstehno/coffeaelectronica.git'      
-  pages {
-     from(file('build/jbake')) {
-     	into '.'                                    
-     }
-  }
+    contents {
+        from(file('build/jbake')) {
+            into '.'
+        }
+    }
 }
