@@ -1,0 +1,10 @@
+- relocate the examples in the content
+    - ast-testing
+    - google-protocol-buffers
+    - mapping-large-data
+    - spring-shoe
+    - tourdemock
+- try to condense the example projects
+
+- convert all posts to adoc
+- relocate the index and blog list pages
